@@ -1,12 +1,20 @@
 import React, { useState } from "react";
-import { Bell } from "lucide-react";
+import {
+  Bell,
+  Mic,
+  CheckCircle,
+  Users,
+  MessageSquare,
+  Sparkles,
+  TrendingUp,
+} from "lucide-react";
 import Navbar from "../../components/Header/Navbar";
 
 const HomePage = () => {
   const [email, setEmail] = useState("");
 
   return (
-    <div className="font-sans min-h-screen flex flex-col ">
+    <div className=" min-h-screen flex flex-col ">
       {/* Top banner */}
       <div className="bg-blue-900 text-white p-2 text-center text-sm ">
         Keep learning with free resources! Experience{" "}
@@ -15,15 +23,15 @@ const HomePage = () => {
           Learn more
         </a>
       </div>
+      {/* Navigation */}
+      <Navbar />
       <section className="md:mx-10">
-        {/* Navigation */}
-        <Navbar/>
         {/* Main content */}
         <main className="flex-grow bg-white">
           <div className="container mx-auto px-4 py-12">
             <div className="flex flex-col lg:flex-row items-center justify-between">
               {/* Left side text content */}
-              <div className="lg:w-1/2 mb-10 lg:mb-0">
+              <div className="lg:w-1/2 mb-10 ">
                 <div className="relative inline-block mb-3">
                   <div className="absolute inset-0 bg-[#FFB71C80] transform -rotate-2 z-0"></div>
                   <span className="relative z-10 px-3 py-1 block font-bold text-blue-600 text-sm">
@@ -31,50 +39,53 @@ const HomePage = () => {
                   </span>
                 </div>
 
-                <h1 className="text-4xl md:text-5xl font-bold mb-6 ">
-                  Master Languages With
-                  <div className="mt-4">
-                    <span className="text-blue-500">AI-Powered</span> Learning
-                  </div>
-                </h1>
-
-                <p className="text-gray-600 mb-8">
-                  Enhance your language skills through personalized AI feedback
-                  and real-world practice. Join thousands of successful learners
-                  today
-                </p>
-
-                <div className="flex flex-wrap gap-4 items-start">
-                  <div className="flex flex-col items-start">
-                    <button className="bg-blue-500 text-white px-6 py-3 rounded-[20px] hover:bg-blue-600 transition">
-                      START LEARNING FREE
-                    </button>
-                    <div className="flex items-start m-2">
-                      <svg
-                        className="w-4 h-4 text-blue-500 mr-1"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        />
-                        <path
-                          d="M8 12L11 15L16 9"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                      <span className="text-xs">No Credit Card Required</span>
-                    </div>
-                  </div>
-                  <button className="text-blue-500 border border-blue-500 px-6 py-3 rounded-[20px] hover:bg-blue-500 hover:text-white transition-colors duration-300 flex items-center">
-                    WATCH DEMO
-                  </button>
+                 <div className="container mx-auto p-4 ">
+      <div className="max-w-3xl">
+        <h1 className="text-3xl md:text-5xl font-bold mb-6">
+          Master Languages With
+          <div className="mt-2">
+            <span className="text-blue-500">AI-Powered</span> Learning
+          </div>
+        </h1>
+        
+        <p className="text-gray-600 mb-8 lg:pr-28">
+          Enhance your language skills through personalized AI feedback
+          and real-world practice. Join thousands of successful learners
+          today
+        </p>
+        
+        <div className="flex flex-wrap gap-4 items-start">
+          <div className="flex flex-col items-start">
+            <button className="bg-blue-500 text-white px-6 py-3 rounded-[20px] hover:bg-blue-600 transition font-medium">
+              START LEARNING FREE
+            </button>
+            <div className="flex items-center ml-2 mt-2">
+              <svg
+                className="w-4 h-4 text-blue-500 mr-1"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                />
+                <path
+                  d="M8 12L11 15L16 9"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              <span className="text-sm text-gray-500">No Credit Card Required</span>
+            </div>
+          </div>
+          
+          <button className="text-blue-500 border border-blue-500 px-6 py-3 rounded-[20px] hover:bg-blue-50 transition-colors duration-300">
+            WATCH DEMO
+          </button></div></div>
                 </div>
               </div>
 
@@ -105,28 +116,126 @@ const HomePage = () => {
                 </div>
 
                 {/* Notification bubble */}
-                <div className="absolute bottom-16 -left-6 md:-left-10 bg-white p-3 rounded-lg shadow-lg flex items-center max-w-xs">
-                  <div className="bg-yellow-400 rounded-full p-2 mr-3">
+                <div className="relative bg-white p-4 pt-6 pb-3 rounded-2xl shadow-lg max-w-xs">
+                  <div className="absolute  top-3 -left-4 bg-yellow-400 rounded-full p-2 flex items-center justify-center">
                     <Bell size={20} color="white" />
                   </div>
-                  <div className="text-sm">
-                    <span>Tomorrow is our "When I Grow Up" Spirit Day!</span>
+                  <div className="text-sm  text-center mt-2">
+                    Tomorrow is our" When I<br />
+                    Grow Up" Sprit Day!
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Bottom section */}
-            <div className="mt-20 text-center max-w-3xl mx-auto">
-              <p className="text-blue-500 mb-4">Powered by advanced AI</p>
-              <h2 className="text-3xl md:text-4xl font-bold mb-6">
-                Language learning reimagined with intelligent feedback
-              </h2>
-              <p className="text-gray-600">
-                Our AI-powered platform analyzes your speaking and writing,
-                providing personalized feedback and targeted practice
-                opportunities to accelerate your language learning journey.
-              </p>
+
+            {/* powered by advanced AI */}
+
+            <div className="container mx-auto my-14 px-4 py-12 max-w-6xl">
+              {/* Header Section */}
+              <div className="text-center mb-16">
+                <p className="text-[#0D47A1] font-medium md:text-[27px] mb-2">
+                  Powered by advanced AI
+                </p>
+                <h1 className="text-2xl md:text-5xl font-bold mb-6">
+                  Language learning reimagined with{" "}
+                  <br className="hidden md:block" />
+                  intelligent feedback
+                </h1>
+                <p className="text-gray-600 max-w-3xl mx-auto text-lg">
+                  Our AI-powered platform analyzes your speaking and writing,
+                  providing personalized feedback and targeted practice
+                  opportunities to accelerate your language learning journey.
+                </p>
+              </div>
+
+              {/* Features Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {/* Feature 1 */}
+                <div className="bg-white rounded-lg p-6 shadow-md border border-gray-100 transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer">
+                  <div className="bg-blue-100 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
+                    <Mic className="text-blue-500" size={24} />
+                  </div>
+                  <h3 className="text-xl font-semibold mb-3">
+                    Speech Recognition & Analysis
+                  </h3>
+                  <p className="text-gray-600">
+                    Advanced AI listens to your pronunciation and provides
+                    real-time feedback to improve your accent and fluency.
+                  </p>
+                </div>
+
+                {/* Feature 2 */}
+                <div className="bg-white rounded-lg p-6 shadow-md border border-gray-100 transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer">
+                  <div className="bg-blue-100 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
+                    <CheckCircle className="text-blue-500" size={24} />
+                  </div>
+                  <h3 className="text-xl font-semibold mb-3">
+                    Writing Assessment
+                  </h3>
+                  <p className="text-gray-600">
+                    Get detailed feedback on your written language skills with
+                    suggestions for grammar, vocabulary, and style improvements.
+                  </p>
+                </div>
+
+                {/* Feature 3 */}
+                <div className="bg-white rounded-lg p-6 shadow-md border border-gray-100 transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer">
+                  <div className="bg-blue-100 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
+                    <Users className="text-blue-500" size={24} />
+                  </div>
+                  <h3 className="text-xl font-semibold mb-3">
+                    Personalized Curriculum
+                  </h3>
+                  <p className="text-gray-600">
+                    AI adapts lessons to focus on your specific needs, creating
+                    a custom learning path based on your progress and goals.
+                  </p>
+                </div>
+
+                {/* Feature 4 */}
+                <div className="bg-white rounded-lg p-6 shadow-md border border-gray-100 transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer">
+                  <div className="bg-blue-100 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
+                    <MessageSquare className="text-blue-500" size={24} />
+                  </div>
+                  <h3 className="text-xl font-semibold mb-3">
+                    Immersive Conversations
+                  </h3>
+                  <p className="text-gray-600">
+                    Practice real-life scenarios with AI conversation partners
+                    that adjust to your proficiency level.
+                  </p>
+                </div>
+
+                {/* Feature 5 */}
+                <div className="bg-white rounded-lg p-6 shadow-md border border-gray-100 transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer">
+                  <div className="bg-blue-100 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
+                    <Sparkles className="text-blue-500" size={24} />
+                  </div>
+                  <h3 className="text-xl font-semibold mb-3">
+                    Cultural Context
+                  </h3>
+                  <p className="text-gray-600">
+                    Learn language within authentic cultural contexts, including
+                    idioms, expressions, and customs.
+                  </p>
+                </div>
+
+                {/* Feature 6 */}
+                <div className="bg-white rounded-lg p-6 shadow-md border border-gray-100 transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer">
+                  <div className="bg-blue-100 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
+                    <TrendingUp className="text-blue-500" size={24} />
+                  </div>
+                  <h3 className="text-xl font-semibold mb-3">
+                    Progress Tracking
+                  </h3>
+                  <p className="text-gray-600">
+                    Visualize your improvement over time with detailed analytics
+                    and achievement milestones.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </main>
