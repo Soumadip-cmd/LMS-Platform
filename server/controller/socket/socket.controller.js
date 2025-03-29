@@ -1,5 +1,5 @@
-import { User } from "../models/user.model.js";
-import { getOnlineUsers, isUserOnline } from "../socket/socket.js";
+import { User } from "../../models/user.model.js";
+import { getOnlineUsers, isUserOnline } from "../../socket/socket.js";
 
 /**
  * Get all online users

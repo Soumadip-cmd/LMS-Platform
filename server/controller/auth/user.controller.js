@@ -1,9 +1,9 @@
-import { User } from "../models/user.model.js";
-import { Language } from "../models/language.model.js";
+import { User } from "../../models/user.model.js";
+import { Language } from "../../models/language.model.js";
 import bcrypt from "bcryptjs";
-import { generateToken } from "../utils/generateToken.js";
-import { deleteMediaFromCloudinary, uploadMedia } from "../utils/cloudinary.js";
-import { updateUserStatus } from "../socket/socket.js"
+import { generateToken } from "../../utils/generateToken.js";
+import { deleteMediaFromCloudinary, uploadMedia } from "../../utils/cloudinary.js";
+import { updateUserStatus } from "../../socket/socket.js"
 
 /**
  * Register a new user

@@ -1,8 +1,8 @@
-import { Lecture } from "../models/lecture.model.js";
-import { Course } from "../models/course.model.js";
-import { User } from "../models/user.model.js";
-import { uploadMedia, deleteMediaFromCloudinary } from "../utils/cloudinary.js";
-import { sendCourseNotification } from "../socket/socket.js";
+import { Lecture } from "../../models/lecture.model.js";
+import { Course } from "../../models/course.model.js";
+import { User } from "../../models/user.model.js";
+import { uploadMedia, deleteMediaFromCloudinary } from "../../utils/cloudinary.js";
+import { sendCourseNotification } from "../../socket/socket.js";
 
 /**
  * Create a new lecture

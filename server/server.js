@@ -4,7 +4,7 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import connectDB from "./database/db.js";
 
-
+import mainRouter from "./routes/index.js";
 dotenv.config({});
 
 // call database connection here
@@ -22,7 +22,7 @@ app.use(cors({
     credentials:true
 }));
  
-
+app.use('/api/v1', mainRouter);
  
  
 app.listen(PORT, () => {
