@@ -3,7 +3,6 @@ import mongoose from "mongoose";
 import crypto from "crypto";
 import { Course } from "../models/course.model.js";
 import { CoursePurchase } from "../models/coursepurchase.model.js";
-import { Lecture } from "../models/lecture.model.js";
 import { User } from "../models/user.model.js";
 
 // Initialize Razorpay

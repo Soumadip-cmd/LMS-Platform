@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { CourseProgress } from "../models/courseProgress.model.js";
+import { CourseProgress } from "../models/courseprogress.model.js";
 import { Course } from "../models/course.model.js";
 
 /**

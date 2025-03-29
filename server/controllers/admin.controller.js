@@ -1,7 +1,5 @@
 import { User } from "../models/user.model.js";
 import { Course } from "../models/course.model.js";
-import { Language } from "../models/language.model.js";
-import { Quiz } from "../models/quiz.model.js";
 import mongoose from "mongoose";
 
 /**
