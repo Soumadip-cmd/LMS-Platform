@@ -19,6 +19,16 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    googleId: {
+        type: String,
+        sparse: true,
+        unique: true
+    },
+    facebookId: {
+        type: String,
+        sparse: true,
+        unique: true
+    },
     role: {
         type: String,
         enum: ["instructor", "student", "admin"],
@@ -124,6 +134,11 @@ const userSchema = new mongoose.Schema({
     },
     notes: {
         type: String
+    },
+    authProvider: {
+        type: String,
+        enum: ["local", "google", "facebook"],
+        default: "local"
     }
 }, { timestamps: true });
 
