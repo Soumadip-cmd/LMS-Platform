@@ -48,7 +48,7 @@ const Navbar = () => {
             <input
               type="text"
               placeholder="Search..."
-              className="border rounded-md py-2 px-4 pr-10 w-72 lg:w-96 focus:ring-2 focus:ring-blue-300 focus:outline-none transition-all duration-300"
+              className=" bg-gray-100 rounded-md py-2 px-4 pr-10 w-72 lg:w-96 focus:ring-2 focus:ring-blue-300 focus:outline-none transition-all duration-100"
             />
             <button className="absolute right-3 top-1/2 transform -translate-y-1/2 text-blue-500 hover:text-blue-700 cursor-pointer transition-colors duration-300">
               <svg
@@ -138,12 +138,12 @@ const Navbar = () => {
             ))}
           </div>
 
-          {/* Auth buttons for desktop */}
+          {/* Auth buttons for desktop - UPDATED */}
           <div className="flex space-x-3">
-            <button className="text-blue-600 hover:text-blue-800 transition-all duration-300 relative after:absolute after:w-0 after:h-0.5 after:bg-blue-600 after:left-0 after:bottom-0 after:transition-all after:duration-300 hover:after:w-full hover:scale-110">
+            <button className="bg-gray-200 font-medium text-blue-600 px-4 py-1 rounded hover:text-blue-800 transition-colors duration-300">
               Login
             </button>
-            <button className="bg-yellow-400 text-white px-4 py-1 rounded hover:bg-yellow-500 transition-all duration-300 transform hover:scale-110 hover:shadow-md">
+            <button className="bg-yellow-400 text-white px-4 py-1 rounded hover:bg-yellow-500 hover:text-[#0D47A1] font-medium transition-colors duration-300">
               Sign up
             </button>
           </div>
@@ -183,7 +183,7 @@ const Navbar = () => {
                 <input
                   type="text"
                   placeholder="Search..."
-                  className="border rounded-md py-2 px-4 pr-10 w-full focus:ring-2 focus:ring-blue-300 focus:outline-none transition-all duration-300"
+                  className=" bg-gray-100 rounded-md py-2 px-4 pr-10 w-full focus:ring-2 focus:ring-blue-300 focus:outline-none transition-all duration-100"
                 />
                 <button className="absolute right-3 top-1/2 transform -translate-y-1/2 text-blue-500 hover:text-blue-700 cursor-pointer transition-colors duration-300">
                   <svg
@@ -256,13 +256,13 @@ const Navbar = () => {
             </div>
           </div>
 
-          {/* Mobile menu footer with auth buttons */}
+          {/* Mobile menu footer with auth buttons - UPDATED */}
           <div className="border-t p-4 bg-gray-50">
             <div className="flex flex-col space-y-2">
-            <button className="bg-white text-blue-600 border border-blue-600 hover:text-white hover:bg-blue-600 transition-all duration-300 py-1 px-4 rounded ">
-              Login
-            </button>
-              <button className="bg-yellow-400 text-white py-2 px-4 rounded-md hover:bg-yellow-500 transition-all duration-300 hover:shadow-md text-center">
+              <button className="bg-gray-200 font-medium text-blue-600 py-1 px-4 rounded hover:text-blue-800 transition-colors duration-300">
+                Login
+              </button>
+              <button className="bg-yellow-400 text-white py-2 px-4 rounded-md hover:bg-yellow-500 hover:text-[#0D47A1] font-medium transition-colors duration-300 text-center">
                 Sign up
               </button>
             </div>
