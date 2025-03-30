@@ -234,7 +234,7 @@ export const verifyOTPAndRegister = async (req, res) => {
         try {
             decodedToken = jwt.verify(
                 activationToken,
-                process.env.ACTIVATION_SECRET_KEY || "activation-secret"
+                process.env.ACTIVATION_SECRET_KEY 
             );
         } catch (error) {
             return res.status(400).json({
