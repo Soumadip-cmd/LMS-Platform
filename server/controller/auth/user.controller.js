@@ -1,18 +1,102 @@
 import { User } from "../../models/user.model.js";
 import { Language } from "../../models/language.model.js";
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 import { generateToken } from "../../utils/generateToken.js";
-import { deleteMediaFromCloudinary, uploadMedia } from "../../utils/cloudinary.js";
-import { updateUserStatus } from "../../socket/socket.js"
+
+import { updateUserStatus, getIO } from "../../socket/socket.js";
+import nodemailer from "nodemailer";
+import crypto from "crypto";
+import path from "path";
+import ejs from "ejs";
+import twilio from "twilio";
+
+// Initialize Twilio client
+const twilioClient = process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN
+    ? twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN)
+    : null;
+
+// OTP storage (In production, should use Redis or similar service)
+const otpStore = new Map();
+
+// Configure email transport
+const transporter = nodemailer.createTransport({
+    host: 'smtp.zoho.in',
+    port: 465,
+    secure: true,
+    auth: {
+        user: 'preplings@zohomail.in', // Use the actual email address instead of env variable
+        pass: 'EvGdpzjJprNs' // Use the actual app password instead of env variable for testing
+    },
+    debug: true // Add this for debugging purposes
+});
 
 /**
- * Register a new user
- * @route POST /api/users/register
- * @access Public
+ * Generate OTP
+ * @returns {string} 6-digit OTP
  */
-export const register = async (req, res) => {
+const generateOTP = () => {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+};
+
+
+const generateJWT = (data, secret, expiry) => {
+    return jwt.sign(data, secret, { expiresIn: expiry });
+};
+
+
+const sendEmail = async (to, subject, template, data) => {
     try {
-        const { name, email, password, languageId, learningGoal } = req.body; 
+        // Get template path
+        const templatePath = path.join(process.cwd(), 'mails', 'templates', `${template}.ejs`);
+        
+        // Render template with data
+        const html = await ejs.renderFile(templatePath, data);
+        
+        // Send email
+        await transporter.sendMail({
+            from: `"Preplings" <${process.env.EMAIL_USER}>`,
+            to,
+            subject,
+            html
+        });
+        
+        console.log(`Email sent to ${to}`);
+    } catch (error) {
+        console.error("Email sending failed:", error);
+        throw new Error("Failed to send email");
+    }
+};
+
+/**
+ * Send SMS using Twilio
+ * @param {string} to - Phone number
+ * @param {string} body - SMS body
+ */
+const sendSMS = async (to, body) => {
+    try {
+        if (!twilioClient) {
+            console.warn("Twilio client not configured. SMS not sent.");
+            return;
+        }
+        
+        await twilioClient.messages.create({
+            body,
+            from: process.env.TWILIO_PHONE_NUMBER,
+            to
+        });
+        
+        console.log(`SMS sent to ${to}`);
+    } catch (error) {
+        console.error("SMS sending failed:", error);
+        throw new Error("Failed to send SMS");
+    }
+};
+
+
+export const initiateRegistration = async (req, res) => {
+    try {
+        const { name, email, password, phoneNumber, languageId, learningGoal } = req.body;
         
         // Validate required fields
         if(!name || !email || !password){
@@ -22,13 +106,24 @@ export const register = async (req, res) => {
             });
         }
 
-        // Check if user already exists
-        const user = await User.findOne({email});
-        if(user){
+        // Check if user already exists with email
+        const existingUserEmail = await User.findOne({ email });
+        if (existingUserEmail) {
             return res.status(400).json({
                 success: false,
                 message: "User already exists with this email."
             });
+        }
+
+        // Check if user already exists with phone number (if provided)
+        if (phoneNumber) {
+            const existingUserPhone = await User.findOne({ phoneNumber });
+            if (existingUserPhone) {
+                return res.status(400).json({
+                    success: false,
+                    message: "User already exists with this phone number."
+                });
+            }
         }
 
         // Check if language exists if provided
@@ -42,7 +137,7 @@ export const register = async (req, res) => {
             }
         }
 
-        // Hash password and create user
+        // Hash password
         const hashedPassword = await bcrypt.hash(password, 10);
         
         // Create user data object
@@ -50,52 +145,239 @@ export const register = async (req, res) => {
             name,
             email,
             password: hashedPassword,
+            ...(phoneNumber && { phoneNumber }),
             ...(languageId && { languageToLearn: languageId }),
             ...(learningGoal && { learningGoal })
         };
 
-        // Create user
-        const newUser = await User.create(userData);
+        // Generate OTP and activation token
+        const otp = generateOTP();
+        const activationToken = generateJWT(
+            { userData },
+            process.env.ACTIVATION_SECRET_KEY || "activation-secret",
+            "15m"
+        );
+        
+        // Store OTP and token
+        otpStore.set(email, {
+            otp,
+            activationToken,
+            createdAt: new Date()
+        });
+        
+        // Send OTP via email
+        await sendEmail(
+            email,
+            "Verify Your Account | Preplings",
+            "verification",
+            {
+                name,
+                otp,
+                websiteUrl: process.env.CLIENT_URL || "http://localhost:5173"
+            }
+        );
 
-        return res.status(201).json({
+        // Send OTP via SMS if phone number provided
+        if (phoneNumber && twilioClient) {
+            await sendSMS(
+                phoneNumber,
+                `Your Preplings verification code is: ${otp}. This code expires in 15 minutes.`
+            );
+        }
+
+        return res.status(200).json({
             success: true,
-            message: "Account created successfully."
+            message: "OTP sent to your email" + (phoneNumber ? " and phone number" : "") + " for verification.",
+            activationToken
         });
     } catch (error) {
         console.log(error);
         return res.status(500).json({
             success: false,
-            message: "Failed to register"
+            message: "Failed to initiate registration"
         });
     }
 };
 
-/**
- * User login
- * @route POST /api/users/login
- * @access Public
- */
+
+export const verifyOTPAndRegister = async (req, res) => {
+    try {
+        const { email, otp, activationToken } = req.body;
+        
+        if (!email || !otp || !activationToken) {
+            return res.status(400).json({
+                success: false,
+                message: "Email, OTP and activation token are required."
+            });
+        }
+        
+        // Check if OTP exists and is valid
+        const otpData = otpStore.get(email);
+        
+        if (!otpData) {
+            return res.status(400).json({
+                success: false,
+                message: "OTP expired or not found. Please request a new OTP."
+            });
+        }
+        
+        // Verify OTP
+        if (otpData.otp !== otp) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid OTP. Please try again."
+            });
+        }
+        
+        // Verify activation token
+        let decodedToken;
+        try {
+            decodedToken = jwt.verify(
+                activationToken,
+                process.env.ACTIVATION_SECRET_KEY || "activation-secret"
+            );
+        } catch (error) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid or expired activation token."
+            });
+        }
+        
+        // Create new user
+        const userData = decodedToken.userData;
+        userData.isVerified = true;
+        
+        const newUser = await User.create(userData);
+        
+        // Remove OTP from store
+        otpStore.delete(email);
+        
+        // Send welcome email
+        await sendEmail(
+            email,
+            "Welcome to Preplings!",
+            "welcome",
+            {
+                name: userData.name,
+                websiteUrl: process.env.CLIENT_URL || "http://localhost:5173"
+            }
+        );
+        
+        return res.status(201).json({
+            success: true,
+            message: "Account created successfully. You can now login."
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to complete registration"
+        });
+    }
+};
+
+
+export const resendOTP = async (req, res) => {
+    try {
+        const { email, activationToken } = req.body;
+        
+        if (!email || !activationToken) {
+            return res.status(400).json({
+                success: false,
+                message: "Email and activation token are required."
+            });
+        }
+        
+        // Verify activation token
+        let decodedToken;
+        try {
+            decodedToken = jwt.verify(
+                activationToken,
+                process.env.ACTIVATION_SECRET_KEY || "activation-secret"
+            );
+        } catch (error) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid or expired activation token."
+            });
+        }
+        
+        const userData = decodedToken.userData;
+        
+        // Generate new OTP
+        const otp = generateOTP();
+        
+        // Update OTP store
+        otpStore.set(email, {
+            otp,
+            activationToken,
+            createdAt: new Date()
+        });
+        
+        // Send OTP via email
+        await sendEmail(
+            email,
+            "Your New Verification Code | Preplings",
+            "verification",
+            {
+                name: userData.name,
+                otp,
+                websiteUrl: process.env.CLIENT_URL || "http://localhost:5173"
+            }
+        );
+        
+        // Send OTP via SMS if phone number provided
+        if (userData.phoneNumber && twilioClient) {
+            await sendSMS(
+                userData.phoneNumber,
+                `Your new Preplings verification code is: ${otp}. This code expires in 15 minutes.`
+            );
+        }
+        
+        return res.status(200).json({
+            success: true,
+            message: "OTP resent successfully."
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to resend OTP"
+        });
+    }
+};
 
 export const login = async (req, res) => {
     try {
-        const {email, password} = req.body;
-        if(!email || !password){
+        const { email, password } = req.body;
+        
+        if (!email || !password) {
             return res.status(400).json({
                 success: false,
                 message: "All fields are required."
             });
         }
 
-        const user = await User.findOne({email});
-        if(!user){
+        const user = await User.findOne({ email });
+        
+        if (!user) {
             return res.status(400).json({
                 success: false,
                 message: "Incorrect email or password"
             });
         }
+        
+        // Check if user is verified
+        if (!user.isVerified) {
+            return res.status(403).json({
+                success: false,
+                message: "Please verify your account before logging in."
+            });
+        }
 
         const isPasswordMatch = await bcrypt.compare(password, user.password);
-        if(!isPasswordMatch){
+        
+        if (!isPasswordMatch) {
             return res.status(400).json({
                 success: false,
                 message: "Incorrect email or password"
@@ -122,11 +404,7 @@ export const login = async (req, res) => {
     }
 };
 
-/**
- * User logout
- * @route POST /api/users/logout
- * @access Private
- */
+
 export const logout = async (req, res) => {
     try {
         // Update user online status
@@ -138,13 +416,30 @@ export const logout = async (req, res) => {
                 await user.save();
                 
                 // Broadcast user offline status to appropriate channels
-                updateUserStatus(user._id, false);
+                updateUserStatus(user._id.toString(), false);
+                
+                // Get socket IO instance
+                const io = getIO();
+                if (io) {
+                    // Emit detailed logout event
+                    io.emit("userLogout", {
+                        userId: user._id.toString(),
+                        username: user.name,
+                        timestamp: new Date(),
+                        status: {
+                            isOnline: false,
+                            lastActive: user.lastActive
+                        }
+                    });
+                }
             }
         }
 
         return res.status(200).cookie("token", "", {maxAge: 0}).json({
             message: "Logged out successfully.",
-            success: true
+            success: true,
+            timestamp: new Date(),
+            status: "offline"
         });
     } catch (error) {
         console.log(error);
@@ -155,11 +450,278 @@ export const logout = async (req, res) => {
     }
 };
 
+export const forgotPassword = async (req, res) => {
+    try {
+        const { emailOrPhone } = req.body;
+        
+        if (!emailOrPhone) {
+            return res.status(400).json({
+                success: false,
+                message: "Email or phone number is required."
+            });
+        }
+        
+        // Check if it's an email or phone number
+        const isEmail = emailOrPhone.includes('@');
+        
+        // Find user by email or phone
+        const user = isEmail 
+            ? await User.findOne({ email: emailOrPhone })
+            : await User.findOne({ phoneNumber: emailOrPhone });
+        
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "No account found with that email or phone number."
+            });
+        }
+        
+        // Generate reset token
+        const resetToken = crypto.randomBytes(32).toString('hex');
+        const otp = generateOTP();
+        
+        // Hash token and store it
+        const hashedToken = crypto
+            .createHash('sha256')
+            .update(resetToken)
+            .digest('hex');
+        
+        // Set token and expiry in user model
+        user.resetPasswordToken = hashedToken;
+        user.resetPasswordExpires = Date.now() + 15 * 60 * 1000; // 15 minutes
+        await user.save();
+        
+        // Store OTP
+        otpStore.set(user.email, {
+            otp,
+            resetToken,
+            createdAt: new Date()
+        });
+        
+        // Send password reset email
+        if (isEmail || user.email) {
+            await sendEmail(
+                user.email,
+                "Reset Your Password | Preplings",
+                "reset-password",
+                {
+                    name: user.name,
+                    otp,
+                    websiteUrl: process.env.CLIENT_URL || "http://localhost:5173"
+                }
+            );
+        }
+        
+        // Send SMS if it's a phone number or user has phone
+        if ((!isEmail || user.phoneNumber) && twilioClient) {
+            await sendSMS(
+                user.phoneNumber,
+                `Your Preplings password reset code is: ${otp}. This code expires in 15 minutes.`
+            );
+        }
+        
+        return res.status(200).json({
+            success: true,
+            message: `Password reset code sent to your ${isEmail ? 'email' : 'phone number'}.`,
+            resetToken
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to process password reset request"
+        });
+    }
+};
+
+
+export const verifyResetOTP = async (req, res) => {
+    try {
+        const { email, otp, resetToken } = req.body;
+        
+        if (!email || !otp || !resetToken) {
+            return res.status(400).json({
+                success: false,
+                message: "Email, OTP and reset token are required."
+            });
+        }
+        
+        // Check if OTP exists and is valid
+        const otpData = otpStore.get(email);
+        
+        if (!otpData || otpData.resetToken !== resetToken) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid or expired reset request."
+            });
+        }
+        
+        // Verify OTP
+        if (otpData.otp !== otp) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid reset code. Please try again."
+            });
+        }
+        
+        // Find user
+        const hashedToken = crypto
+            .createHash('sha256')
+            .update(resetToken)
+            .digest('hex');
+        
+        const user = await User.findOne({
+            email,
+            resetPasswordToken: hashedToken,
+            resetPasswordExpires: { $gt: Date.now() }
+        });
+        
+        if (!user) {
+            return res.status(400).json({
+                success: false,
+                message: "Password reset request is invalid or has expired."
+            });
+        }
+        
+        return res.status(200).json({
+            success: true,
+            message: "OTP verified successfully. You can now reset your password.",
+            userId: user._id
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to verify reset code"
+        });
+    }
+};
+
+
+export const resetPassword = async (req, res) => {
+    try {
+        const { userId, password } = req.body;
+        
+        if (!userId || !password) {
+            return res.status(400).json({
+                success: false,
+                message: "User ID and new password are required."
+            });
+        }
+        
+        // Find user
+        const user = await User.findById(userId);
+        
+        if (!user || !user.resetPasswordToken || user.resetPasswordExpires < Date.now()) {
+            return res.status(400).json({
+                success: false,
+                message: "Password reset request is invalid or has expired."
+            });
+        }
+        
+        // Hash new password
+        const hashedPassword = await bcrypt.hash(password, 10);
+        
+        // Update user's password and clear reset fields
+        user.password = hashedPassword;
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpires = undefined;
+        await user.save();
+        
+        // Remove OTP from store
+        otpStore.delete(user.email);
+        
+        // Send password changed confirmation
+        await sendEmail(
+            user.email,
+            "Password Changed Successfully | Preplings",
+            "password-changed",
+            {
+                name: user.name,
+                websiteUrl: process.env.CLIENT_URL || "http://localhost:5173"
+            }
+        );
+        
+        return res.status(200).json({
+            success: true,
+            message: "Password has been reset successfully. You can now login with your new password."
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to reset password"
+        });
+    }
+};
+
 /**
- * Get user profile
- * @route GET /api/users/profile
- * @access Private
+ * Change password (when logged in)
+ 
  */
+export const changePassword = async (req, res) => {
+    try {
+        const userId = req.id;
+        const { currentPassword, newPassword } = req.body;
+        
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "Current password and new password are required."
+            });
+        }
+        
+        // Find user
+        const user = await User.findById(userId);
+        
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found."
+            });
+        }
+        
+        // Verify current password
+        const isPasswordMatch = await bcrypt.compare(currentPassword, user.password);
+        
+        if (!isPasswordMatch) {
+            return res.status(400).json({
+                success: false,
+                message: "Current password is incorrect."
+            });
+        }
+        
+        // Hash new password
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        
+        // Update password
+        user.password = hashedPassword;
+        await user.save();
+        
+        // Send password changed confirmation
+        await sendEmail(
+            user.email,
+            "Password Changed Successfully | Preplings",
+            "password-changed",
+            {
+                name: user.name,
+                websiteUrl: process.env.CLIENT_URL || "http://localhost:5173"
+            }
+        );
+        
+        return res.status(200).json({
+            success: true,
+            message: "Password changed successfully."
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to change password"
+        });
+    }
+};
+
 export const getUserProfile = async (req, res) => {
     try {
         const userId = req.id;
@@ -189,11 +751,7 @@ export const getUserProfile = async (req, res) => {
     }
 };
 
-/**
- * Update user profile
- * @route PUT /api/users/profile
- * @access Private
- */
+
 export const updateProfile = async (req, res) => {
     try {
         const userId = req.id;
@@ -269,11 +827,7 @@ export const updateProfile = async (req, res) => {
     }
 };
 
-/**
- * Add course to wishlist
- * @route POST /api/users/wishlist
- * @access Private
- */
+
 export const addToWishlist = async (req, res) => {
     try {
         const userId = req.id;
@@ -313,11 +867,7 @@ export const addToWishlist = async (req, res) => {
     }
 };
 
-/**
- * Remove course from wishlist
- * @route DELETE /api/users/wishlist/:courseId
- * @access Private
- */
+
 export const removeFromWishlist = async (req, res) => {
     try {
         const userId = req.id;
@@ -350,11 +900,7 @@ export const removeFromWishlist = async (req, res) => {
     }
 };
 
-/**
- * Submit feedback
- * @route POST /api/users/feedback
- * @access Private
- */
+
 export const submitFeedback = async (req, res) => {
     try {
         const userId = req.id;
@@ -391,11 +937,7 @@ export const submitFeedback = async (req, res) => {
     }
 };
 
-/**
- * Get user purchase history
- * @route GET /api/users/purchases
- * @access Private
- */
+
 export const getPurchaseHistory = async (req, res) => {
     try {
         const userId = req.id;

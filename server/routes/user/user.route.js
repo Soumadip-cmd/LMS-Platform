@@ -25,19 +25,19 @@ userRouter.get('/profile', isAuthenticated, getUserProfile);
 
 //update user profile
 
-userRouter.put('/profile', isAuthenticated, updateProfile);
+userRouter.put('/profile-update', isAuthenticated, updateProfile);
 
 //add to wish list
-userRouter.post('/wishlist', isAuthenticated, addToWishlist);
+userRouter.post('/add-wishlist', isAuthenticated, addToWishlist);
 
 //delete from wishlist
-userRouter.delete('/wishlist/:courseId', isAuthenticated, removeFromWishlist);
+userRouter.delete('/delete-wishlist/:courseId', isAuthenticated, removeFromWishlist);
 
 //submit feedback
-userRouter.post('/feedback', isAuthenticated, submitFeedback);
+userRouter.post('/add-feedback', isAuthenticated, submitFeedback);
 
 //get purchase history
-userRouter.get('/purchases', isAuthenticated, getPurchaseHistory);
+userRouter.get('/purchases-history', isAuthenticated, getPurchaseHistory);
 
 //instructor apply
 userRouter.post('/become-instructor', isAuthenticated, becomeInstructor);

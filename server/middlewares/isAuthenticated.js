@@ -23,6 +23,7 @@ const isAuthenticated = async (req, res, next) => {
     }
     
     req.id = decode.userId;
+    req.role = decode.role; // Store role in request object
     next();
   } catch (error) {
     console.log(error);
@@ -55,11 +56,10 @@ const isInstructor = async (req, res, next) => {
     }
     
     req.id = decode.userId;
+    req.role = decode.role;
     
-    // Fetch user to check role
-    const user = await User.findById(decode.userId);
-    
-    if (!user || user.role !== "instructor") {
+    // Check role directly from token without database query
+    if (decode.role !== "instructor") {
       return res.status(403).json({
         message: "Access denied. Instructor privileges required.",
         success: false,
@@ -98,11 +98,10 @@ const isAdmin = async (req, res, next) => {
     }
     
     req.id = decode.userId;
+    req.role = decode.role;
     
-    // Fetch user to check role
-    const user = await User.findById(decode.userId);
-    
-    if (!user || user.role !== "admin") {
+    // Check role directly from token without database query
+    if (decode.role !== "admin") {
       return res.status(403).json({
         message: "Access denied. Admin privileges required.",
         success: false,

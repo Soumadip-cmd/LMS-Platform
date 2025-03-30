@@ -1,5 +1,5 @@
-import { Language } from "../models/language.model.js";
-import { uploadMedia, deleteMediaFromCloudinary } from "../utils/cloudinary.js";
+import { Language } from "../../models/language.model.js";
+import { uploadMedia, deleteMediaFromCloudinary } from "../../utils/cloudinary.js";
 
 /**
  * Create a new language

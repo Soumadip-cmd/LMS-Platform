@@ -10,6 +10,11 @@ const userSchema = new mongoose.Schema({
         required: true,
         unique: true
     },
+    phoneNumber: {
+        type: String,
+        unique: true,
+        sparse: true // Allows null values to not violate unique constraint
+    },
     password: {
         type: String,
         required: true
@@ -34,6 +39,16 @@ const userSchema = new mongoose.Schema({
         type: String,
         enum: ["Audio", "Visual", "Interactive"],
         default: "Visual"
+    },
+    isVerified: {
+        type: Boolean,
+        default: false
+    },
+    resetPasswordToken: {
+        type: String
+    },
+    resetPasswordExpires: {
+        type: Date
     },
     enrolledCourses: [
         {
