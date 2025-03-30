@@ -154,7 +154,7 @@ export const initiateRegistration = async (req, res) => {
         const otp = generateOTP();
         const activationToken = generateJWT(
             { userData },
-            process.env.ACTIVATION_SECRET_KEY || "activation-secret",
+            process.env.ACTIVATION_SECRET_KEY ,
             "15m"
         );
         
