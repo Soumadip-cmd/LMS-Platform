@@ -6,7 +6,7 @@ const Footer = () => {
       {/* Horizontal rule at the top of footer */}
       <hr className="border-gray-200 mx-4 md:mx-8 lg:mx-16" />
       
-      <div className="py-8 md:py-10 px-4 md:px-8 lg:px-16">
+      <div className="py-8 md:py-10 px-4 md:px-8 lg:px-16 md:mr-10 lg:mr-0">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-x-12 gap-y-10">
             {/* Logo and Open Time Section */}

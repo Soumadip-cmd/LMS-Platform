@@ -26,16 +26,8 @@ const HomePage = () => {
 
   return (
     <div className=" min-h-screen flex flex-col ">
-      {/* Top banner */}
-      <div className="bg-blue-900 text-white p-2 text-center text-sm ">
-        Keep learning with free resources! Experience{" "}
-        <span className="font-bold">Preplings</span>.
-        <a href="#" className="ml-2 text-yellow-400 hover:underline">
-          Learn more
-        </a>
-      </div>
-      {/* Navigation */}
-      <Navbar />
+      
+      
       <section className="md:mx-10">
         {/* Main content */}
         <main className="flex-grow bg-white">
