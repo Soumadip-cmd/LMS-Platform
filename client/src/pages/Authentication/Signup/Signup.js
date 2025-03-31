@@ -1,15 +1,100 @@
-import React, { useState } from 'react';
+import React, { useState,useContext,useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronDown } from 'lucide-react';
-
+import authContext from '../../../context/auth/authContext';
 const Signup = () => {
   const [selectedLanguage, setSelectedLanguage] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    languageId: '',
+    learningGoal:'',
+    phoneNumber:''
+  });
+  const [isGoalDropdownOpen, setIsGoalDropdownOpen] = useState(false);
+const learningGoals = ["Casual", "Professional", "Exam Prep"];
+  const [error, setError] = useState('');
+  
   const navigate = useNavigate();
+
+
+  const auth = useContext(authContext);
+  const { 
+    register, 
+    socialLogin, 
+    error: authError, 
+    isAuthenticated, 
+    clearErrors,
+    languages,
+    fetchAllLanguages
+  } = auth;
+  
+  // Fetch languages on component mount
+  useEffect(() => {
+    fetchAllLanguages();
+  }, []);
+  
+  useEffect(() => {
+    // If already authenticated, redirect to homepage
+    if (isAuthenticated) {
+      navigate('/');
+    }
+    
+    if (authError) {
+      setError(authError);
+      clearErrors();
+    }
+  }, [isAuthenticated, authError, navigate, clearErrors]);
+
+  // Update language ID when a language is selected
+  useEffect(() => {
+    if (selectedLanguage) {
+      // Find the language object with the matching name
+      const languageObj = languages.find(lang => lang.name === selectedLanguage);
+      if (languageObj) {
+        setFormData({ ...formData, languageId: languageObj._id });
+      }
+    }
+  }, [selectedLanguage, languages]);
+  
+  
+  const onChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+  
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!formData.name || !formData.email || !formData.password) {
+      setError('Please fill in all required fields');
+    } else {
+      register(formData);
+    }
+  };
   
   const handleLoginClick = () => {
     navigate('/login');
   };
+  
+  const handleGoogleLogin = () => {
+    // Handle Google login
+    const userData = {
+      provider: 'google',
+      // Add other required fields from Google response
+    };
+    socialLogin(userData);
+  };
+  
+  const handleFacebookLogin = () => {
+    // Handle Facebook login
+    const userData = {
+      provider: 'facebook',
+      // Add other required fields from Facebook response
+    };
+    socialLogin(userData);
+  };
+
   
   return (
     <div className="min-h-screen flex flex-col mt-2 lg:flex-row bg-gray-50">
@@ -95,16 +180,16 @@ const Signup = () => {
               
               {isDropdownOpen && (
                 <div className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base overflow-auto focus:outline-none sm:text-sm">
-                  {['English', 'French', 'German', 'Hindi'].map((language) => (
+                  {languages.map((language) => (
                     <div
-                      key={language}
+                    key={language._id}
                       className="cursor-pointer select-none relative py-2 pl-3 pr-9 hover:bg-gray-100"
                       onClick={() => {
-                        setSelectedLanguage(language);
+                        setSelectedLanguage(language.name);
                         setIsDropdownOpen(false);
                       }}
                     >
-                      {language}
+                      {language.name}
                     </div>
                   ))}
                 </div>
@@ -113,7 +198,13 @@ const Signup = () => {
           </div>
           
           <div className="grid grid-cols-2 gap-4 mb-6">
-            <button className="flex items-center justify-center gap-2 border border-gray-300 rounded-md py-2 px-4 text-sm hover:bg-gray-50 transition-colors">
+
+
+            {/* Google Login button div */}
+            <button className="flex items-center justify-center gap-2 border border-gray-300 rounded-md py-2 px-4 text-sm hover:bg-gray-50 transition-colors"
+             onClick={handleGoogleLogin}
+            
+            >
               <div className="w-5 h-5 flex items-center justify-center">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none">
                   <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -125,7 +216,8 @@ const Signup = () => {
               <span className="font-medium">Continue with Google</span>
             </button>
             
-            <button className="flex items-center justify-center gap-2 border border-gray-300 rounded-md py-2 px-4 text-sm hover:bg-gray-50 transition-colors">
+            <button className="flex items-center justify-center gap-2 border border-gray-300 rounded-md py-2 px-4 text-sm hover:bg-gray-50 transition-colors"
+             onClick={handleFacebookLogin}>
               <div className="w-5 h-5 flex items-center justify-center text-blue-600">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
@@ -141,12 +233,14 @@ const Signup = () => {
             <div className="flex-1 border-t border-gray-300"></div>
           </div>
           
-          <form>
+          <form onSubmit={handleSubmit}>
             <div className="mb-4">
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email address</label>
               <input
                 id="email"
                 type="email"
+                onChange={onChange}
+                value={formData.email}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
                 placeholder="Enter your email"
               />
@@ -157,11 +251,69 @@ const Signup = () => {
               <input
                 id="password"
                 type="password"
+                onChange={onChange}  
+                value={formData.password}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
                 placeholder="Enter your password"
               />
             </div>
-            
+
+            <div className="mb-6">
+            <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-1">Mobile Number</label>
+              <input
+  id="mobile"
+  name="phoneNumber"  // Make sure this matches your formData key
+  type="tel"  // Change to tel type
+  value={formData.phoneNumber}
+  onChange={onChange}  // Add this line
+  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
+  placeholder="Enter your Mobile"
+/>
+            </div>
+
+         {/* <div className="mb-6">
+            <label htmlFor="lgoal" className="block text-sm font-medium text-gray-700 mb-1">Learning Goal</label>
+              <input
+                id="lgoal"
+                type="password"
+                value={formData.learningGoal}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
+                placeholder="Select Your Learning goal"
+              />
+            </div> */}
+   
+   <div className="mb-6">
+  <label htmlFor="lgoal" className="block text-sm font-medium text-gray-700 mb-2">Learning Goal</label>
+  <div className="relative">
+    <button 
+      type="button"
+      className="w-full text-left bg-white border border-gray-300 rounded-md py-2 px-3 focus:outline-none"
+      onClick={() => setIsGoalDropdownOpen(!isGoalDropdownOpen)}
+    >
+      {formData.learningGoal || 'Select your learning goal'}
+      <span className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+        <ChevronDown className="h-5 w-5 text-gray-400" />
+      </span>
+    </button>
+    
+    {isGoalDropdownOpen && (
+      <div className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base overflow-auto focus:outline-none sm:text-sm">
+        {learningGoals.map((goal) => (
+          <div
+            key={goal}
+            className="cursor-pointer select-none relative py-2 pl-3 pr-9 hover:bg-gray-100"
+            onClick={() => {
+              setFormData({...formData, learningGoal: goal});
+              setIsGoalDropdownOpen(false);
+            }}
+          >
+            {goal}
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+</div>
             <button
               type="submit"
               className="w-full py-2 px-4 bg-yellow-500 hover:bg-yellow-600 text-white font-medium rounded-md transition-colors"

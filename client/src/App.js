@@ -7,10 +7,11 @@ import Footer from './components/Footer/Footer';
 import Login from './pages/Authentication/Login/Login';
 import Signup from './pages/Authentication/Signup/Signup';
 import CourseSection from './pages/courses/course.section/CourseSectionH';
-
+import AuthState from './context/auth/authState';
 
 function App() {
   return (
+    <AuthState>
     <Router>
       <Navbar /> {/* The Navbar will be present on all pages */}
       <Routes>
@@ -22,6 +23,7 @@ function App() {
       </Routes>
       <Footer/>
     </Router>
+    </AuthState>
   );
 }
 

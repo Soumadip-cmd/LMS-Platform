@@ -1,7 +1,36 @@
 import React from 'react';
 import { Facebook } from 'lucide-react';
-
+import authContext from '../../../context/auth/authContext';
+import { useNavigate } from 'react-router-dom';
+import { useState ,useContext,useEffect} from 'react';
 const Login = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
+  const AuthContext = useContext(authContext);
+  const { login, socialLogin, error: authError, isAuthenticated, clearErrors } = AuthContext;
+
+  useEffect(() => {
+    // If already authenticated, redirect to homepage
+    if (isAuthenticated) {
+      navigate('/');
+    }
+    
+    if (authError) {
+      setError(authError);
+      clearErrors();
+    }
+  }, [isAuthenticated, authError, navigate, clearErrors]);
+  
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!email || !password) {
+      setError('Please fill in all fields');
+    } else {
+      login(email, password);
+    }
+  };
   return (
     <div className="min-h-screen flex flex-col mt-2 lg:flex-row bg-gray-50">
       {/* Left side - Hero section */}
