@@ -1,7 +1,8 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import HomePage from './pages/home/HomePage';
-
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import Navbar from './components/Header/Navbar';
 import Footer from './components/Footer/Footer';
 import Login from './pages/Authentication/Login/Login';
@@ -14,6 +15,7 @@ function App() {
     <AuthState>
     <Router>
       <Navbar /> {/* The Navbar will be present on all pages */}
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<Login />} />

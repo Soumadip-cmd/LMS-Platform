@@ -1,7 +1,10 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronDown } from 'lucide-react';
+
 import authContext from '../../../context/auth/authContext';
+import OTPVerificationModal from './otpVerificationModal';
+import { toast } from 'react-toastify';
+import { ChevronDown, Eye, EyeOff } from 'lucide-react';
 const Signup = () => {
   const [selectedLanguage, setSelectedLanguage] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -13,10 +16,48 @@ const Signup = () => {
     learningGoal: '',
     phoneNumber: ''
   });
+  const [showPassword, setShowPassword] = useState(false);
   const [isGoalDropdownOpen, setIsGoalDropdownOpen] = useState(false);
   const learningGoals = ["Casual", "Professional", "Exam Prep"];
   const [error, setError] = useState('');
+  const [isOtpModalOpen, setIsOtpModalOpen] = useState(false);
+  const [activationToken, setActivationToken] = useState('');
+  const [registeredEmail, setRegisteredEmail] = useState('');
+  const [countryCodes, setCountryCodes] = useState([]);
+  const [selectedCountryCode, setSelectedCountryCode] = useState('+91');
+  const [isCountryCodeDropdownOpen, setIsCountryCodeDropdownOpen] = useState(false);
 
+
+  useEffect(() => {
+    const fetchCountryCodes = async () => {
+      try {
+        const response = await fetch('https://restcountries.com/v3.1/all');
+        const data = await response.json();
+
+        // Extract the country codes and sort them
+        const codes = data
+          .filter(country => country.idd.root) // Some countries might not have dial codes
+          .map(country => ({
+            code: `${country.idd.root}${country.idd.suffixes ? country.idd.suffixes[0] : ''}`,
+            country: country.name.common,
+            flag: country.flags.png
+          }))
+          .sort((a, b) => a.country.localeCompare(b.country));
+
+        setCountryCodes(codes);
+
+        // Set default country code if needed (e.g., to India)
+        const india = codes.find(item => item.country === 'India');
+        if (india) {
+          setSelectedCountryCode(india.code);
+        }
+      } catch (error) {
+        console.error('Error fetching country codes:', error);
+      }
+    };
+
+    fetchCountryCodes();
+  }, []);
   const navigate = useNavigate();
 
 
@@ -24,6 +65,8 @@ const Signup = () => {
   const {
     register,
     socialLogin,
+    verifyOTPAndRegister,
+    resendOTP,
     error: authError,
     isAuthenticated,
     clearErrors,
@@ -64,12 +107,69 @@ const Signup = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!formData.name || !formData.email || !formData.password) {
       setError('Please fill in all required fields');
-    } else {
-      register(formData);
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    try {
+      // Combine country code with phone number
+      const combinedPhoneNumber = selectedCountryCode + formData.phoneNumber;
+
+      // Create modified formData with the combined phone number
+      const modifiedFormData = {
+        ...formData,
+        phoneNumber: combinedPhoneNumber
+      };
+
+      // Call register with modified formData
+      const response = await register(modifiedFormData);
+
+      if (response.success) {
+        toast.info('Verification code sent to your email. Please verify your account.');
+        setActivationToken(response.activationToken);
+        setRegisteredEmail(formData.email);
+        setIsOtpModalOpen(true);
+      }
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || 'Registration failed. Please try again.';
+      setError(errorMessage);
+      toast.error(errorMessage);
+    }
+  };
+
+
+  const handleVerifyOTP = async (email, otp, activationToken) => {
+    try {
+      // Call verifyOTPAndRegister from auth context
+      await auth.verifyOTPAndRegister({ email, otp, activationToken });
+
+      // Show success toast
+      toast.success('Registration successful! You can now login.');
+
+      // Close the modal and redirect to login page on success
+      setIsOtpModalOpen(false);
+      navigate('/login');
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || 'OTP verification failed. Please try again.';
+      toast.error(errorMessage);
+      throw err; // Rethrow error to be handled in the OTP modal component
+    }
+  };
+
+  // Function to handle resend OTP
+  const handleResendOTP = async (email, activationToken) => {
+    try {
+      // Call resendOTP from auth context
+      await auth.resendOTP({ email, activationToken });
+    } catch (err) {
+      throw err;
     }
   };
 
@@ -234,10 +334,26 @@ const Signup = () => {
           </div>
 
           <form onSubmit={handleSubmit}>
+
+
+
+            <div className="mb-4">
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+              <input
+                id="name"
+                name="name"
+                type="text"
+                onChange={onChange}
+                value={formData.name}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
+                placeholder="Enter your full name"
+              />
+            </div>
             <div className="mb-4">
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email address</label>
               <input
                 id="email"
+                name="email"
                 type="email"
                 onChange={onChange}
                 value={formData.email}
@@ -246,31 +362,96 @@ const Signup = () => {
               />
             </div>
 
-            <div className="mb-6">
+            {/* <div className="mb-6">
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">Password</label>
               <input
                 id="password"
+                name="password"
                 type="password"
                 onChange={onChange}
                 value={formData.password}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
                 placeholder="Enter your password"
               />
+            </div> */}
+
+
+            <div className="mb-6">
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+              <div className="relative">
+                <input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  onChange={onChange}
+                  value={formData.password}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
+                  placeholder="Enter your password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm leading-5"
+                >
+                  {showPassword ?
+                    <EyeOff className="h-5 w-5 text-gray-400" /> :
+                    <Eye className="h-5 w-5 text-gray-400" />
+                  }
+                </button>
+              </div>
             </div>
             {/* New */}
+
+
+
             <div className="mb-6">
               <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-1">Mobile Number</label>
-              <input
-                id="mobile"
-                name="phoneNumber"
-                type="tel"
-                value={formData.phoneNumber}
-                onChange={onChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
-                placeholder="Enter your Mobile"
-              />
-            </div>
+              <div className="flex">
+                {/* Country code dropdown */}
+                <div className="relative w-1/3 mr-2">
+                  <button
+                    type="button"
+                    className="w-full flex items-center justify-between bg-white border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                    onClick={() => setIsCountryCodeDropdownOpen(!isCountryCodeDropdownOpen)}
+                  >
+                    <span>{selectedCountryCode}</span>
+                    <ChevronDown className="h-4 w-4 text-gray-400" />
+                  </button>
 
+                  {isCountryCodeDropdownOpen && (
+                    <div className="absolute z-10 mt-1 w-60 bg-white shadow-lg max-h-60 rounded-md py-1 text-base overflow-auto focus:outline-none sm:text-sm">
+                      {countryCodes.map((item) => (
+                        <div
+                          key={item.code}
+                          className="cursor-pointer select-none relative py-2 pl-3 pr-2 hover:bg-gray-100"
+                          onClick={() => {
+                            setSelectedCountryCode(item.code);
+                            setIsCountryCodeDropdownOpen(false);
+                          }}
+                        >
+                          <div className="flex items-center">
+                            {item.flag && <img src={item.flag} className="w-5 h-3 mr-2" alt={item.country} />}
+                            <span className="font-medium">{item.code}</span>
+                            <span className="ml-2 text-gray-500 text-xs truncate">{item.country}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Phone number input */}
+                <input
+                  id="mobile"
+                  name="phoneNumber"
+                  type="tel"
+                  value={formData.phoneNumber}
+                  onChange={onChange}
+                  className="w-2/3 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                  placeholder="Enter phone number"
+                />
+              </div>
+            </div>
             {/* New */}
             <div className="mb-6">
               <label htmlFor="lgoal" className="block text-sm font-medium text-gray-700 mb-2">Learning Goal</label>
@@ -317,7 +498,19 @@ const Signup = () => {
           </form>
         </div>
       </div>
+
+
+      {/* Otp Modal for verify the email and mobile after register to avoid duplicate and redundate value */}
+      <OTPVerificationModal
+        isOpen={isOtpModalOpen}
+        onClose={() => setIsOtpModalOpen(false)}
+        email={registeredEmail}
+        activationToken={activationToken}
+        onVerifySuccess={handleVerifyOTP}
+        onResendOTP={handleResendOTP}
+      />
     </div>
+
   );
 };
 

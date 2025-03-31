@@ -171,7 +171,7 @@ const AuthState = (props) => {
 
     try {
       const res = await axios.post(
-        `${SERVER_URI}/auth/initiateRegistration`, 
+        `${SERVER_URI}/auth/register`, 
         formData, 
         config
       );
@@ -196,7 +196,7 @@ const AuthState = (props) => {
 
     try {
       const res = await axios.post(
-        `${SERVER_URI}/auth/verifyOTPAndRegister`, 
+        `${SERVER_URI}/auth/verify-otp`, 
         data, 
         config
       );
@@ -227,7 +227,7 @@ const AuthState = (props) => {
 
     try {
       const res = await axios.post(
-        `${SERVER_URI}/auth/resendOTP`, 
+        `${SERVER_URI}/auth/resend-otp`, 
         data, 
         config
       );
