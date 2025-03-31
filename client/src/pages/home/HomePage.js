@@ -428,10 +428,7 @@ const HomePage = () => {
           <PreplingsNews />
         </section>
 
-        {/* footer */}
-        <section>
-          <Footer />
-        </section>
+        
       </div>
     </div>
   );
