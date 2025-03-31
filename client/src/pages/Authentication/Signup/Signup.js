@@ -26,7 +26,7 @@ const Signup = () => {
   const [countryCodes, setCountryCodes] = useState([]);
   const [selectedCountryCode, setSelectedCountryCode] = useState('+91');
   const [isCountryCodeDropdownOpen, setIsCountryCodeDropdownOpen] = useState(false);
-
+  const [filteredCountryCodes, setFilteredCountryCodes] = useState(null);
 
   useEffect(() => {
     const fetchCountryCodes = async () => {
@@ -404,10 +404,10 @@ const Signup = () => {
 
 
 
-            <div className="mb-6">
+            {/* <div className="mb-6">
               <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-1">Mobile Number</label>
               <div className="flex">
-                {/* Country code dropdown */}
+              
                 <div className="relative w-1/3 mr-2">
                   <button
                     type="button"
@@ -436,6 +436,93 @@ const Signup = () => {
                           </div>
                         </div>
                       ))}
+                    </div>
+                  )}
+                </div>
+
+               
+                <input
+                  id="mobile"
+                  name="phoneNumber"
+                  type="tel"
+                  value={formData.phoneNumber}
+                  onChange={onChange}
+                  className="w-2/3 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                  placeholder="Enter phone number"
+                />
+              </div>
+            </div> */}
+
+
+            <div className="mb-6">
+              <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-1">Mobile Number</label>
+              <div className="flex">
+                {/* Country code dropdown */}
+                <div className="relative w-1/3 mr-2">
+                  <button
+                    type="button"
+                    className="w-full flex items-center justify-between bg-white border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                    onClick={() => setIsCountryCodeDropdownOpen(!isCountryCodeDropdownOpen)}
+                  >
+                    <span>{selectedCountryCode}</span>
+                    <ChevronDown className="h-4 w-4 text-gray-400" />
+                  </button>
+
+                  {isCountryCodeDropdownOpen && (
+                    <div className="absolute z-10 mt-1 w-72 bg-white shadow-lg rounded-md py-1 text-base overflow-hidden focus:outline-none sm:text-sm">
+                      {/* Search input */}
+                      <div className="px-3 py-2 border-b border-gray-200">
+                        <input
+                          type="text"
+                          className="w-full px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                          placeholder="Search country..."
+
+
+                          onChange={(e) => {
+                            const searchTerm = e.target.value.toLowerCase().trim();
+
+                            // More lenient search that matches partial words
+                            const filteredCodes = countryCodes.filter(
+                              item => item.country.toLowerCase().includes(searchTerm) ||
+                                item.code.toLowerCase().includes(searchTerm) ||
+                                // Add a specific check for Pakistan (or other common countries)
+                                (searchTerm === "pakista" && item.country.toLowerCase() === "pakistan")
+                            );
+
+                            // If no results found with exact match, do a more fuzzy search
+                            if (filteredCodes.length === 0) {
+                              const fuzzyFilteredCodes = countryCodes.filter(
+                                item => item.country.toLowerCase().indexOf(searchTerm.substring(0, Math.max(searchTerm.length - 1, 1))) >= 0
+                              );
+                              setFilteredCountryCodes(fuzzyFilteredCodes);
+                            } else {
+                              setFilteredCountryCodes(filteredCodes);
+                            }
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      </div>
+
+                      {/* Country list */}
+                      <div className="max-h-60 overflow-y-auto">
+                        {(filteredCountryCodes || countryCodes).map((item) => (
+                          <div
+                            key={item.code}
+                            className="cursor-pointer select-none relative py-2 pl-3 pr-2 hover:bg-gray-100"
+                            onClick={() => {
+                              setSelectedCountryCode(item.code);
+                              setIsCountryCodeDropdownOpen(false);
+                              setFilteredCountryCodes(null); // Reset filtered results
+                            }}
+                          >
+                            <div className="flex items-center">
+                              {item.flag && <img src={item.flag} className="w-5 h-3 mr-2" alt={item.country} />}
+                              <span className="font-medium">{item.code}</span>
+                              <span className="ml-2 text-gray-500 text-xs truncate">{item.country}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
