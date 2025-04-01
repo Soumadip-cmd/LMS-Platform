@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 const Navbar = () => {
   // State to track if mobile menu is open
@@ -39,9 +39,9 @@ const Navbar = () => {
       </div>
 
       {/* Overlay that darkens the main content when menu is open */}
-      <div 
+      <div
         className={`fixed inset-0 bg-black transition-opacity duration-300 z-20 ${
-          isMobileMenuOpen ? 'opacity-50 visible' : 'opacity-0 invisible'
+          isMobileMenuOpen ? "opacity-50 visible" : "opacity-0 invisible"
         }`}
         onClick={toggleMobileMenu}
       ></div>
@@ -50,10 +50,7 @@ const Navbar = () => {
       <nav className="bg-white shadow px-4 lg:px-6 xl:px-14 py-3 flex flex-wrap items-center justify-between relative z-10">
         <div className="flex items-center">
           <Link to="/" className="flex items-center mr-6 group">
-            <div className="bg-yellow-400 text-white p-1 rounded mr-1 transition-transform duration-300 group-hover:scale-110">
-              <span className="font-bold">PL</span>
-            </div>
-            <span className="text-blue-600 font-bold transition-colors duration-300 group-hover:text-blue-800">PREPLINGS</span>
+            <img src="assets\logo\logo.png" alt="logo.png" className=" h-12" />
           </Link>
 
           <div className="relative mx-4 hidden md:block">
@@ -82,7 +79,7 @@ const Navbar = () => {
         </div>
 
         {/* Hamburger menu button for mobile */}
-        <button 
+        <button
           className="xl:hidden flex items-center justify-center w-10 h-10 text-gray-700 hover:text-blue-600 focus:outline-none transition-colors duration-300 z-30"
           onClick={toggleMobileMenu}
         >
@@ -117,14 +114,16 @@ const Navbar = () => {
           {/* Menu items - Simplified to match image */}
           <div className="flex space-x-6">
             {[
-              { name: 'Courses', hasDropdown: true },
-              { name: 'Exams', hasDropdown: true },
-              { name: 'Dashboard', hasDropdown: false },
-              { name: 'Support', hasDropdown: true }
+              { name: "Courses", hasDropdown: true },
+              { name: "Exams", hasDropdown: true },
+              { name: "Dashboard", hasDropdown: false },
+              { name: "Support", hasDropdown: true },
             ].map((item) => (
               <div key={item.name} className="group relative cursor-pointer">
                 <div className="flex items-center transition-transform duration-300 group-hover:scale-110">
-                  <span className="transition-colors duration-300 group-hover:text-blue-600 relative after:absolute after:w-0 after:h-0.5 after:bg-blue-600 after:left-0 after:bottom-0 after:transition-all after:duration-300 group-hover:after:w-full">{item.name}</span>
+                  <span className="transition-colors duration-300 group-hover:text-blue-600 relative after:absolute after:w-0 after:h-0.5 after:bg-blue-600 after:left-0 after:bottom-0 after:transition-all after:duration-300 group-hover:after:w-full">
+                    {item.name}
+                  </span>
                   {item.hasDropdown && (
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -145,9 +144,9 @@ const Navbar = () => {
                 {item.hasDropdown && (
                   <div className="absolute left-0 top-full mt-1 w-48 bg-white shadow-lg rounded-md py-2 z-10 hidden group-hover:block transform origin-top scale-95 opacity-0 group-hover:scale-100 group-hover:opacity-100 transition duration-200">
                     {[1, 2, 3].map((subItem) => (
-                      <a 
-                        key={subItem} 
-                        href="#" 
+                      <a
+                        key={subItem}
+                        href="#"
                         className="block px-4 py-2 hover:bg-blue-50 transition-colors duration-200 hover:text-blue-700"
                       >
                         {item.name} Item {subItem}
@@ -161,10 +160,16 @@ const Navbar = () => {
 
           {/* Auth buttons for desktop - Keeping original styling */}
           <div className="flex space-x-3">
-            <Link to="/login" className="bg-gray-200 font-medium text-blue-600 px-4 py-1 rounded hover:text-blue-800 transition-colors duration-300">
+            <Link
+              to="/login"
+              className="bg-gray-200 font-medium text-blue-600 px-4 py-1 rounded hover:text-blue-800 transition-colors duration-300"
+            >
               Login
             </Link>
-            <Link to="/signup" className="bg-yellow-400 text-white px-4 py-1 rounded hover:bg-yellow-500 hover:text-[#0D47A1] font-medium transition-colors duration-300">
+            <Link
+              to="/signup"
+              className="bg-yellow-400 text-white px-4 py-1 rounded hover:bg-yellow-500 hover:text-[#0D47A1] font-medium transition-colors duration-300"
+            >
               Sign up
             </Link>
           </div>
@@ -172,31 +177,44 @@ const Navbar = () => {
       </nav>
 
       {/* Mobile sidebar menu - slides in from right */}
-      <div 
+      <div
         className={`fixed top-0 right-0 w-72 h-full bg-white shadow-xl z-30 transform transition-transform duration-300 ease-in-out ${
-          isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
+          isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
         <div className="flex flex-col h-full">
           {/* Mobile menu header */}
           <div className="flex items-center justify-between p-4 border-b">
-            <Link to="/" className="flex items-center" onClick={toggleMobileMenu}>
-              <div className="bg-yellow-400 text-white p-1 rounded mr-1">
-                <span className="font-bold">PL</span>
-              </div>
-              <span className="text-blue-600 font-bold">PREPLINGS</span>
+            <Link
+              to="/"
+              className="flex items-center"
+              onClick={toggleMobileMenu}
+            >
+              <img
+                src="assets\logo\logo.png"
+                alt="logo.png"
+                className=" h-12"
+              />
             </Link>
-            <button 
+            <button
               onClick={toggleMobileMenu}
               className="text-gray-500 hover:text-gray-700 transition-colors duration-200"
             >
-              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <svg
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </div>
-
-
 
           {/* Mobile menu content - scrollable */}
           <div className="flex-1 overflow-y-auto py-4">
@@ -230,23 +248,35 @@ const Navbar = () => {
             {/* Menu items with dropdowns */}
             <div className="px-4 py-2">
               {[
-                { name: 'Courses', hasDropdown: true },
-                { name: 'Exams', hasDropdown: true },
-                { name: 'Dashboard', hasDropdown: false },
-                { name: 'Support', hasDropdown: true }
+                { name: "Courses", hasDropdown: true },
+                { name: "Exams", hasDropdown: true },
+                { name: "Dashboard", hasDropdown: false },
+                { name: "Support", hasDropdown: true },
               ].map((item) => (
                 <div key={item.name} className="mb-2">
-                  <div 
+                  <div
                     className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-blue-50 transition-colors duration-200 cursor-pointer"
-                    onClick={() => item.hasDropdown ? toggleDropdown(item.name) : null}
+                    onClick={() =>
+                      item.hasDropdown ? toggleDropdown(item.name) : null
+                    }
                   >
-                    <span className={`transition-colors duration-200 ${openDropdown === item.name ? 'text-blue-600 font-medium' : 'text-gray-700'}`}>
+                    <span
+                      className={`transition-colors duration-200 ${
+                        openDropdown === item.name
+                          ? "text-blue-600 font-medium"
+                          : "text-gray-700"
+                      }`}
+                    >
                       {item.name}
                     </span>
                     {item.hasDropdown && (
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        className={`h-4 w-4 transition-transform duration-300 ${openDropdown === item.name ? 'rotate-180 text-blue-600' : 'text-gray-500'}`}
+                        className={`h-4 w-4 transition-transform duration-300 ${
+                          openDropdown === item.name
+                            ? "rotate-180 text-blue-600"
+                            : "text-gray-500"
+                        }`}
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -260,21 +290,21 @@ const Navbar = () => {
                       </svg>
                     )}
                   </div>
-                  
+
                   {/* Dropdown content */}
                   {item.hasDropdown && (
-                    <div 
+                    <div
                       className={`overflow-hidden transition-all duration-300 ${
-                        openDropdown === item.name 
-                          ? 'max-h-40 opacity-100' 
-                          : 'max-h-0 opacity-0'
+                        openDropdown === item.name
+                          ? "max-h-40 opacity-100"
+                          : "max-h-0 opacity-0"
                       }`}
                     >
                       <div className="bg-gray-50 rounded-md mt-1 mb-2">
                         {[1, 2, 3].map((subItem) => (
-                          <a 
-                            key={subItem} 
-                            href="#" 
+                          <a
+                            key={subItem}
+                            href="#"
                             className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors duration-200 border-l-2 border-transparent hover:border-blue-500"
                           >
                             {item.name} Item {subItem}
@@ -291,15 +321,15 @@ const Navbar = () => {
           {/* Mobile menu footer with auth buttons */}
           <div className="border-t p-4 bg-gray-50">
             <div className="flex flex-col space-y-2">
-              <Link 
-                to="/login" 
+              <Link
+                to="/login"
                 className="bg-gray-200 font-medium text-blue-600 py-1 px-4 rounded hover:text-blue-800 transition-colors duration-300 text-center"
                 onClick={toggleMobileMenu}
               >
                 Login
               </Link>
-              <Link 
-                to="/signup" 
+              <Link
+                to="/signup"
                 className="bg-yellow-400 text-white py-2 px-4 rounded-md hover:bg-yellow-500 hover:text-[#0D47A1] font-medium transition-colors duration-300 text-center"
                 onClick={toggleMobileMenu}
               >

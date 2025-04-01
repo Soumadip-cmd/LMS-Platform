@@ -1,7 +1,7 @@
 import React from 'react';
 import { Facebook } from 'lucide-react';
 import authContext from '../../../context/auth/authContext';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useState, useContext, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { ChevronDown, Eye, EyeOff } from 'lucide-react';
@@ -177,7 +177,7 @@ const handleOtpVerificationSuccess = () => {
           <h2 className="text-2xl font-bold text-center mb-6">Welcome back!</h2>
 
           <p className="text-sm text-center mb-6">
-            Don't have an account? <a href="#" className="text-blue-500 font-bold underline hover:no-underline">Sign up</a>
+            Don't have an account? <Link to='/signup' className="text-blue-500 font-bold underline hover:no-underline">Sign up</Link>
           </p>
 
           <div className="grid grid-cols-2 gap-4 mb-6">
@@ -249,11 +249,11 @@ const handleOtpVerificationSuccess = () => {
                 </button>
               </div>
               <div className="text-right mt-1">
-                <a href="#" className="text-sm font-medium text-black hover:underline">Forgot password?</a>
+                <Link to='/forgotPassword' className="text-sm font-medium text-black hover:underline">Forgot password?</Link>
               </div>
             </div>
             <div className="text-sm text-gray-700 mb-4">
-              By continuing, you agree to our <a href="#" className="text-black font-bold hover:underline">Terms of Service</a> and <a href="#" className="text-black font-bold hover:underline">Privacy Policy</a>
+              By continuing, you agree to our <Link to='/termsofServices' className="text-black font-bold hover:underline">Terms of Service</Link> and <Link to='/privacyPolicy' className="text-black font-bold hover:underline">Privacy Policy</Link>
             </div>
 
             <button
