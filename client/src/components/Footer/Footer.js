@@ -4,45 +4,45 @@ const Footer = () => {
   return (
     <footer className="bg-white">
       {/* Horizontal rule at the top of footer */}
-      <hr className="border-gray-200 mx-4 md:mx-8 lg:mx-16" />
+      <hr className="border-gray-200 mx-4 sm:mx-8 lg:mx-16" />
 
-      <div className="py-8 md:py-10 px-4 md:px-8 lg:px-16 md:mr-10 lg:mr-0">
+      <div className="py-6 sm:py-8 md:py-10 px-4 sm:px-8 lg:px-16 md:mr-10 lg:mr-0">
         <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-x-12 gap-y-10">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-x-6 sm:gap-x-8 md:gap-x-12 gap-y-6 sm:gap-y-8">
             {/* Logo and Open Time Section */}
-            <div className="md:col-span-3 space-y-6">
-              <div className="flex items-center -ml-3">
+            <div className="sm:col-span-2 md:col-span-3 space-y-4 sm:space-y-6">
+              <div className="flex items-center justify-center sm:justify-start -ml-3">
                 <img
                   src="assets\logo\logo.png"
                   alt="logo.png"
-                  className=" h-12"
+                  className="h-10 sm:h-12"
                 />
               </div>
 
-              <div className="mt-6">
-                <h3 className="font-medium mb-4 text-gray-800">Open Time</h3>
-                <div className="flex flex-wrap text-sm text-gray-600">
-                  <p className="flex w-full sm:w-auto">
-                    <span className="w-24">Mon - Friday :</span>
+              <div className="text-center sm:text-left">
+                <h3 className="font-medium mb-3 text-gray-800">Open Time</h3>
+                <div className="flex flex-col text-sm text-gray-600 space-y-2">
+                  <p className="flex justify-center sm:justify-start">
+                    <span className="mr-2 font-medium">Mon - Friday :</span>
                     <span>09:00 - 20:00</span>
                   </p>
-                  <p className="flex w-full sm:w-auto">
-                    <span className="w-24">Sat - Sunday :</span>
+                  <p className="flex justify-center sm:justify-start">
+                    <span className="mr-2 font-medium">Sat - Sunday :</span>
                     <span>09:00 - 13:00</span>
                   </p>
                 </div>
               </div>
 
               {/* Copyright shown only on desktop */}
-              <p className="text-xs text-gray-500 pt-6 hidden md:block">
+              <p className="text-xs text-gray-500 pt-4 hidden md:block text-center sm:text-left">
                 © 2025 Preplings. All Rights Reserved
               </p>
             </div>
 
             {/* First About Section */}
-            <div className="md:col-span-2 md:ml-6">
-              <h3 className="font-medium mb-3 md:mb-5 text-gray-800">About</h3>
-              <ul className="flex flex-wrap gap-x-4 gap-y-2 md:block md:space-y-3 text-sm text-gray-600">
+            <div className="sm:col-span-1 md:col-span-2 md:ml-6">
+              <h3 className="font-medium mb-3 md:mb-5 text-gray-800 text-center sm:text-left">About</h3>
+              <ul className="grid grid-cols-3 sm:grid-cols-1 gap-2 md:block md:space-y-3 text-sm text-gray-600 text-center sm:text-left">
                 <li>
                   <a href="#" className="hover:text-blue-700">
                     About Us
@@ -104,29 +104,29 @@ const Footer = () => {
             </div>
 
             {/* Newsletter Section */}
-            <div className="md:col-span-5">
-              <h3 className="font-medium mb-3 text-gray-800">
+            <div className="sm:col-span-2 md:col-span-5">
+              <h3 className="font-medium mb-3 text-gray-800 text-center sm:text-left">
                 Sign Up for Our Newsletter
               </h3>
-              <p className="text-sm text-gray-600 mb-5">
+              <p className="text-sm text-gray-600 mb-5 text-center sm:text-left">
                 Receive weekly newsletter with educational materials, popular
                 books and much more!
               </p>
 
-              <div className="flex mt-3">
+              <div className="flex flex-col sm:flex-row max-w-md mx-auto sm:mx-0">
                 <input
                   type="email"
                   placeholder="Your e-mail"
-                  className="flex-grow p-2 px-4 text-sm border border-gray-200 rounded-l bg-gray-50 focus:outline-none"
+                  className="w-full p-2 px-4 text-sm border border-gray-200 rounded-t-lg sm:rounded-l-lg sm:rounded-r-none bg-gray-50 focus:outline-none mb-2 sm:mb-0"
                 />
-                <button className="bg-yellow-400 font-medium text-sm px-4 py-2 rounded-r hover:bg-yellow-500 transition">
+                <button className="w-full sm:w-auto bg-yellow-400 font-medium text-sm px-4 py-2 sm:rounded-r-lg hover:bg-yellow-500 transition">
                   Subscribe
                 </button>
               </div>
 
-              {/* Social Media Icons - Centered on mobile */}
-              <div className="flex justify-center md:justify-start space-x-3 mt-6">
-                <a href="#" aria-label="Facebook">
+              {/* Social Media Icons - Centered on mobile with wrap support */}
+              <div className="flex justify-center flex-wrap gap-3 mt-6">
+                <a href="#" aria-label="Facebook" className="flex items-center justify-center">
                   <div className="w-8 h-8 flex items-center justify-center text-blue-700">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -138,7 +138,7 @@ const Footer = () => {
                     </svg>
                   </div>
                 </a>
-                <a href="#" aria-label="Instagram">
+                <a href="#" aria-label="Instagram" className="flex items-center justify-center">
                   <div className="w-8 h-8 flex items-center justify-center text-pink-600">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -150,7 +150,7 @@ const Footer = () => {
                     </svg>
                   </div>
                 </a>
-                <a href="#" aria-label="Twitter">
+                <a href="#" aria-label="Twitter" className="flex items-center justify-center">
                   <div className="w-8 h-8 flex items-center justify-center text-black">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -162,7 +162,7 @@ const Footer = () => {
                     </svg>
                   </div>
                 </a>
-                <a href="#" aria-label="LinkedIn">
+                <a href="#" aria-label="LinkedIn" className="flex items-center justify-center">
                   <div className="w-8 h-8 flex items-center justify-center text-blue-600">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -174,7 +174,7 @@ const Footer = () => {
                     </svg>
                   </div>
                 </a>
-                <a href="#" aria-label="YouTube">
+                <a href="#" aria-label="YouTube" className="flex items-center justify-center">
                   <div className="w-8 h-8 flex items-center justify-center text-red-600">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
