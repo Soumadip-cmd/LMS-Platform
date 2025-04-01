@@ -6,6 +6,7 @@ const OTPVerificationModal = ({ isOpen, onClose, email, activationToken, onVerif
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  
   const [timer, setTimer] = useState(60);
   const inputRefs = useRef([]);
   const auth = useContext(authContext); 

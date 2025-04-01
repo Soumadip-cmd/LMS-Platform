@@ -6,11 +6,16 @@ import { useState, useContext, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { ChevronDown, Eye, EyeOff } from 'lucide-react';
 import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import OTPVerificationModal from '../Signup/otpVerificationModal';
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showOtpModal, setShowOtpModal] = useState(false);
+const [tempUserId, setTempUserId] = useState('');
+const [userEmail, setUserEmail] = useState('');
+
   const navigate = useNavigate();
   const AuthContext = useContext(authContext);
   const { login, socialLogin, error: authError, isAuthenticated, clearErrors } = AuthContext;
@@ -54,6 +59,8 @@ const Login = () => {
     }
   };
 
+
+
   const handleGoogleLogin = async () => {
     try {
       const auth = getAuth();
@@ -70,14 +77,49 @@ const Login = () => {
         photoURL: user.photoURL
       };
       
-      // Call your socialLogin function with the user data
-      await socialLogin(userData);
-      toast.success('Google login successful!');
+      // Call socialLogin function with the user data
+      const loginResponse = await socialLogin(userData);
+      
+      // Check if user is existing
+      if (loginResponse.existingUser) {
+        toast.info('Welcome back! You logged in with your existing Google account.');
+      } else if (loginResponse.needsPhoneVerification) {
+        setTempUserId(loginResponse.tempUserId);
+        setUserEmail(loginResponse.email || userData.email);
+        setShowOtpModal(true);
+        toast.info('Please verify your phone number to complete registration');
+      } else {
+        toast.success('Successfully signed in with Google!');
+      }
+
+   
     } catch (error) {
       console.error('Google login error:', error);
       toast.error('Google login failed. Please try again.');
     }
+    if (error.response?.status === 403) {
+      toast.error('Verification required to continue. Please complete the verification process.');
+    } else if (error.response?.status === 400) {
+      toast.error('Invalid information provided. Please try again.');
+    } else {
+      toast.error('Google login failed. Please try again.');
+    }
+
+
+    
   };
+
+  // Handle OTP verification modal close
+const handleCloseOtpModal = () => {
+  setShowOtpModal(false);
+};
+
+// Handle OTP verification success
+const handleOtpVerificationSuccess = () => {
+  setShowOtpModal(false);
+  toast.success('Account verification complete! Welcome to Preplings!');
+};
+
   return (
     <div className="min-h-screen flex flex-col mt-2 lg:flex-row bg-gray-50">
       {/* Left side - Hero section */}
@@ -146,7 +188,7 @@ const Login = () => {
           </p>
 
           <div className="grid grid-cols-2 gap-4 mb-6">
-            <button className="flex items-center justify-center gap-2 border border-gray-300 rounded-md py-2 px-4 text-sm hover:bg-gray-50 transition-colors">
+            <button className="flex items-center justify-center gap-2 border border-gray-300 rounded-md py-2 px-4 text-sm hover:bg-gray-50 transition-colors"  onClick={handleGoogleLogin}>
               <div className="w-5 h-5 flex items-center justify-center">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none">
                   <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
@@ -155,7 +197,7 @@ const Login = () => {
                   <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
                 </svg>
               </div>
-              <span className="font-medium"  onClick={handleGoogleLogin}>Continue with Google</span>
+              <span className="font-medium" >Continue with Google</span>
             </button>
 
             <button className="flex items-center justify-center gap-2 border border-gray-300 rounded-md py-2 px-4 text-sm hover:bg-gray-50 transition-colors">
@@ -230,6 +272,16 @@ const Login = () => {
           </form>
         </div>
       </div>
+
+      <OTPVerificationModal
+        isOpen={showOtpModal}
+        onClose={handleCloseOtpModal}
+        email={userEmail}
+        activationToken={tempUserId}
+        onVerifySuccess={handleOtpVerificationSuccess}
+        onResendOTP={() => {}}
+        isSocialSignup={true}
+      />
     </div>
   );
 };
