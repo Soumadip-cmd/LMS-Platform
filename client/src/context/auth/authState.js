@@ -46,6 +46,10 @@ const AuthState = (props) => {
 
 
 
+  
+
+
+
 
   // Initialize socket connection
   const initializeSocket = () => {
@@ -186,7 +190,7 @@ const AuthState = (props) => {
     }
   };
 
-  // Verify OTP and Complete Registration
+  // Verify OTP and Complete Registrationm (emal and password method)
   const verifyOTPAndRegister = async (data) => {
     const config = {
       headers: {
@@ -217,7 +221,7 @@ const AuthState = (props) => {
     }
   };
 
-  // Resend OTP
+  // Resend OTP (email and password method)
   const resendOTP = async (data) => {
     const config = {
       headers: {
@@ -242,7 +246,7 @@ const AuthState = (props) => {
     }
   };
 
-  // Login User
+  // Login User  (email and password method)
   const login = async (email, password) => {
     const config = {
       headers: {
@@ -272,7 +276,7 @@ const AuthState = (props) => {
     }
   };
 
-  // Social Login (Google/Facebook)
+  // Social Login (Google/Facebook) 
   const socialLogin = async (userData) => {
     const config = {
       headers: {
@@ -339,7 +343,7 @@ const AuthState = (props) => {
     }
   };
 
-
+//resend google otp
   const resendGooglePhoneOTP = async (data) => {
     const config = {
       headers: {
@@ -386,6 +390,8 @@ const AuthState = (props) => {
     }
   };
 
+// -------------------------Forget password----------------------------------
+
   // Forgot Password
   const forgotPassword = async (emailOrPhone) => {
     const config = {
@@ -410,6 +416,7 @@ const AuthState = (props) => {
       throw err;
     }
   };
+
 
   // Verify Reset OTP
   const verifyResetOTP = async (data) => {

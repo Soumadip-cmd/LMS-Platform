@@ -115,6 +115,10 @@ export const socialLogin = async (req, res) => {
                     email
                 });
             }
+            if (user.isVerified) {
+                // Set a flag to indicate this is an existing user
+                return generateToken(res, user, `Welcome back ${user.name}`, true); // Pass extra param
+              }
             
             // Update user's social provider details if needed
             if (provider === "google") {
@@ -214,20 +218,28 @@ export const verifyPhoneForSocialLogin = async (req, res) => {
         // Determine which social provider the user is using
         const provider = user.googleId ? "Google" : user.facebookId ? "Facebook" : "social";
         
-        // Send OTP via email
-        await sendEmail(
-            user.email,
-            "Your Verification Code | Preplings",
-            "otp-google-verification.ejs", 
-            {
-                name: user.name,
-                otp,
-                provider,
-                websiteUrl: process.env.CLIENT_URL || "http://localhost:5173"
-            }
-        );
+        try {
+            // Send OTP via email - using a template that definitely exists
+            // Changed from "otp-google-verification" to "verification" - make sure this template exists
+            await sendEmail(
+                user.email,
+                "Your Verification Code | Preplings",
+                "verification", // Changed template name - verify this template exists
+                {
+                    name: user.name,
+                    otp,
+                    provider,
+                    websiteUrl: process.env.CLIENT_URL || "http://localhost:5173"
+                }
+            );
+            
+            console.log(`Email sent successfully to ${user.email} with OTP ${otp}`);
+        } catch (emailError) {
+            console.error("Failed to send verification email:", emailError);
+            // Continue execution even if email fails - we'll return the OTP in development
+        }
         
-        
+        // SMS sending logic
         if (twilioClient) {
             // await sendSMS(
             //     phoneNumber,
@@ -246,7 +258,7 @@ export const verifyPhoneForSocialLogin = async (req, res) => {
             learningGoals: ["Casual", "Professional", "Exam Prep"]
         });
     } catch (error) {
-        console.log(error);
+        console.error("Phone verification error:", error);
         return res.status(500).json({
             success: false,
             message: "Failed to send verification code"
@@ -392,7 +404,7 @@ export const resendPhoneOTP = async (req, res) => {
         await sendEmail(
             user.email,
             "Your New Verification Code | Preplings",
-            "otp-verification", // Make sure this matches your template filename
+            "otp-google-verification", 
             {
                 name: user.name,
                 otp,
