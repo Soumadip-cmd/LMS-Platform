@@ -62,33 +62,7 @@ const sendEmail = async (to, subject, template, data) => {
     }
 };
 
-/**
- * Send SMS using Twilio
- */
-// const sendSMS = async (to, body) => {
-//     try {
-//         if (!twilioClient) {
-//             console.warn("Twilio client not configured. SMS not sent.");
-//             return;
-//         }
-        
-//         await twilioClient.messages.create({
-//             body,
-//             from: process.env.TWILIO_PHONE_NUMBER,
-//             to
-//         });
-        
-//         console.log(`SMS sent to ${to}`);
-//     } catch (error) {
-//         console.error("SMS sending failed:", error);
-//         throw new Error("Failed to send SMS");
-//     }
-// };
 
-/**
- * Social Login (Google/Facebook) Handler
- * This controller handles authentication for users signing in with Google or Facebook
- */
 export const socialLogin = async (req, res) => {
     try {
         // Firebase sends verified user data
@@ -115,10 +89,6 @@ export const socialLogin = async (req, res) => {
                     email
                 });
             }
-            if (user.isVerified) {
-                // Set a flag to indicate this is an existing user
-                return generateToken(res, user, `Welcome back ${user.name}`, true); // Pass extra param
-              }
             
             // Update user's social provider details if needed
             if (provider === "google") {
@@ -140,8 +110,8 @@ export const socialLogin = async (req, res) => {
             // Broadcast user online status to all clients via socket
             updateUserStatus(user._id.toString(), true);
             
-            // Generate JWT token and send response
-            return generateToken(res, user, `Welcome back ${user.name}`);
+            // Generate JWT token and send response - with existingUser flag for frontend to handle properly
+            return generateToken(res, user, `Welcome back ${user.name}`, true);
         } else {
             // New user - need to verify phone number
             // Create a temporary user entry
@@ -164,7 +134,7 @@ export const socialLogin = async (req, res) => {
             });
         }
     } catch (error) {
-        console.log(error);
+        console.error("Social login error:", error);
         return res.status(500).json({
             success: false,
             message: "Failed to process social login"
@@ -220,11 +190,11 @@ export const verifyPhoneForSocialLogin = async (req, res) => {
         
         try {
             // Send OTP via email - using a template that definitely exists
-            // Changed from "otp-google-verification" to "verification" - make sure this template exists
+          
             await sendEmail(
                 user.email,
                 "Your Verification Code | Preplings",
-                "verification", // Changed template name - verify this template exists
+                "otp-google-verification", 
                 {
                     name: user.name,
                     otp,

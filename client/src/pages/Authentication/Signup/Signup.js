@@ -223,15 +223,70 @@ const Signup = () => {
 
 
 
+  // const handleGoogleLogin = async () => {
+  //   try {
+  //     console.log("Starting Google login...");
+  //     const auth = getAuth(firebaseApp);
+  //     const provider = new GoogleAuthProvider();
+      
+  //     console.log("Invoking Firebase popup...");
+  //     const result = await signInWithPopup(auth, provider);
+  //     console.log("Firebase popup result:", result);
+      
+  //     const userData = {
+  //       name: result.user.displayName,
+  //       email: result.user.email,
+  //       uid: result.user.uid,
+  //       provider: 'google',
+  //       photoURL: result.user.photoURL
+  //     };
+      
+  //     console.log("Calling socialLogin with:", userData);
+      
+  //     try {
+  //       const response = await socialLogin(userData);
+  //       console.log("socialLogin response:", response);
+        
+  //       if (response && response.needsPhoneVerification) {
+  //         console.log("Phone verification needed, opening modal with:", 
+  //           {tempUserId: response.tempUserId, email: response.email});
+  //         setActivationToken(response.tempUserId);
+  //         setRegisteredEmail(response.email);
+  //         setIsOtpModalOpen(true);
+  //       } else {
+  //         console.log("No verification needed, login successful");
+  //         toast.success('Google login successful!');
+  //       }
+  //     } catch (error) {
+  //       // Check if this is the expected 403 with needsPhoneVerification
+  //       if (error.response && error.response.status === 403 && 
+  //           error.response.data && error.response.data.needsPhoneVerification) {
+          
+  //         console.log("Phone verification needed from error response:", error.response.data);
+  //         toast.info('Please verify your phone number to complete registration.');
+  //         setActivationToken(error.response.data.tempUserId);
+  //         setRegisteredEmail(error.response.data.email);
+  //         setIsOtpModalOpen(true);
+  //       } else {
+  //         // This is an actual error
+  //         console.error('Backend error:', error);
+  //         toast.error('Login failed: ' + (error.response?.data?.message || error.message || 'Please try again'));
+  //       }
+  //     }
+  //   } catch (error) {
+  //     // Firebase popup error
+  //     console.error('Google login full error:', error);
+  //     toast.error('Google login failed: ' + (error.message || 'Please try again'));
+  //   }
+  // };
+
+
   const handleGoogleLogin = async () => {
     try {
-      console.log("Starting Google login...");
       const auth = getAuth(firebaseApp);
       const provider = new GoogleAuthProvider();
       
-      console.log("Invoking Firebase popup...");
       const result = await signInWithPopup(auth, provider);
-      console.log("Firebase popup result:", result);
       
       const userData = {
         name: result.user.displayName,
@@ -241,44 +296,76 @@ const Signup = () => {
         photoURL: result.user.photoURL
       };
       
-      console.log("Calling socialLogin with:", userData);
-      
       try {
         const response = await socialLogin(userData);
-        console.log("socialLogin response:", response);
         
+        // Check if this is an existing user
+        if (response.existingUser) {
+          toast.info('This email is already registered. Please login with Google instead.');
+          // Redirect to login page after a short delay
+          setTimeout(() => navigate('/login'), 2000);
+          return;
+        }
+        
+        // New user registration flow
         if (response && response.needsPhoneVerification) {
           console.log("Phone verification needed, opening modal with:", 
             {tempUserId: response.tempUserId, email: response.email});
           setActivationToken(response.tempUserId);
           setRegisteredEmail(response.email);
           setIsOtpModalOpen(true);
+          toast.info('Please verify your phone number to complete registration');
         } else {
-          console.log("No verification needed, login successful");
+          // User signed in successfully
           toast.success('Google login successful!');
+          // Redirect to home page
+          setTimeout(() => navigate('/'), 1500);
         }
       } catch (error) {
-        // Check if this is the expected 403 with needsPhoneVerification
-        if (error.response && error.response.status === 403 && 
-            error.response.data && error.response.data.needsPhoneVerification) {
-          
-          console.log("Phone verification needed from error response:", error.response.data);
-          toast.info('Please verify your phone number to complete registration.');
-          setActivationToken(error.response.data.tempUserId);
-          setRegisteredEmail(error.response.data.email);
-          setIsOtpModalOpen(true);
+        // Check specifically for already registered errors
+        if (error.response?.status === 403) {
+          if (error.response?.data?.needsPhoneVerification) {
+            // User exists but needs to complete phone verification
+            console.log("Phone verification needed from error response:", error.response.data);
+            toast.info('Please verify your phone number to complete registration.');
+            setActivationToken(error.response.data.tempUserId);
+            setRegisteredEmail(error.response.data.email);
+            setIsOtpModalOpen(true);
+          } else {
+            // User exists and should login instead
+            toast.info('This email is already registered. Please login with Google instead.');
+            setTimeout(() => navigate('/login'), 2000);
+          }
+        } else if (error.response?.status === 409 || 
+                  (error.response?.data?.message && 
+                   error.response?.data?.message.includes("already exists"))) {
+          // Explicit "already exists" error
+          toast.info('This email is already registered. Please login with Google instead.');
+          setTimeout(() => navigate('/login'), 2000);
         } else {
-          // This is an actual error
+          // General error handling
           console.error('Backend error:', error);
-          toast.error('Login failed: ' + (error.response?.data?.message || error.message || 'Please try again'));
+          toast.error('Signup failed: ' + (error.response?.data?.message || error.message || 'Please try again'));
         }
       }
     } catch (error) {
-      // Firebase popup error
+      // Firebase popup error handling
       console.error('Google login full error:', error);
-      toast.error('Google login failed: ' + (error.message || 'Please try again'));
+      
+      // Check for specific Firebase errors
+      if (error.code === 'auth/account-exists-with-different-credential') {
+        toast.error('An account already exists with the same email address but different sign-in credentials. Sign in using the original provider.');
+      } else if (error.code === 'auth/popup-closed-by-user') {
+        toast.info('Google sign-in was cancelled. Please try again if you want to continue.');
+      } else if (error.code === 'auth/cancelled-popup-request') {
+        // No need to show error for this case
+        console.log('Popup request cancelled');
+      } else {
+        toast.error('Google signup failed: ' + (error.message || 'Please try again'));
+      }
     }
   };
+
   const handleFacebookLogin = () => {
     // Handle Facebook login
     const userData = {
