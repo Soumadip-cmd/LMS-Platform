@@ -286,7 +286,7 @@ const AuthState = (props) => {
 
     try {
       const res = await axios.post(
-        `${SERVER_URI}/social/social-login`,
+        `${SERVER_URI}/social/social-login`, 
         userData,
         config
       );

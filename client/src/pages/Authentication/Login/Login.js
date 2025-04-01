@@ -59,44 +59,39 @@ const [userEmail, setUserEmail] = useState('');
     }
   };
 
-
-
-  const handleGoogleLogin = async () => {
-    try {
-      const auth = getAuth();
-      const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      
-      // Get user information from the result
-      const user = result.user;
-      const userData = {
-        name: user.displayName,
-        email: user.email,
-        uid: user.uid,
-        provider: 'google',
-        photoURL: user.photoURL
-      };
-      
-      // Call socialLogin function with the user data
-      const loginResponse = await socialLogin(userData);
-      
-      // Check if user is existing
-      if (loginResponse.existingUser) {
-        toast.info('Welcome back! You logged in with your existing Google account.');
-      } else if (loginResponse.needsPhoneVerification) {
-        setTempUserId(loginResponse.tempUserId);
-        setUserEmail(loginResponse.email || userData.email);
-        setShowOtpModal(true);
-        toast.info('Please verify your phone number to complete registration');
-      } else {
-        toast.success('Successfully signed in with Google!');
-      }
-
-   
-    } catch (error) {
-      console.error('Google login error:', error);
-      toast.error('Google login failed. Please try again.');
+const handleGoogleLogin = async () => {
+  try {
+    const auth = getAuth();
+    const provider = new GoogleAuthProvider();
+    const result = await signInWithPopup(auth, provider);
+    
+    // Get user information
+    const user = result.user;
+    const userData = {
+      name: user.displayName,
+      email: user.email,
+      uid: user.uid,
+      provider: 'google',
+      photoURL: user.photoURL
+    };
+    
+    // Call socialLogin function
+    const loginResponse = await socialLogin(userData);
+    
+    // Check if user is existing
+    if (loginResponse.existingUser) {
+      toast.info('Welcome back! You logged in with your existing Google account.');
+    } else if (loginResponse.needsPhoneVerification) {
+      setTempUserId(loginResponse.tempUserId);
+      setUserEmail(loginResponse.email || userData.email);
+      setShowOtpModal(true);
+      toast.info('Please verify your phone number to complete registration');
+    } else {
+      toast.success('Successfully signed in with Google!');
     }
+  } catch (error) {
+    console.error('Google login error:', error);
+    
     if (error.response?.status === 403) {
       toast.error('Verification required to continue. Please complete the verification process.');
     } else if (error.response?.status === 400) {
@@ -104,10 +99,8 @@ const [userEmail, setUserEmail] = useState('');
     } else {
       toast.error('Google login failed. Please try again.');
     }
-
-
-    
-  };
+  }
+};
 
   // Handle OTP verification modal close
 const handleCloseOtpModal = () => {
