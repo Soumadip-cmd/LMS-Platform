@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 import authContext from '../../../context/auth/authContext';
 import OTPVerificationModal from './otpVerificationModal';
@@ -673,7 +673,7 @@ const Signup = () => {
             </button>
 
             <p className="mt-4 text-xs text-center text-gray-500">
-              By continuing, you agree to our <a href="#" className="text-black font-bold hover:underline">Terms of Service</a> and <a href="#" className="text-black font-bold hover:underline">Privacy Policy</a>
+              By continuing, you agree to our <Link to='/termsofServices' className="text-black font-bold hover:underline">Terms of Service</Link> and <Link to='/privacyPolicy' className="text-black font-bold hover:underline">Privacy Policy</Link>
             </p>
           </form>
         </div>

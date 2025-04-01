@@ -20,9 +20,11 @@ import StudentSay from "./StudentSay";
 import GetitNow from "./GetitNow";
 import PreplingsNews from "./PreplingsNews";
 import Footer from "../../components/Footer/Footer";
+import { Link, useNavigate } from "react-router-dom";
 
 const HomePage = () => {
   const [email, setEmail] = useState("");
+  const navigate = useNavigate();
 
   return (
     <div className=" min-h-screen flex flex-col ">
@@ -59,9 +61,9 @@ const HomePage = () => {
 
                     <div className="flex flex-wrap gap-4 items-start">
                       <div className="flex flex-col items-start">
-                        <button className="bg-blue-500 text-white px-6 py-3 rounded-[20px] hover:bg-blue-600 transition font-medium">
+                        <Link to='/signup' className="bg-blue-500 text-white px-6 py-3 rounded-[20px] hover:bg-blue-600 transition font-medium">
                           START LEARNING FREE
-                        </button>
+                        </Link>
                         <div className="flex items-center ml-2 mt-2">
                           <svg
                             className="w-4 h-4 text-blue-500 mr-1"

@@ -9,6 +9,10 @@ import Login from './pages/Authentication/Login/Login';
 import Signup from './pages/Authentication/Signup/Signup';
 import CourseSection from './pages/courses/course.section/CourseSectionH';
 import AuthState from './context/auth/authState';
+import ForgotPassword from './pages/Authentication/ForgotPass/ForgotPassword';
+import PrivacyPolicy from './pages/Terms&condition/TermsService/TermsService';
+import TermsService from './pages/Terms&condition/TermsService/TermsService';
+import LoginType from './pages/Authentication/Login/LoginType';
 
 function App() {
   return (
@@ -19,8 +23,13 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<Login />} />
+        {/* Login as Instructor / Admin / Student */}
+        <Route path="/loginType" element={<LoginType />} />
+        <Route path="/forgotPassword" element={<ForgotPassword />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/course" element={<CourseSection />} />
+        <Route path="/termsofServices" element={<TermsService />} />
+        <Route path="/privacyPolicy" element={<PrivacyPolicy />} />
         <Route path="*" element={<Navigate to="/" />} /> {/* Redirect any unknown paths to home */}
       </Routes>
       <Footer/>
