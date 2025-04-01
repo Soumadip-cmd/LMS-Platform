@@ -282,7 +282,7 @@ const AuthState = (props) => {
 
     try {
       const res = await axios.post(
-        `${SERVER_URI}/auth/socialLogin`,
+        `${SERVER_URI}/social/social-login`,
         userData,
         config
       );
@@ -318,7 +318,7 @@ const AuthState = (props) => {
 
     try {
       const res = await axios.post(
-        `${SERVER_URI}/auth/completeSocialRegistration`,
+        `${SERVER_URI}/social/complete-social-registration`,
         data,
         config
       );
@@ -338,6 +338,32 @@ const AuthState = (props) => {
       throw err;
     }
   };
+
+
+  const resendGooglePhoneOTP = async (data) => {
+    const config = {
+      headers: {
+        "Content-Type": "application/json"
+      }
+    };
+  
+    try {
+      const res = await axios.post(
+        `${SERVER_URI}/social/resend-phone-otp`, 
+        data, 
+        config
+      );
+      
+      return res.data;
+    } catch (err) {
+      dispatch({
+        type: REGISTER_FAIL,
+        payload: err.response?.data?.message || "Failed to resend OTP"
+      });
+      throw err;
+    }
+  };
+  
 
   // Logout
   const logout = async () => {
@@ -500,6 +526,7 @@ const AuthState = (props) => {
         verifyOTPAndRegister,
         resendOTP,
         completeSocialRegistration,
+        resendGooglePhoneOTP,
         logout,
         loadUser,
         clearErrors,

@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useState, useContext, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { ChevronDown, Eye, EyeOff } from 'lucide-react';
+import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -50,6 +51,31 @@ const Login = () => {
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed. Please try again.');
       toast.error(err.response?.data?.message || 'Login failed. Please try again.');
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      const auth = getAuth();
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      
+      // Get user information from the result
+      const user = result.user;
+      const userData = {
+        name: user.displayName,
+        email: user.email,
+        uid: user.uid,
+        provider: 'google',
+        photoURL: user.photoURL
+      };
+      
+      // Call your socialLogin function with the user data
+      await socialLogin(userData);
+      toast.success('Google login successful!');
+    } catch (error) {
+      console.error('Google login error:', error);
+      toast.error('Google login failed. Please try again.');
     }
   };
   return (
@@ -129,7 +155,7 @@ const Login = () => {
                   <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
                 </svg>
               </div>
-              <span className="font-medium">Continue with Google</span>
+              <span className="font-medium"  onClick={handleGoogleLogin}>Continue with Google</span>
             </button>
 
             <button className="flex items-center justify-center gap-2 border border-gray-300 rounded-md py-2 px-4 text-sm hover:bg-gray-50 transition-colors">

@@ -1,14 +1,14 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef,useContext } from 'react';
 import { XCircle } from 'lucide-react';
-
-const OTPVerificationModal = ({ isOpen, onClose, email, activationToken, onVerifySuccess, onResendOTP }) => {
+import authContext from '../../../context/auth/authContext';
+const OTPVerificationModal = ({ isOpen, onClose, email, activationToken, onVerifySuccess, onResendOTP,isSocialSignup = false }) => {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [timer, setTimer] = useState(60);
   const inputRefs = useRef([]);
-
+  const auth = useContext(authContext); 
   // Focus on first input when modal opens
   useEffect(() => {
     if (isOpen && inputRefs.current[0]) {
@@ -52,33 +52,80 @@ const OTPVerificationModal = ({ isOpen, onClose, email, activationToken, onVerif
   };
 
   // Handle OTP verification
+  // const handleVerify = async () => {
+  //   const otpString = otp.join('');
+  //   if (otpString.length !== 6) {
+  //     setError('Please enter the 6-digit OTP');
+  //     return;
+  //   }
+
+  //   setIsLoading(true);
+  //   setError('');
+
+  //   try {
+  //     if (isSocialSignup) {
+  //       // Call completeSocialRegistration
+  //       await auth.completeSocialRegistration({
+  //         tempUserId: activationToken,
+  //         otp: otpString,
+         
+  //       });
+  //     } else {
+  //       // Call regular verification
+  //       await onVerifySuccess(email, otpString, activationToken);
+  //     }
+  //   } catch (err) {
+  //     setError(err.message || 'Failed to verify OTP. Please try again.');
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
+
+
   const handleVerify = async () => {
     const otpString = otp.join('');
     if (otpString.length !== 6) {
       setError('Please enter the 6-digit OTP');
       return;
     }
-
+  
     setIsLoading(true);
     setError('');
-
+  
     try {
-      // Call your verification function
-      await onVerifySuccess(email, otpString, activationToken);
+      if (isSocialSignup) {
+        // For social signup, we need to send the complete parameters the backend expects
+        await auth.completeSocialRegistration({
+          tempUserId: activationToken,
+          otp: otpString,
+          phoneNumber: email, // If the email field is actually being used for phone number
+        });
+      } else {
+        // Call regular verification
+        await onVerifySuccess(email, otpString, activationToken);
+      }
     } catch (err) {
-      setError(err.message || 'Failed to verify OTP. Please try again.');
+      setError(err.response?.data?.message || 'Failed to verify OTP. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
-
   // Handle resend OTP
   const handleResendOTP = async () => {
     setTimer(60);
     setError('');
     
     try {
-      await onResendOTP(email, activationToken);
+      if (isSocialSignup) {
+        // Call social resend OTP
+        await auth.resendGooglePhoneOTP({
+          tempUserId: activationToken,
+          phoneNumber: email  
+        });
+      } else {
+        // Call regular resend OTP
+        await onResendOTP(email, activationToken);
+      }
     } catch (err) {
       setError(err.message || 'Failed to resend OTP. Please try again.');
     }

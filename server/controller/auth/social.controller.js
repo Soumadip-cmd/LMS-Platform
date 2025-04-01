@@ -218,7 +218,7 @@ export const verifyPhoneForSocialLogin = async (req, res) => {
         await sendEmail(
             user.email,
             "Your Verification Code | Preplings",
-            "otp-verification", 
+            "otp-google-verification.ejs", 
             {
                 name: user.name,
                 otp,
