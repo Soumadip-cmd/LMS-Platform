@@ -11,36 +11,36 @@ const LoginType = () => {
           className="w-full h-full object-cover"
         />
       </div>
-      
+     
       {/* Login Container with Yellow Overlay */}
       <div className="relative z-0 flex flex-col items-center justify-center w-full py-16">
-        <div className="relative bg-yellow-400 bg-opacity-80 p-10 w-full max-w-md mx-auto rounded-t-2xl rounded-bl-2xl">
-          {/* Gray circle */}
-          <div className="absolute bottom-[24px] right-[22px] size-28 bg-gray-500 rounded-full  -mt-12 z-10"></div>
-          
-          {/* Black corner shape - partial circle */}
+        <div className="relative bg-[#FFB71CC4] p-10 mx-auto rounded-t-2xl rounded-bl-2xl w-full max-w-[703px] max-h-[508px]">
+          {/* Gray circle - EXACT ORIGINAL POSITIONING */}
+          <div className="absolute bottom-[16px] right-[0px] md:right-[47px] size-32 md:size-52 bg-gray-500 rounded-full -mt-12 z-10"></div>
+         
+          {/* Black corner shape - partial circle - EXACT ORIGINAL POSITIONING */}
           <div className="absolute bottom-0 right-0 overflow-hidden z-20">
-            <div className="relative w-48 h-48 -bottom-24 -right-24">
-              <div className="absolute w-full h-full bg-black rounded-full bottom-[8px] -right-[1px]"></div>
+            <div className="relative size-52 md:size-[17rem] -bottom-24 -right-24">
+              <div className="absolute w-full h-full bg-black rounded-full bottom-0 md:-right-[1px] -right-[28px]"></div>
             </div>
           </div>
-          
-          {/* Login Buttons */}
-          <div className="flex m-5 flex-col space-y-12 px-6 py-6 relative z-30">
+         
+          {/* Login Buttons - Responsive Width */}
+          <div className="flex m-5 flex-col justify-center items-center space-y-20 p-2 md:p-6 relative z-30">
             <button
-              className="w-full py-3 bg-[#00AB5B] hover:bg-green-600 text-white font-medium rounded-lg"
+              className="w-full max-w-[320px] py-3 bg-[#00AB5B] hover:bg-green-600 text-white font-medium text-lg md:text-2xl rounded-lg"
             >
               Login as Student
             </button>
-            
+           
             <button
-              className="w-full py-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg"
+              className="w-full max-w-[320px] py-3 bg-blue-500 hover:bg-blue-600 text-white font-medium text-lg md:text-2xl rounded-lg"
             >
               Login as Instructor
             </button>
-            
+           
             <button
-              className="w-full py-3 bg-black hover:bg-gray-800 text-white font-medium rounded-lg"
+              className="w-full max-w-[320px] py-3 bg-black hover:bg-gray-800 text-white font-medium text-lg md:text-2xl rounded-lg"
             >
               Login as Admin
             </button>
