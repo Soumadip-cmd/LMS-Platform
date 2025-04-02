@@ -123,10 +123,10 @@ const Navbar = () => {
             {/* Menu items - Simplified to match image */}
             <div className="flex space-x-6">
               {[
-                { name: "Courses", hasDropdown: true },
-                { name: "Exams", hasDropdown: true },
-                { name: "Dashboard", hasDropdown: false },
-                { name: "Support", hasDropdown: true },
+                { name: "Courses", hasDropdown: true, path: "/courses" },
+                { name: "Exams", hasDropdown: true, path: "/exams" },
+                { name: "Dashboard", hasDropdown: false, path: "/dashboard/student" },
+                { name: "Support", hasDropdown: true, path: "/support" },
               ].map((item) => (
                 <div key={item.name} className="group relative cursor-pointer">
                   <div className="flex items-center transition-transform duration-300 group-hover:scale-110">
@@ -170,13 +170,13 @@ const Navbar = () => {
             {/* Auth buttons for desktop - Keeping original styling */}
             <div className="flex space-x-3">
               <Link
-                to="/login"
+                to="/auth/login"
                 className="bg-gray-200 font-medium text-blue-600 px-4 py-1 rounded hover:text-blue-800 transition-colors duration-300"
               >
                 Login
               </Link>
               <Link
-                to="/signup"
+                to="/auth/signup"
                 className="bg-yellow-400 text-white px-4 py-1 rounded hover:bg-yellow-500 hover:text-[#0D47A1] font-medium transition-colors duration-300"
               >
                 Sign up
@@ -266,10 +266,10 @@ const Navbar = () => {
             {/* Menu items with dropdowns */}
             <div className="px-4 py-2">
               {[
-                { name: "Courses", hasDropdown: true },
-                { name: "Exams", hasDropdown: true },
-                { name: "Dashboard", hasDropdown: false },
-                { name: "Support", hasDropdown: true },
+                { name: "Courses", hasDropdown: true, path: "/courses" },
+                { name: "Exams", hasDropdown: true, path: "/exams" },
+                { name: "Dashboard", hasDropdown: false, path: "/dashboard/student" },
+                { name: "Support", hasDropdown: true, path: "/support" },
               ].map((item) => (
                 <div key={item.name} className="mb-2">
                   <div
@@ -340,14 +340,14 @@ const Navbar = () => {
           <div className="border-t p-4 bg-gray-50">
             <div className="flex flex-col space-y-2">
               <Link
-                to="/login"
+                to="/auth/login"
                 className="bg-gray-200 font-medium text-blue-600 py-1 px-4 rounded hover:text-blue-800 transition-colors duration-300 text-center"
                 onClick={toggleMobileMenu}
               >
                 Login
               </Link>
               <Link
-                to="/signup"
+                to="/auth/signup"
                 className="bg-yellow-400 text-white py-2 px-4 rounded-md hover:bg-yellow-500 hover:text-[#0D47A1] font-medium transition-colors duration-300 text-center"
                 onClick={toggleMobileMenu}
               >

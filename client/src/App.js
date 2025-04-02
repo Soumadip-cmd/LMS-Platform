@@ -18,42 +18,50 @@ import Login from "./pages/Authentication/Login/Login";
 import Signup from "./pages/Authentication/Signup/Signup";
 import CourseSection from "./pages/courses/course.section/CourseSectionH";
 import AuthState from "./context/auth/authState";
-import AuthContext from "./context/auth/authContext"; // Assuming you have this
+import AuthContext from "./context/auth/authContext";
 import ForgotPassword from "./pages/Authentication/ForgotPass/ForgotPassword";
 import PrivacyPolicy from "./pages/Terms&condition/TermsService/TermsService";
 import TermsService from "./pages/Terms&condition/TermsService/TermsService";
 import LoginType from "./pages/Authentication/Login/LoginType";
 import StudentDashboard from "./pages/Dashboard/Student/StudentDashboard";
-import InstructorDashboard from "./pages/Dashboard/Instructor/InstructorDashboard"; // Add this component
-import AdminDashboard from "./pages/Dashboard/Admin/AdminDashboard"; // Add this component
+import InstructorDashboard from "./pages/Dashboard/Instructor/InstructorDashboard";
+import AdminDashboard from "./pages/Dashboard/Admin/AdminDashboard";
 
 // Create a wrapper component to handle the conditional navbar logic
 const AppContent = () => {
   const location = useLocation();
   const authContext = useContext(AuthContext);
   const { userType } = authContext; // Assuming your auth context tracks user type
-
+  
   // Function to determine which navbar to show based on route and user type
   const renderNavbar = () => {
     const path = location.pathname;
     
     // Public routes that always show the default navbar
-    const publicRoutes = ['/', '/login', '/loginType', '/signup', '/forgotPassword', '/termsofServices', '/privacyPolicy'];
+    const publicRoutes = [
+      '/', 
+      '/auth/login', 
+      '/auth/login-type', 
+      '/auth/signup', 
+      '/auth/forgot-password', 
+      '/legal/terms-of-service', 
+      '/legal/privacy-policy'
+    ];
     
     if (publicRoutes.includes(path)) {
       return <Navbar />;
     }
     
     // Dashboard routes with specific navbars
-    if (path === '/studentDashboard' || userType === 'student') {
+    if (path.startsWith('/dashboard/student') || userType === 'student') {
       return <StudentNavbar />;
     }
     
-    if (path === '/instructorDashboard' || userType === 'instructor') {
+    if (path.startsWith('/dashboard/instructor') || userType === 'instructor') {
       return <InstructorNavbar />;
     }
     
-    if (path === '/adminDashboard' || userType === 'admin') {
+    if (path.startsWith('/dashboard/admin') || userType === 'admin') {
       return <AdminNavbar />;
     }
     
@@ -66,20 +74,26 @@ const AppContent = () => {
       {renderNavbar()}
       <Toaster position="top-center" reverseOrder={false} />
       <Routes>
+        {/* Public routes */}
         <Route path="/" element={<HomePage />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/loginType" element={<LoginType />} />
-        <Route path="/forgotPassword" element={<ForgotPassword />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/course" element={<CourseSection />} />
+        <Route path="/courses" element={<CourseSection />} />
+        
+        {/* Authentication routes */}
+        <Route path="/auth/login" element={<Login />} />
+        <Route path="/auth/login-type" element={<LoginType />} />
+        <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+        <Route path="/auth/signup" element={<Signup />} />
         
         {/* Dashboard routes */}
-        <Route path="/studentDashboard" element={<StudentDashboard />} />
-        <Route path="/instructorDashboard" element={<InstructorDashboard />} />
-        <Route path="/adminDashboard" element={<AdminDashboard />} />
-
-        <Route path="/termsofServices" element={<TermsService />} />
-        <Route path="/privacyPolicy" element={<PrivacyPolicy />} />
+        <Route path="/dashboard/student" element={<StudentDashboard />} />
+        <Route path="/dashboard/instructor" element={<InstructorDashboard />} />
+        <Route path="/dashboard/admin" element={<AdminDashboard />} />
+        
+        {/* Legal routes */}
+        <Route path="/legal/terms-of-service" element={<TermsService />} />
+        <Route path="/legal/privacy-policy" element={<PrivacyPolicy />} />
+        
+        {/* Fallback route */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
       <Footer />

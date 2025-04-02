@@ -13,8 +13,8 @@ const Login = () => {
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showOtpModal, setShowOtpModal] = useState(false);
-const [tempUserId, setTempUserId] = useState('');
-const [userEmail, setUserEmail] = useState('');
+  const [tempUserId, setTempUserId] = useState('');
+  const [userEmail, setUserEmail] = useState('');
 
   const navigate = useNavigate();
   const AuthContext = useContext(authContext);
@@ -59,59 +59,59 @@ const [userEmail, setUserEmail] = useState('');
     }
   };
 
-const handleGoogleLogin = async () => {
-  try {
-    const auth = getAuth();
-    const provider = new GoogleAuthProvider();
-    const result = await signInWithPopup(auth, provider);
-    
-    // Get user information
-    const user = result.user;
-    const userData = {
-      name: user.displayName,
-      email: user.email,
-      uid: user.uid,
-      provider: 'google',
-      photoURL: user.photoURL
-    };
-    
-    // Call socialLogin function
-    const loginResponse = await socialLogin(userData);
-    
-    // Check if user is existing
-    if (loginResponse.existingUser) {
-      toast.info('Welcome back! You logged in with your existing Google account.');
-    } else if (loginResponse.needsPhoneVerification) {
-      setTempUserId(loginResponse.tempUserId);
-      setUserEmail(loginResponse.email || userData.email);
-      setShowOtpModal(true);
-      toast.info('Please verify your phone number to complete registration');
-    } else {
-      toast.success('Successfully signed in with Google!');
+  const handleGoogleLogin = async () => {
+    try {
+      const auth = getAuth();
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      
+      // Get user information
+      const user = result.user;
+      const userData = {
+        name: user.displayName,
+        email: user.email,
+        uid: user.uid,
+        provider: 'google',
+        photoURL: user.photoURL
+      };
+      
+      // Call socialLogin function
+      const loginResponse = await socialLogin(userData);
+      
+      // Check if user is existing
+      if (loginResponse.existingUser) {
+        toast.info('Welcome back! You logged in with your existing Google account.');
+      } else if (loginResponse.needsPhoneVerification) {
+        setTempUserId(loginResponse.tempUserId);
+        setUserEmail(loginResponse.email || userData.email);
+        setShowOtpModal(true);
+        toast.info('Please verify your phone number to complete registration');
+      } else {
+        toast.success('Successfully signed in with Google!');
+      }
+    } catch (error) {
+      console.error('Google login error:', error);
+      
+      if (error.response?.status === 403) {
+        toast.error('Verification required to continue. Please complete the verification process.');
+      } else if (error.response?.status === 400) {
+        toast.error('Invalid information provided. Please try again.');
+      } else {
+        toast.error('Google login failed. Please try again.');
+      }
     }
-  } catch (error) {
-    console.error('Google login error:', error);
-    
-    if (error.response?.status === 403) {
-      toast.error('Verification required to continue. Please complete the verification process.');
-    } else if (error.response?.status === 400) {
-      toast.error('Invalid information provided. Please try again.');
-    } else {
-      toast.error('Google login failed. Please try again.');
-    }
-  }
-};
+  };
 
   // Handle OTP verification modal close
-const handleCloseOtpModal = () => {
-  setShowOtpModal(false);
-};
+  const handleCloseOtpModal = () => {
+    setShowOtpModal(false);
+  };
 
-// Handle OTP verification success
-const handleOtpVerificationSuccess = () => {
-  setShowOtpModal(false);
-  toast.success('Account verification complete! Welcome to Preplings!');
-};
+  // Handle OTP verification success
+  const handleOtpVerificationSuccess = () => {
+    setShowOtpModal(false);
+    toast.success('Account verification complete! Welcome to Preplings!');
+  };
 
   return (
     <div className="min-h-screen flex flex-col mt-2 lg:flex-row bg-gray-50">
@@ -177,7 +177,7 @@ const handleOtpVerificationSuccess = () => {
           <h2 className="text-2xl font-bold text-center mb-6">Welcome back!</h2>
 
           <p className="text-sm text-center mb-6">
-            Don't have an account? <Link to='/signup' className="text-blue-500 font-bold underline hover:no-underline">Sign up</Link>
+            Don't have an account? <Link to='/auth/signup' className="text-blue-500 font-bold underline hover:no-underline">Sign up</Link>
           </p>
 
           <div className="grid grid-cols-2 gap-4 mb-6">
@@ -249,11 +249,11 @@ const handleOtpVerificationSuccess = () => {
                 </button>
               </div>
               <div className="text-right mt-1">
-                <Link to='/forgotPassword' className="text-sm font-medium text-black hover:underline">Forgot password?</Link>
+                <Link to='/auth/forgot-password' className="text-sm font-medium text-black hover:underline">Forgot password?</Link>
               </div>
             </div>
             <div className="text-sm text-gray-700 mb-4">
-              By continuing, you agree to our <Link to='/termsofServices' className="text-black font-bold hover:underline">Terms of Service</Link> and <Link to='/privacyPolicy' className="text-black font-bold hover:underline">Privacy Policy</Link>
+              By continuing, you agree to our <Link to='/legal/terms-of-service' className="text-black font-bold hover:underline">Terms of Service</Link> and <Link to='/legal/privacy-policy' className="text-black font-bold hover:underline">Privacy Policy</Link>
             </div>
 
             <button

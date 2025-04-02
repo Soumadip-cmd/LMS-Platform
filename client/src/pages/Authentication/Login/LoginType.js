@@ -4,17 +4,17 @@ import { useNavigate } from 'react-router-dom';
 const LoginType = () => {
   const navigate = useNavigate();
 
-  // Navigation handlers
+  // Navigation handlers with updated professional paths
   const handleStudentLogin = () => {
-    navigate('/studentDashboard');
+    navigate('/dashboard/student');
   };
 
   const handleInstructorLogin = () => {
-    navigate('/instructorDashboard');
+    navigate('/dashboard/instructor');
   };
 
   const handleAdminLogin = () => {
-    navigate('/adminDashboard');
+    navigate('/dashboard/admin');
   };
 
   return (

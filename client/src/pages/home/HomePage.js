@@ -61,7 +61,7 @@ const HomePage = () => {
 
                     <div className="flex flex-wrap gap-4 items-start">
                       <div className="flex flex-col items-start">
-                        <Link to='/signup' className="bg-blue-500 text-white px-6 py-3 rounded-[20px] hover:bg-blue-600 transition font-medium">
+                        <Link to='/auth/signup' className="bg-blue-500 text-white px-6 py-3 rounded-[20px] hover:bg-blue-600 transition font-medium">
                           START LEARNING FREE
                         </Link>
                         <div className="flex items-center ml-2 mt-2">

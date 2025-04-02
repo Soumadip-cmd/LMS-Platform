@@ -167,7 +167,7 @@ const Signup = () => {
 
       // Close the modal and redirect to login page on success
       setIsOtpModalOpen(false);
-      navigate("/login");
+      navigate("/auth/login");
     } catch (err) {
       const errorMessage =
         err.response?.data?.message ||
@@ -188,7 +188,7 @@ const Signup = () => {
   };
 
   const handleLoginClick = () => {
-    navigate("/login");
+    navigate("/auth/login");
   };
 
   // const handleGoogleLogin = async () => {
@@ -311,7 +311,7 @@ const Signup = () => {
             "This email is already registered. Please login with Google instead."
           );
           // Redirect to login page after a short delay
-          setTimeout(() => navigate("/login"), 2000);
+          setTimeout(() => navigate("/auth/login"), 2000);
           return;
         }
 
@@ -353,7 +353,7 @@ const Signup = () => {
             toast.info(
               "This email is already registered. Please login with Google instead."
             );
-            setTimeout(() => navigate("/login"), 2000);
+            setTimeout(() => navigate("/auth/login"), 2000);
           }
         } else if (
           error.response?.status === 409 ||
@@ -364,7 +364,7 @@ const Signup = () => {
           toast.info(
             "This email is already registered. Please login with Google instead."
           );
-          setTimeout(() => navigate("/login"), 2000);
+          setTimeout(() => navigate("/auth/login"), 2000);
         } else {
           // General error handling
           console.error("Backend error:", error);
@@ -511,7 +511,7 @@ const Signup = () => {
           <p className="text-sm text-center mb-6">
             Already have an account?{" "}
             <Link
-              to='/login'
+              to='/auth/login'
               className="text-blue-500 font-bold underline hover:no-underline cursor-pointer"
             >
               Login
@@ -918,14 +918,14 @@ const Signup = () => {
             <p className="mt-4 text-xs text-center text-gray-500">
               By continuing, you agree to our{" "}
               <Link
-                to="/termsofServices"
+                to="/legal/terms-of-service"
                 className="text-black font-bold hover:underline"
               >
                 Terms of Service
               </Link>{" "}
               and{" "}
               <Link
-                to="/privacyPolicy"
+                to="/legal/privacy-policy"
                 className="text-black font-bold hover:underline"
               >
                 Privacy Policy
