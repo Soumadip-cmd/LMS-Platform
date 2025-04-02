@@ -16,7 +16,7 @@ const ExamCard = ({
       <div className="relative">
         {(discount || isFree) && (
           <div className={`absolute top-2 left-2 text-white text-xs font-bold py-1 px-2 rounded ${isFree ? 'bg-green-500' : 'bg-red-500'}`}>
-            {isFree ? 'FREE' : `-${discount}% OFF`}
+            {isFree ? 'FREE' : `-`}<span className="numbers">{discount}</span>{`% OFF`}
           </div>
         )}
         <img 
@@ -37,7 +37,7 @@ const ExamCard = ({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </span>
-          <span className="text-sm">Duration : {duration} hours</span>
+          <span className="text-sm">Duration : <span className="numbers">{duration}</span> hours</span>
         </div>
         
         <div className="flex-grow">
@@ -58,9 +58,9 @@ const ExamCard = ({
             <p className="text-green-500 font-bold text-lg">FREE</p>
           ) : (
             <div className="flex items-center">
-              <p className="text-red-500 font-bold text-lg">${price}.00</p>
+              <p className="text-red-500 font-bold text-lg">$<span className="numbers">{price}</span>.00</p>
               {originalPrice && (
-                <p className="text-gray-400 line-through ml-2">${originalPrice}.00</p>
+                <p className="text-gray-400 line-through ml-2">$<span className="numbers">{originalPrice}</span>.00</p>
               )}
             </div>
           )}

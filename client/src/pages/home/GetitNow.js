@@ -45,7 +45,7 @@ const GetitNow = () => {
     <>
       <div className="flex flex-grow flex-col md:flex-row items-center justify-between w-full bg-[#EAF5FF] px-8 py-8 md:px-16">
         {/* Left Section */}
-        <div className="w-full md:w-1/2 xl:w-1/3 mb-10 md:mb-0">
+        <div className="w-full md:w-1/2 xl:w-1/3 mb-10 md:mb-0 text-center md:text-left">
           <h1 className="text-3xl md:text-4xl font-bold md:mb-2">
             FREE Resources
           </h1>
@@ -61,8 +61,8 @@ const GetitNow = () => {
           </p>
 
           {/* Timer */}
-          <div className="flex space-x-8">
-            <div className="flex flex-col items-center">
+          <div className="flex space-x-8 justify-center md:justify-normal">
+            <div className="flex flex-col items-center ">
               <span className="text-4xl font-bold text-blue-500">
                 {timeLeft.days}
               </span>

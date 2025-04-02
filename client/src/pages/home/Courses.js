@@ -1,8 +1,6 @@
 import React from 'react';
 import TagStyle from '../../components/TagStyle/TagStyle';
 
-
-
 const Courses = () => {
   const courses = [
     {
@@ -117,7 +115,7 @@ const Courses = () => {
                       <span className="text-xs text-white font-bold">{course.flag}</span>
                     )}
                   </div>
-                  <span className="text-white text-sm">{course.programs} programs</span>
+                  <span className="text-white text-sm"><span className="numbers">{course.programs}</span> programs</span>
                 </div>
               </div>
             </div>

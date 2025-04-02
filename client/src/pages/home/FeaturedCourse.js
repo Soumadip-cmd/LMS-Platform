@@ -68,7 +68,7 @@ const FeaturedCourses = () => {
         {/* Course Count and Filters */}
         <div className="flex justify-between items-center">
           <p className="text-gray-600">
-            we found <span className="font-medium text-blue-500">118</span>{" "}
+            we found <span className="font-medium text-blue-500 numbers">118</span>{" "}
             courses available for you
           </p>
           <div className="relative group">
@@ -140,7 +140,7 @@ const FeaturedCourses = () => {
                       {course.type}
                     </span>
                     <span className="text-gray-500 font-medium">
-                      {course.price}
+                      $<span className="numbers">{course.price.replace('$', '').replace('/Month', '')}</span>/Month
                     </span>
                   </div>
                   <h3 className="font-medium text-lg mb-2">
