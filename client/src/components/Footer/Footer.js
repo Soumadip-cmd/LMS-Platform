@@ -7,7 +7,7 @@ const Footer = () => {
       <hr className="border-gray-200 mx-4 sm:mx-8 lg:mx-16" />
 
       <div className="py-6 sm:py-8 md:py-10 px-4 sm:px-8 lg:px-16 md:mr-10 lg:mr-0">
-        <div className="max-w-6xl mx-auto">
+        <div className="mx-auto md:mx-6 lg:mx-1 2xl:mx-1">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-x-6 sm:gap-x-8 md:gap-x-12 gap-y-6 sm:gap-y-8">
             {/* Logo and Open Time Section */}
             <div className="sm:col-span-2 md:col-span-3 space-y-4 sm:space-y-6">

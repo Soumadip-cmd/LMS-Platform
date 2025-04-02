@@ -55,7 +55,7 @@ const FeaturedCourses = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
+    <div className="mx-auto 2xl:mx-1 px-4 py-8">
       <div className="flex flex-col space-y-6">
         {/* Featured Courses Header */}
         <div className="relative">
@@ -139,7 +139,7 @@ const FeaturedCourses = () => {
                     >
                       {course.type}
                     </span>
-                    <span className="text-gray-700 font-medium">
+                    <span className="text-gray-500 font-medium">
                       {course.price}
                     </span>
                   </div>

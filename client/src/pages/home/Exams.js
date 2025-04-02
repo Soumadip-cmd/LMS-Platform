@@ -131,8 +131,8 @@ const Exams = () => {
   ];
 
   return (
-    <div className="bg-gray-50 min-h-screen py-8 px-4">
-      <div className="max-w-7xl mx-auto">
+    <div className="bg-gray-50  py-8 px-4">
+      <div className="mx-auto 2xl:mx-1">
         <div className="mb-8 relative inline-block">
           <h2 className="text-2xl font-bold">Trending <TagStyle color="#000000" text="Exams"/></h2>
           <div className="absolute -right-4 bottom-0 bg-yellow-200 h-3 w-32 -z-10"></div>

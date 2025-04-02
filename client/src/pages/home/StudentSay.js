@@ -28,7 +28,7 @@ const StudentSay = () => {
   ];
  
   return (
-    <div className="bg-white py-8 px-4 md:px-8 max-w-7xl mx-auto">
+    <div className="bg-white py-8 px-4 md:px-8 mx-auto 2xl:mx-1">
       <div className="flex flex-col lg:flex-row">
         <div className="lg:w-1/4 mb-8 lg:mb-0 lg:pr-8">
           <h2 className="text-3xl font-bold">

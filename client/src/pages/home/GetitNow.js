@@ -176,7 +176,7 @@ const GetitNow = () => {
 
       {/* the become tutor part */}
 
-      <div className="flex flex-col md:flex-row gap-4 xl:gap-12 p-4 max-w-6xl mx-auto mt-12">
+      <div className="flex flex-col lg:flex-row gap-4 xl:gap-12 p-4 mx-auto md:mx-8 2xl:mx-12 mt-12">
       {/* Become An Instructor Card */}
       <div className="flex-1 bg-[#F3EDF0] rounded-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 hover:shadow-lg">
         <div className="p-8">

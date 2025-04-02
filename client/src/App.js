@@ -22,7 +22,6 @@ import AuthContext from "./context/auth/authContext";
 import ForgotPassword from "./pages/Authentication/ForgotPass/ForgotPassword";
 import PrivacyPolicy from "./pages/Terms&condition/TermsService/TermsService";
 import TermsService from "./pages/Terms&condition/TermsService/TermsService";
-import LoginType from "./pages/Authentication/Login/LoginType";
 import StudentDashboard from "./pages/Dashboard/Student/StudentDashboard";
 import InstructorDashboard from "./pages/Dashboard/Instructor/InstructorDashboard";
 import AdminDashboard from "./pages/Dashboard/Admin/AdminDashboard";
@@ -80,7 +79,6 @@ const AppContent = () => {
         
         {/* Authentication routes */}
         <Route path="/auth/login" element={<Login />} />
-        <Route path="/auth/login-type" element={<LoginType />} />
         <Route path="/auth/forgot-password" element={<ForgotPassword />} />
         <Route path="/auth/signup" element={<Signup />} />
         

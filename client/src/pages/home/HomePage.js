@@ -36,9 +36,9 @@ const HomePage = () => {
           <div className="container mx-auto md:pt-16 md:pb-4 px-4 py-8 pb-8  ">
             <div className="flex flex-col lg:flex-row items-center justify-between">
               {/* Left side text content */}
-              <div className="lg:w-1/2 mb-10 ">
+              <div className="lg:w-1/2 mb-10 xl:mb-[100px] 2xl:mb-[196px] ">
                 <TagStyle
-                  color="#2563eb"
+                  color="#1976D2"
                   text="PREPARE WITH CONFIDENCE"
                   size="14px"
                 />
@@ -141,7 +141,7 @@ const HomePage = () => {
 
             {/* powered by advanced AI */}
 
-            <div className="container mx-auto mt-14 mb-8 md:mt-0 lg:my-14 px-4 py-12 max-w-6xl">
+            <div className="container mx-auto 2xl:mx-1 mt-14 mb-8 md:mt-0 lg:my-14 px-4 py-12 ">
               {/* Header Section */}
               <div className="text-center mb-16">
                 <p className="text-[#0D47A1] font-medium md:text-[27px] mb-2">
@@ -248,7 +248,7 @@ const HomePage = () => {
             </div>
 
             {/* why choose prempling section */}
-            <div className="max-w-6xl mx-auto md:px-4 px-6 lg:py-12  bg-white">
+            <div className="mx-auto 2xl:mx-1 md:px-4 px-6 lg:py-12  bg-white">
               <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between lg:gap-12 xl:gap-20">
                 {/* Left side: Features */}
                 <div className="lg:w-1/2  space-y-10 lg:space-y-12 pr-0  lg:pr-4">

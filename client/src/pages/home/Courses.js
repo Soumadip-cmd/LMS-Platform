@@ -88,7 +88,7 @@ const Courses = () => {
   ];
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
+    <div className="container mx-auto 2xl:mx-1 px-4 py-8 ">
       <div className="relative mb-8">
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Top <TagStyle color="#000000" text="Courses"/></h1>
         <div className="absolute -top-1 -z-10 left-0 h-8 w-40 bg-yellow-200 rounded-sm"></div>

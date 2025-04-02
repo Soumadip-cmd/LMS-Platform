@@ -79,7 +79,7 @@ const PreplingsNews = () => {
   ];
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
+    <div className="mx-auto 2xl:mx-1 px-4 py-8">
       <div className="mb-8">
         <div className="inline-block">
           <h1 className="text-2xl font-bold relative">
