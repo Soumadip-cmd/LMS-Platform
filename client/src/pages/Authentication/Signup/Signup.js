@@ -559,6 +559,51 @@ const Signup = () => {
             </div>
           </div>
 
+          <div className="mb-6">
+              <label
+                htmlFor="lgoal"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Learning Goal
+              </label>
+              <div className="relative">
+                {/* // Replace this button code in your learning goal dropdown */}
+                <button
+                  type="button"
+                  className="w-full text-left bg-white border border-gray-300 rounded-md py-2 px-3 focus:outline-none"
+                  onClick={() => setIsGoalDropdownOpen(!isGoalDropdownOpen)}
+                >
+                  <span
+                    className={
+                      formData.learningGoal ? "text-gray-900" : "text-gray-400"
+                    }
+                  >
+                    {formData.learningGoal || "Select your learning goal"}
+                  </span>
+                  <span className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                    <ChevronDown className="h-5 w-5 text-gray-400" />
+                  </span>
+                </button>
+
+                {isGoalDropdownOpen && (
+                  <div className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base overflow-auto focus:outline-none sm:text-sm">
+                    {learningGoals.map((goal) => (
+                      <div
+                        key={goal}
+                        className="cursor-pointer select-none relative py-2 pl-3 pr-9 hover:bg-gray-100"
+                        onClick={() => {
+                          setFormData({ ...formData, learningGoal: goal });
+                          setIsGoalDropdownOpen(false);
+                        }}
+                      >
+                        {goal}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
           <div className="grid grid-cols-2 gap-4 mb-6">
             {/* Google Login button div */}
             <button
@@ -864,50 +909,7 @@ const Signup = () => {
               </div>
             </div>
             {/* New */}
-            <div className="mb-6">
-              <label
-                htmlFor="lgoal"
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
-                Learning Goal
-              </label>
-              <div className="relative">
-                {/* // Replace this button code in your learning goal dropdown */}
-                <button
-                  type="button"
-                  className="w-full text-left bg-white border border-gray-300 rounded-md py-2 px-3 focus:outline-none"
-                  onClick={() => setIsGoalDropdownOpen(!isGoalDropdownOpen)}
-                >
-                  <span
-                    className={
-                      formData.learningGoal ? "text-gray-900" : "text-gray-400"
-                    }
-                  >
-                    {formData.learningGoal || "Select your learning goal"}
-                  </span>
-                  <span className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-                    <ChevronDown className="h-5 w-5 text-gray-400" />
-                  </span>
-                </button>
-
-                {isGoalDropdownOpen && (
-                  <div className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base overflow-auto focus:outline-none sm:text-sm">
-                    {learningGoals.map((goal) => (
-                      <div
-                        key={goal}
-                        className="cursor-pointer select-none relative py-2 pl-3 pr-9 hover:bg-gray-100"
-                        onClick={() => {
-                          setFormData({ ...formData, learningGoal: goal });
-                          setIsGoalDropdownOpen(false);
-                        }}
-                      >
-                        {goal}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
+            
             <button
               type="submit"
               className="w-full py-2 px-4 bg-yellow-500 hover:bg-yellow-600 text-white font-medium rounded-md transition-colors"
