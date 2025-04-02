@@ -22,7 +22,7 @@ const LoginType = () => {
       {/* Background Image with classroom students */}
       <div className="absolute inset-0 z-0">
         <img
-          src="assets/Authentication/LoginTypebg.png"
+          src={`${process.env.PUBLIC_URL}/assets/Authentication/LoginTypebg.png`}
           alt="classroom background"
           className="w-full h-full object-cover"
         />

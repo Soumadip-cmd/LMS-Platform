@@ -119,7 +119,7 @@ const Login = () => {
       <div className="relative w-full lg:w-3/5 bg-gradient-to-br from-gray-100 to-gray-300">
         <div className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage: "url('assets/Authentication/A_image.png')",
+            backgroundImage: `url(${process.env.PUBLIC_URL}/assets/Authentication/A_image.png)`,
             opacity: "0.8"
           }}>
         </div>

@@ -416,7 +416,7 @@ const Signup = () => {
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage: "url('assets/Authentication/A_image.png')",
+            backgroundImage: `url(${process.env.PUBLIC_URL}/assets/Authentication/A_image.png)`,
             opacity: "0.8",
           }}
         ></div>

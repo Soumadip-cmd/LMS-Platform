@@ -59,7 +59,7 @@ const Navbar = () => {
         <nav className="bg-white shadow px-4 lg:px-6 xl:px-14 py-3 flex flex-wrap items-center justify-between relative z-10">
           <div className="flex items-center">
             <Link to="/" className="flex items-center mr-6 group">
-              <img src="assets\logo\logo.png" alt="logo.png" className=" h-12" />
+            <img src={`${process.env.PUBLIC_URL}/assets/logo/logo.png`} alt="logo.png" className="h-12" />
             </Link>
 
             <div className="relative mx-4 hidden md:block">

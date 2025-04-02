@@ -12,8 +12,9 @@ const Footer = () => {
             {/* Logo and Open Time Section */}
             <div className="sm:col-span-2 md:col-span-3 space-y-4 sm:space-y-6">
               <div className="flex items-center justify-center sm:justify-start -ml-3">
+              
                 <img
-                  src="assets\logo\logo.png"
+                  src={`${process.env.PUBLIC_URL}/assets/logo/logo.png`}
                   alt="logo.png"
                   className="h-10 sm:h-12"
                 />
