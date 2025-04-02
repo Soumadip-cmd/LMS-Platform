@@ -17,7 +17,7 @@ const NewsCard = ({ date, views, title, excerpt, category }) => {
         )}
       </div>
       <section className="px-2 py-2">
-      <div className="flex items-center text-gray-500 text-sm mb-2">
+      <div className="flex items-center justify-between text-gray-500 text-sm mb-2">
         <span className="flex items-center mr-4">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
