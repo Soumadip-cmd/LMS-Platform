@@ -18,6 +18,7 @@ import ForgotPassword from "./pages/Authentication/ForgotPass/ForgotPassword";
 import PrivacyPolicy from "./pages/Terms&condition/TermsService/TermsService";
 import TermsService from "./pages/Terms&condition/TermsService/TermsService";
 import LoginType from "./pages/Authentication/Login/LoginType";
+import StudentDashboard from "./pages/Dashboard/Student/StudentDashboard";
 
 function App() {
   return (
@@ -32,7 +33,13 @@ function App() {
           <Route path="/loginType" element={<LoginType />} />
           <Route path="/forgotPassword" element={<ForgotPassword />} />
           <Route path="/signup" element={<Signup />} />
+          {/* Fter signup to /course */}
           <Route path="/course" element={<CourseSection />} />
+          
+{/* dashboard */}
+
+          <Route path="/studentDashboard" element={<StudentDashboard />} />
+
           <Route path="/termsofServices" element={<TermsService />} />
           <Route path="/privacyPolicy" element={<PrivacyPolicy />} />
           <Route path="*" element={<Navigate to="/" />} />{" "}
