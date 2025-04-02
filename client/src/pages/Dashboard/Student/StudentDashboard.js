@@ -153,7 +153,7 @@ const StudentDashboard = () => {
 
   return (
     // Changed to div with relative positioning instead of min-h-screen
-    <div className="flex flex-col md:flex-row bg-gray-100 relative pb-32">
+    <div className="flex flex-col md:flex-row bg-gray-100 relative pb-3">
       {/* Sidebar - Modified to be absolute instead of fixed, with bottom padding to prevent footer overlap */}
       <div
         className="hidden md:block absolute h-auto top-0 bottom-0 bg-white shadow-md z-20"
@@ -161,7 +161,7 @@ const StudentDashboard = () => {
       >
         <div className="h-full overflow-y-auto p-4 flex flex-col">
           <nav className="mt-2 flex-grow items-center">
-            <div className="space-y-2">
+            <div className="space-y-6">
               <SidebarItem
                 icon={
                   <div className="w-6 h-6 flex items-center justify-center text-blue-500">
