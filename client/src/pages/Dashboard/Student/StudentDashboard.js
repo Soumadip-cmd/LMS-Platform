@@ -159,7 +159,7 @@ const StudentDashboard = () => {
         className="hidden md:block absolute h-auto top-0 bottom-0 bg-white shadow-md z-20"
         style={{ width: "16rem" }}
       >
-        <div className="h-full overflow-y-auto p-4 flex flex-col">
+        <div className="h-full overflow-y-auto p-4 md:pt-20 flex flex-col">
           <nav className="mt-2 flex-grow items-center">
             <div className="space-y-6">
               <SidebarItem
@@ -326,7 +326,7 @@ const StudentDashboard = () => {
               />
             </div>
 
-            <div className="mt-6 mb-4">
+            <div className="mt-6 md:mt-9 mb-4">
               <button className="w-full bg-[#FFB71C] hover:bg-yellow-500 transition-colors text-white py-2 px-4 rounded-lg hover:text-[#0D47A1] text-sm font-medium duration-300">
                 Become an Instructor
               </button>
