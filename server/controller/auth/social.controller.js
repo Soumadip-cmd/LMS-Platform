@@ -241,98 +241,131 @@ export const verifyPhoneForSocialLogin = async (req, res) => {
  */
 export const completeSocialRegistration = async (req, res) => {
     try {
-        const { tempUserId, otp, phoneNumber, languageId, learningGoal } = req.body;
-        
-        if (!tempUserId || !otp || !phoneNumber) {
-            return res.status(400).json({
-                success: false,
-                message: "User ID, OTP, and phone number are required."
-            });
-        }
-        
-        // Find user
-        const user = await User.findById(tempUserId);
-        if (!user) {
-            return res.status(404).json({
-                success: false,
-                message: "User not found."
-            });
-        }
-        
-        // Check if OTP exists and is valid
-        const otpData = otpStore.get(user.email);
-        if (!otpData) {
-            return res.status(400).json({
-                success: false,
-                message: "OTP expired or not found. Please request a new OTP."
-            });
-        }
-        
-        // Verify OTP
-        if (otpData.otp !== otp || otpData.phoneNumber !== phoneNumber) {
-            return res.status(400).json({
-                success: false,
-                message: "Invalid OTP or phone number. Please try again."
-            });
-        }
-
-        // Check if language exists if provided
-        if (languageId) {
-            const language = await Language.findById(languageId);
-            if (!language) {
-                return res.status(400).json({
-                    success: false,
-                    message: "Selected language not found."
-                });
-            }
-        }
-        
-        // Update user profile with phone number and additional details
-        user.phoneNumber = phoneNumber;
-        user.isVerified = true;
-        
-        if (languageId) {
-            user.languageToLearn = languageId;
-        }
-        
-        if (learningGoal) {
-            user.learningGoal = learningGoal;
-        }
-        
-        await user.save();
-        
-        // Remove OTP from store
-        otpStore.delete(user.email);
-        
-        // Send welcome email
-        await sendEmail(
-            user.email,
-            "Welcome to Preplings!",
-            "welcome",
-            {
-                name: user.name,
-                websiteUrl: process.env.CLIENT_URL || "http://localhost:5173"
-            }
-        );
-        
-        // Update user online status
-        user.isOnline = true;
-        user.lastActive = new Date();
-        await user.save();
-
-        // Broadcast user online status
-        updateUserStatus(user._id.toString(), true);
-        
-        // Generate JWT token and log the user in
-        return generateToken(res, user, `Welcome to Preplings, ${user.name}!`);
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({
-            success: false,
-            message: "Failed to complete registration"
+      const { tempUserId, otp, phoneNumber, languageId, learningGoal } = req.body;
+      
+      if (!tempUserId || !otp || !phoneNumber) {
+        return res.status(400).json({
+          success: false,
+          message: "User ID, OTP, and phone number are required."
         });
+      }
+      
+      // Find user - handle both ObjectId and JWT token formats
+      let user;
+      
+      // If it looks like a MongoDB ObjectId (24 hex chars)
+      if (tempUserId.match(/^[0-9a-fA-F]{24}$/)) {
+        user = await User.findById(tempUserId);
+      } 
+      // If it looks like a JWT (contains periods)
+      else if (tempUserId.includes('.')) {
+        try {
+          // Decode the JWT
+          const decoded = jwt.verify(tempUserId, process.env.ACTIVATION_SECRET_KEY);
+          // Find user by email
+          if (decoded && decoded.userData && decoded.userData.email) {
+            user = await User.findOne({ email: decoded.userData.email });
+          } else {
+            return res.status(400).json({
+              success: false,
+              message: "Invalid token format. Could not extract user information."
+            });
+          }
+        } catch (jwtError) {
+          console.error("JWT verification failed:", jwtError);
+          return res.status(400).json({
+            success: false,
+            message: "Invalid or expired token."
+          });
+        }
+      } else {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid user ID format."
+        });
+      }
+      
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: "User not found."
+        });
+      }
+      
+      // Check if OTP exists and is valid
+      const otpData = otpStore.get(user.email);
+      if (!otpData) {
+        return res.status(400).json({
+          success: false,
+          message: "OTP expired or not found. Please request a new OTP."
+        });
+      }
+      
+      // Verify OTP
+      if (otpData.otp !== otp || otpData.phoneNumber !== phoneNumber) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid OTP or phone number. Please try again."
+        });
+      }
+  
+      // Check if language exists if provided
+      if (languageId) {
+        const language = await Language.findById(languageId);
+        if (!language) {
+          return res.status(400).json({
+            success: false,
+            message: "Selected language not found."
+          });
+        }
+      }
+      
+      // Update user profile with phone number and additional details
+      user.phoneNumber = phoneNumber;
+      user.isVerified = true;
+      
+      if (languageId) {
+        user.languageToLearn = languageId;
+      }
+      
+      if (learningGoal) {
+        user.learningGoal = learningGoal;
+      }
+      
+      await user.save();
+      
+      // Remove OTP from store
+      otpStore.delete(user.email);
+      
+      // Send welcome email
+      await sendEmail(
+        user.email,
+        "Welcome to Preplings!",
+        "welcome",
+        {
+          name: user.name,
+          websiteUrl: process.env.CLIENT_URL || "http://localhost:5173"
+        }
+      );
+      
+      // Update user online status
+      user.isOnline = true;
+      user.lastActive = new Date();
+      await user.save();
+  
+      // Broadcast user online status
+      updateUserStatus(user._id.toString(), true);
+      
+      // Generate JWT token and log the user in
+      return generateToken(res, user, `Welcome to Preplings, ${user.name}!`);
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to complete registration"
+      });
     }
-};
+  };
 
 /**
  * Resend OTP for Phone Verification
