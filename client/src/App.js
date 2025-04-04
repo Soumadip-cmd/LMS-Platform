@@ -75,7 +75,7 @@ const AppContent = () => {
       <Routes>
         {/* Public routes */}
         <Route path="/" element={<HomePage />} />
-        <Route path="/courses" element={<CourseSection />} />
+        <Route path="/courses" element={<CourseSection />} /> //after signup
         
         {/* Authentication routes */}
         <Route path="/auth/login" element={<Login />} />
@@ -83,9 +83,9 @@ const AppContent = () => {
         <Route path="/auth/signup" element={<Signup />} />
         
         {/* Dashboard routes */}
-        <Route path="/dashboard/student" element={<StudentDashboard />} />
-        <Route path="/dashboard/instructor" element={<InstructorDashboard />} />
-        <Route path="/dashboard/admin" element={<AdminDashboard />} />
+        <Route path="/dashboard/student" element={<StudentDashboard />} />   //after login
+        <Route path="/dashboard/instructor" element={<InstructorDashboard />} /> //after approved instructre page 
+        <Route path="/dashboard/admin" element={<AdminDashboard />} />   //same for admin
         
         {/* Legal routes */}
         <Route path="/legal/terms-of-service" element={<TermsService />} />
