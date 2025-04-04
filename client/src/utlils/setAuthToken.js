@@ -1,12 +1,8 @@
-// src/utils/setAuthToken.js
 import axios from "axios";
 
-const setAuthToken = (token) => {
-  if (token) {
-    axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-  } else {
-    delete axios.defaults.headers.common["Authorization"];
-  }
+const setAuthToken = () => {
+  // Configure axios to send credentials with every request
+  axios.defaults.withCredentials = true;
 };
 
 export default setAuthToken;

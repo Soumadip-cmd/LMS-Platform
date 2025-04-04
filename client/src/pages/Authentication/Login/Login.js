@@ -21,16 +21,26 @@ const Login = () => {
   const { login, socialLogin, error: authError, isAuthenticated, clearErrors } = AuthContext;
 
   useEffect(() => {
-    // If already authenticated, redirect to homepage
-    if (isAuthenticated) {
-      navigate('/');
+    // If already authenticated, redirect based on role
+    if (isAuthenticated && AuthContext.user) {
+      console.log('User authenticated, navigating...');
+      console.log('Current user:', AuthContext.user);
+      
+      switch(AuthContext.user.role) {
+        case 'student':
+          navigate('/dashboard/student');
+          break;
+        case 'instructor':
+          navigate('/dashboard/instructor');
+          break;
+        case 'admin':
+          navigate('/dashboard/admin');
+          break;
+        default:
+          navigate('/');
+      }
     }
-
-    if (authError) {
-      setError(authError);
-      clearErrors();
-    }
-  }, [isAuthenticated, authError, navigate, clearErrors]);
+  }, [isAuthenticated, AuthContext.user, navigate]);
 
 
 
@@ -40,24 +50,50 @@ const Login = () => {
   const handlePasswordChange = (e) => {
     setPassword(e.target.value);
   };
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+
+  //   if (!email || !password) {
+  //     setError('Please fill in all fields');
+  //     toast.error('Please fill in all fields');
+  //     return;
+  //   }
+
+  //   try {
+  //     await login(email, password);
+  //     toast.success('Login successful!');
+  //     // Login automatically redirects to home page due to useEffect with isAuthenticated
+  //   } catch (err) {
+  //     setError(err.response?.data?.message || 'Login failed. Please try again.');
+  //     toast.error(err.response?.data?.message || 'Login failed. Please try again.');
+  //   }
+  // };
+
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    
     if (!email || !password) {
       setError('Please fill in all fields');
       toast.error('Please fill in all fields');
       return;
     }
-
+    
     try {
+      console.log('Attempting login...');
       await login(email, password);
+      console.log('Login successful');
       toast.success('Login successful!');
-      // Login automatically redirects to home page due to useEffect with isAuthenticated
+      
+      // Use useEffect in login component to handle navigation
+      // Remove the setTimeout logic
     } catch (err) {
+      console.error('Login error:', err);
       setError(err.response?.data?.message || 'Login failed. Please try again.');
       toast.error(err.response?.data?.message || 'Login failed. Please try again.');
     }
   };
+  
 
   const handleGoogleLogin = async () => {
     try {
@@ -266,7 +302,7 @@ const Login = () => {
         </div>
       </div>
 
-      <OTPVerificationModal
+      {/* <OTPVerificationModal
         isOpen={showOtpModal}
         onClose={handleCloseOtpModal}
         email={userEmail}
@@ -274,7 +310,23 @@ const Login = () => {
         onVerifySuccess={handleOtpVerificationSuccess}
         onResendOTP={() => {}}
         isSocialSignup={true}
-      />
+      /> */}
+
+<OTPVerificationModal
+  isOpen={showOtpModal}
+  onClose={handleCloseOtpModal}
+  email={userEmail}
+  activationToken={tempUserId}
+  onVerifySuccess={handleOtpVerificationSuccess}
+  onResendOTP={() => {
+    // You can implement this if needed
+    AuthContext.resendGooglePhoneOTP({
+      tempUserId: tempUserId,
+      phoneNumber: userEmail
+    });
+  }}
+  isSocialSignup={true}
+/>
     </div>
   );
 };

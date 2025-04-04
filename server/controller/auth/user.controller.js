@@ -347,64 +347,147 @@ export const resendOTP = async (req, res) => {
     }
 };
 
+// export const login = async (req, res) => {
+//     try {
+//         const { email, password } = req.body;
+        
+//         if (!email || !password) {
+//             return res.status(400).json({
+//                 success: false,
+//                 message: "All fields are required."
+//             });
+//         }
+
+//         const user = await User.findOne({ email });
+        
+//         if (!user) {
+//             return res.status(400).json({
+//                 success: false,
+//                 message: "Incorrect email or password"
+//             });
+//         }
+        
+//         // Check if user is verified
+//         if (!user.isVerified) {
+//             return res.status(403).json({
+//                 success: false,
+//                 message: "Please verify your account before logging in."
+//             });
+//         }
+
+//         const isPasswordMatch = await bcrypt.compare(password, user.password);
+        
+//         if (!isPasswordMatch) {
+//             return res.status(400).json({
+//                 success: false,
+//                 message: "Incorrect email or password"
+//             });
+//         }
+
+//         // Update user online status
+//         user.isOnline = true;
+//         user.lastActive = new Date();
+//         await user.save();
+
+//         // Broadcast user online status to all clients via socket
+//         updateUserStatus(user._id.toString(), true);
+        
+//         // Generate JWT token and send response
+//         generateToken(res, user, `Welcome back ${user.name}`);
+
+//     } catch (error) {
+//         console.log(error);
+//         return res.status(500).json({
+//             success: false,
+//             message: "Failed to login"
+//         });
+//     }
+// };
+
 export const login = async (req, res) => {
     try {
-        const { email, password } = req.body;
-        
-        if (!email || !password) {
-            return res.status(400).json({
-                success: false,
-                message: "All fields are required."
-            });
-        }
-
-        const user = await User.findOne({ email });
-        
-        if (!user) {
-            return res.status(400).json({
-                success: false,
-                message: "Incorrect email or password"
-            });
-        }
-        
-        // Check if user is verified
-        if (!user.isVerified) {
-            return res.status(403).json({
-                success: false,
-                message: "Please verify your account before logging in."
-            });
-        }
-
-        const isPasswordMatch = await bcrypt.compare(password, user.password);
-        
-        if (!isPasswordMatch) {
-            return res.status(400).json({
-                success: false,
-                message: "Incorrect email or password"
-            });
-        }
-
-        // Update user online status
-        user.isOnline = true;
-        user.lastActive = new Date();
-        await user.save();
-
-        // Broadcast user online status to all clients via socket
-        updateUserStatus(user._id.toString(), true);
-        
-        // Generate JWT token and send response
-        generateToken(res, user, `Welcome back ${user.name}`);
-
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({
-            success: false,
-            message: "Failed to login"
+      const { email, password } = req.body;
+  
+      // Validate input
+      if (!email || !password) {
+        return res.status(400).json({
+          success: false,
+          message: "All fields are required."
         });
+      }
+  
+      // Find user
+      const user = await User.findOne({ email });
+      if (!user) {
+        return res.status(400).json({
+          success: false,
+          message: "Incorrect email or password"
+        });
+      }
+  
+      // Check if user is verified
+      if (!user.isVerified) {
+        return res.status(403).json({
+          success: false,
+          message: "Please verify your account before logging in."
+        });
+      }
+  
+      // Check password
+      const isPasswordMatch = await bcrypt.compare(password, user.password);
+      if (!isPasswordMatch) {
+        return res.status(400).json({
+          success: false,
+          message: "Incorrect email or password"
+        });
+      }
+  
+      // Generate token
+      const token = jwt.sign(
+        { 
+          userId: user._id, 
+          role: user.role 
+        }, 
+        process.env.SECRET_KEY, 
+        { expiresIn: '24h' }
+      );
+  
+      // Set cookie
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production', // Use secure in production
+        sameSite: 'strict',
+        maxAge: 24 * 60 * 60 * 1000 // 24 hours
+      });
+  
+      // Update user online status
+      user.isOnline = true;
+      user.lastActive = new Date();
+      await user.save();
+  
+      // Broadcast user online status
+      updateUserStatus(user._id.toString(), true);
+  
+      // Respond with user details (excluding sensitive info)
+      return res.status(200).json({
+        success: true,
+        message: `Welcome back ${user.name}`,
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role
+        }
+      });
+  
+    } catch (error) {
+      console.error('Login error:', error);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to login"
+      });
     }
-};
-
-
+  };
 export const logout = async (req, res) => {
     try {
         // Update user online status

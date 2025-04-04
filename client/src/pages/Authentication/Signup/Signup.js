@@ -191,101 +191,7 @@ const Signup = () => {
     navigate("/auth/login");
   };
 
-  // const handleGoogleLogin = async () => {
-  //   try {
-  //     const auth = getAuth(firebaseApp); // Make sure firebaseApp is correctly imported
-  //     const provider = new GoogleAuthProvider();
-  //     // Add scopes if needed
-  //     provider.addScope('profile');
-  //     provider.addScope('email');
 
-  //     const result = await signInWithPopup(auth, provider);
-
-  //     // Get user information from the result
-  //     const user = result.user;
-  //     const userData = {
-  //       name: user.displayName,
-  //       email: user.email,
-  //       uid: user.uid,
-  //       provider: 'google',
-  //       photoURL: user.photoURL
-  //     };
-
-  //     // Call your socialLogin function with the user data
-  //     const response = await socialLogin(userData);
-
-  //     // If the response indicates phone verification is needed
-  //     if (response && response.needsPhoneVerification) {
-  //       toast.info('Please verify your phone number to complete registration.');
-  //       setActivationToken(response.tempUserId);
-  //       setRegisteredEmail(response.email);
-  //       setIsOtpModalOpen(true);
-  //     } else {
-  //       // If login was successful without verification needed
-  //       toast.success('Google login successful!');
-  //     }
-  //   } catch (error) {
-  //     console.error('Google login error:', error);
-  //     toast.error('Google login failed. Please try again.');
-  //   }
-  // };
-
-  // const handleGoogleLogin = async () => {
-  //   try {
-  //     console.log("Starting Google login...");
-  //     const auth = getAuth(firebaseApp);
-  //     const provider = new GoogleAuthProvider();
-
-  //     console.log("Invoking Firebase popup...");
-  //     const result = await signInWithPopup(auth, provider);
-  //     console.log("Firebase popup result:", result);
-
-  //     const userData = {
-  //       name: result.user.displayName,
-  //       email: result.user.email,
-  //       uid: result.user.uid,
-  //       provider: 'google',
-  //       photoURL: result.user.photoURL
-  //     };
-
-  //     console.log("Calling socialLogin with:", userData);
-
-  //     try {
-  //       const response = await socialLogin(userData);
-  //       console.log("socialLogin response:", response);
-
-  //       if (response && response.needsPhoneVerification) {
-  //         console.log("Phone verification needed, opening modal with:",
-  //           {tempUserId: response.tempUserId, email: response.email});
-  //         setActivationToken(response.tempUserId);
-  //         setRegisteredEmail(response.email);
-  //         setIsOtpModalOpen(true);
-  //       } else {
-  //         console.log("No verification needed, login successful");
-  //         toast.success('Google login successful!');
-  //       }
-  //     } catch (error) {
-  //       // Check if this is the expected 403 with needsPhoneVerification
-  //       if (error.response && error.response.status === 403 &&
-  //           error.response.data && error.response.data.needsPhoneVerification) {
-
-  //         console.log("Phone verification needed from error response:", error.response.data);
-  //         toast.info('Please verify your phone number to complete registration.');
-  //         setActivationToken(error.response.data.tempUserId);
-  //         setRegisteredEmail(error.response.data.email);
-  //         setIsOtpModalOpen(true);
-  //       } else {
-  //         // This is an actual error
-  //         console.error('Backend error:', error);
-  //         toast.error('Login failed: ' + (error.response?.data?.message || error.message || 'Please try again'));
-  //       }
-  //     }
-  //   } catch (error) {
-  //     // Firebase popup error
-  //     console.error('Google login full error:', error);
-  //     toast.error('Google login failed: ' + (error.message || 'Please try again'));
-  //   }
-  // };
 
   const handleGoogleLogin = async () => {
     try {
@@ -322,8 +228,9 @@ const Signup = () => {
             email: response.email,
           });
           setActivationToken(response.tempUserId);
-          setRegisteredEmail(response.email);
-          setIsOtpModalOpen(true);
+  setRegisteredEmail(response.email);
+  setIsOtpModalOpen(true);
+        
           toast.info(
             "Please verify your phone number to complete registration"
           );
@@ -945,7 +852,7 @@ const Signup = () => {
         activationToken={activationToken}
         onVerifySuccess={handleVerifyOTP}
         onResendOTP={handleResendOTP}
-        isSocialSignup={true}
+        isSocialSignup={false}
       />
     </div>
   );
