@@ -4,11 +4,7 @@ import { User } from "../../models/user.model.js";
 import { uploadMedia, deleteMediaFromCloudinary } from "../../utils/cloudinary.js";
 import { sendCourseNotification } from "../../socket/socket.js";
 
-/**
- * Create a new lecture
- * @route POST /api/lectures
- * @access Instructor only
- */
+
 export const createLecture = async (req, res) => {
     try {
         const {
@@ -26,7 +22,7 @@ export const createLecture = async (req, res) => {
         } = req.body;
 
         const videoFile = req.file;
-        const instructorId = req.id;
+        const userId = req.id;
 
         // Validate required fields
         if (!lectureTitle || !courseId || !order) {
@@ -36,7 +32,7 @@ export const createLecture = async (req, res) => {
             });
         }
 
-        // Check if course exists and instructor is authorized
+        // Check if course exists
         const course = await Course.findById(courseId);
         if (!course) {
             return res.status(404).json({
@@ -45,7 +41,11 @@ export const createLecture = async (req, res) => {
             });
         }
 
-        if (course.instructor.toString() !== instructorId) {
+        // Check if user is authorized (instructor of the course or admin)
+        const isAdmin = req.user.role === "admin";
+        const isInstructor = course.instructor.toString() === userId;
+
+        if (!isAdmin && !isInstructor) {
             return res.status(403).json({
                 success: false,
                 message: "You can only add lectures to your own courses."
@@ -126,11 +126,7 @@ export const createLecture = async (req, res) => {
     }
 };
 
-/**
- * Get all lectures for a course
- * @route GET /api/lectures/course/:courseId
- * @access Private (Enrolled students and instructor)
- */
+
 export const getCourseLectures = async (req, res) => {
     try {
         const { courseId } = req.params;
@@ -145,12 +141,13 @@ export const getCourseLectures = async (req, res) => {
             });
         }
 
-        // Check if user is enrolled or is the instructor
+        // Check if user is enrolled, is the instructor, or is an admin
         const user = await User.findById(userId);
+        const isAdmin = req.user.role === "admin";
         const isInstructor = course.instructor.toString() === userId;
         const isEnrolled = user.enrolledCourses.some(id => id.toString() === courseId);
 
-        if (!isInstructor && !isEnrolled) {
+        if (!isAdmin && !isInstructor && !isEnrolled) {
             // Filter to only include preview lectures for non-enrolled users
             const previewLectures = await Lecture.find({
                 course: courseId,
@@ -168,8 +165,8 @@ export const getCourseLectures = async (req, res) => {
         const lectures = await Lecture.find({ course: courseId })
             .sort({ order: 1 });
 
-        // For each lecture, check if the student has completed it
-        if (!isInstructor) {
+        // For each lecture, check if the student has completed it (not applicable for instructors or admins)
+        if (!isInstructor && !isAdmin && isEnrolled) {
             const lecturesWithProgress = lectures.map(lecture => {
                 const completed = lecture.completedBy.some(
                     completion => completion.user.toString() === userId
@@ -202,11 +199,7 @@ export const getCourseLectures = async (req, res) => {
     }
 };
 
-/**
- * Get lecture by ID
- * @route GET /api/lectures/:id
- * @access Private (Enrolled students and instructor)
- */
+
 export const getLectureById = async (req, res) => {
     try {
         const { id } = req.params;
@@ -232,11 +225,12 @@ export const getLectureById = async (req, res) => {
 
         // Check access permissions
         const user = await User.findById(userId);
+        const isAdmin = req.user.role === "admin";
         const isInstructor = course.instructor.toString() === userId;
         const isEnrolled = user.enrolledCourses.some(id => id.toString() === lecture.course.toString());
         const isPreviewFree = lecture.isPreviewFree;
 
-        if (!isInstructor && !isEnrolled && !isPreviewFree) {
+        if (!isAdmin && !isInstructor && !isEnrolled && !isPreviewFree) {
             return res.status(403).json({
                 success: false,
                 message: "You must enroll in this course to access this lecture."
@@ -244,7 +238,7 @@ export const getLectureById = async (req, res) => {
         }
 
         // Mark lecture as viewed/completed for enrolled students
-        if (isEnrolled && !isInstructor) {
+        if (isEnrolled && !isInstructor && !isAdmin) {
             const completedIndex = lecture.completedBy.findIndex(
                 completion => completion.user.toString() === userId
             );
@@ -271,11 +265,7 @@ export const getLectureById = async (req, res) => {
     }
 };
 
-/**
- * Update lecture
- * @route PUT /api/lectures/:id
- * @access Instructor only
- */
+
 export const updateLecture = async (req, res) => {
     try {
         const {
@@ -293,7 +283,7 @@ export const updateLecture = async (req, res) => {
         } = req.body;
 
         const videoFile = req.file;
-        const instructorId = req.id;
+        const userId = req.id;
         const lectureId = req.params.id;
 
         // Find lecture
@@ -305,9 +295,19 @@ export const updateLecture = async (req, res) => {
             });
         }
 
-        // Check if instructor is authorized
+        // Check if user is authorized (instructor of the course or admin)
         const course = await Course.findById(lecture.course);
-        if (!course || course.instructor.toString() !== instructorId) {
+        if (!course) {
+            return res.status(404).json({
+                success: false,
+                message: "Course not found."
+            });
+        }
+
+        const isAdmin = req.user.role === "admin";
+        const isInstructor = course.instructor.toString() === userId;
+
+        if (!isAdmin && !isInstructor) {
             return res.status(403).json({
                 success: false,
                 message: "You can only update lectures in your own courses."
@@ -410,15 +410,10 @@ export const updateLecture = async (req, res) => {
     }
 };
 
-/**
- * Delete lecture
- * @route DELETE /api/lectures/:id
- * @access Instructor only
- */
 export const deleteLecture = async (req, res) => {
     try {
         const lectureId = req.params.id;
-        const instructorId = req.id;
+        const userId = req.id;
 
         // Find lecture
         const lecture = await Lecture.findById(lectureId);
@@ -429,9 +424,19 @@ export const deleteLecture = async (req, res) => {
             });
         }
 
-        // Check if instructor is authorized
+        // Check if user is authorized (instructor of the course or admin)
         const course = await Course.findById(lecture.course);
-        if (!course || course.instructor.toString() !== instructorId) {
+        if (!course) {
+            return res.status(404).json({
+                success: false,
+                message: "Course not found."
+            });
+        }
+
+        const isAdmin = req.user.role === "admin";
+        const isInstructor = course.instructor.toString() === userId;
+
+        if (!isAdmin && !isInstructor) {
             return res.status(403).json({
                 success: false,
                 message: "You can only delete lectures in your own courses."
@@ -441,6 +446,15 @@ export const deleteLecture = async (req, res) => {
         // Delete video from cloudinary
         if (lecture.videoUrl && lecture.publicId) {
             deleteMediaFromCloudinary(lecture.publicId);
+        }
+
+        // Delete attachments from cloudinary
+        if (lecture.attachments && lecture.attachments.length > 0) {
+            for (const attachment of lecture.attachments) {
+                if (attachment.publicId) {
+                    deleteMediaFromCloudinary(attachment.publicId);
+                }
+            }
         }
 
         // Remove lecture from course
@@ -465,16 +479,12 @@ export const deleteLecture = async (req, res) => {
     }
 };
 
-/**
- * Add attachment to lecture
- * @route POST /api/lectures/:id/attachments
- * @access Instructor only
- */
+
 export const addLectureAttachment = async (req, res) => {
     try {
         const { title, fileType } = req.body;
         const lectureId = req.params.id;
-        const instructorId = req.id;
+        const userId = req.id;
         const file = req.file;
 
         if (!file || !title) {
@@ -493,9 +503,19 @@ export const addLectureAttachment = async (req, res) => {
             });
         }
 
-        // Check if instructor is authorized
+        // Check if user is authorized (instructor of the course or admin)
         const course = await Course.findById(lecture.course);
-        if (!course || course.instructor.toString() !== instructorId) {
+        if (!course) {
+            return res.status(404).json({
+                success: false,
+                message: "Course not found."
+            });
+        }
+
+        const isAdmin = req.user.role === "admin";
+        const isInstructor = course.instructor.toString() === userId;
+
+        if (!isAdmin && !isInstructor) {
             return res.status(403).json({
                 success: false,
                 message: "You can only add attachments to your own lectures."
@@ -529,16 +549,12 @@ export const addLectureAttachment = async (req, res) => {
     }
 };
 
-/**
- * Remove attachment from lecture
- * @route DELETE /api/lectures/:id/attachments/:attachmentId
- * @access Instructor only
- */
+
 export const removeLectureAttachment = async (req, res) => {
     try {
         const { attachmentId } = req.params;
         const lectureId = req.params.id;
-        const instructorId = req.id;
+        const userId = req.id;
 
         // Find lecture
         const lecture = await Lecture.findById(lectureId);
@@ -549,9 +565,19 @@ export const removeLectureAttachment = async (req, res) => {
             });
         }
 
-        // Check if instructor is authorized
+        // Check if user is authorized (instructor of the course or admin)
         const course = await Course.findById(lecture.course);
-        if (!course || course.instructor.toString() !== instructorId) {
+        if (!course) {
+            return res.status(404).json({
+                success: false,
+                message: "Course not found."
+            });
+        }
+
+        const isAdmin = req.user.role === "admin";
+        const isInstructor = course.instructor.toString() === userId;
+
+        if (!isAdmin && !isInstructor) {
             return res.status(403).json({
                 success: false,
                 message: "You can only remove attachments from your own lectures."

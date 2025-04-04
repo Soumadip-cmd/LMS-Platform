@@ -117,5 +117,22 @@ const isAdmin = async (req, res, next) => {
     });
   }
 };
-
+export const isInstructorOrAdmin = (req, res, next) => {
+  try {
+      if (req.user && (req.user.role === "instructor" || req.user.role === "admin")) {
+          next();
+      } else {
+          return res.status(403).json({
+              success: false,
+              message: "Access denied. Instructor or Admin privileges required."
+          });
+      }
+  } catch (error) {
+      console.log(error);
+      return res.status(500).json({
+          success: false,
+          message: "Server error"
+      });
+  }
+};
 export { isAuthenticated, isInstructor, isAdmin };
