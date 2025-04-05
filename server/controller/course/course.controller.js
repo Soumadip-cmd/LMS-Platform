@@ -18,7 +18,7 @@ export const createCourse = async (req, res) => {
         // Determine the instructor ID
         // If admin is creating course for an instructor, use the provided instructorId
         // Otherwise use the current user's ID
-        const instructor = req.user.role === "admin" && instructorId ? instructorId : req.id;
+        const instructor = req.user.role === "admin" ? (instructorId || req.id) : req.id;
 
         // Create course
         const course = await Course.create({
