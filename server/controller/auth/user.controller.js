@@ -25,10 +25,10 @@ const transporter = nodemailer.createTransport({
     port: 465,
     secure: true,
     auth: {
-        user: 'preplings@zohomail.in', // Use the actual email address instead of env variable
-        pass: 'EvGdpzjJprNs' // Use the actual app password instead of env variable for testing
+        user: 'preplings@zohomail.in', 
+        pass: 'EvGdpzjJprNs'
     },
-    debug: true // Add this for debugging purposes
+    debug: true 
 });
 
 /**
