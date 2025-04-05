@@ -202,15 +202,15 @@ export const getAllCoursesAdmin = async (req, res) => {
     }
 };
 
+
 export const getCourseById = async (req, res) => {
     try {
         const { courseId } = req.params;
 
-        const course = await Course.findById(courseId)
+        let course = await Course.findById(courseId)
             .populate({ path: "instructor", select: "name photoUrl" })
             .populate({ path: "language", select: "name code" })
-            .populate("lessons")
-            .populate("quizzes");
+            .populate("lessons");
 
         if (!course) {
             return res.status(404).json({
@@ -218,20 +218,33 @@ export const getCourseById = async (req, res) => {
                 message: "Course not found!"
             });
         }
+
+        // Manually populate quizzes if needed
+        if (course.quizzes && course.quizzes.length > 0) {
+            try {
+                course = await course.populate({
+                    path: "quizzes",
+                    select: "title description level timeLimit passingScore status"
+                });
+            } catch (populateError) {
+                console.warn('Quiz population failed:', populateError);
+                // Continue without quiz population
+            }
+        }
         
         return res.status(200).json({
             success: true,
             course
         });
     } catch (error) {
-        console.log(error);
+        console.error('Course Fetch Error:', error);
         return res.status(500).json({
             success: false,
-            message: "Failed to get course by id"
+            message: "Failed to get course by id",
+            errorDetails: error.message
         });
     }
 };
-
 export const updateCourse = async (req, res) => {
     try {
         const courseId = req.params.courseId;
@@ -332,6 +345,8 @@ export const updateCourse = async (req, res) => {
     }
 };
 
+
+
 export const addCourseMaterial = async (req, res) => {
     try {
         const { courseId } = req.params;
@@ -354,7 +369,7 @@ export const addCourseMaterial = async (req, res) => {
             });
         }
 
-        // Authorization check - Admin can update any course, Instructor can only update their own
+        // Authorization check
         if (req.user.role !== "admin" && course.instructor.toString() !== req.id) {
             return res.status(403).json({
                 success: false,
@@ -362,15 +377,15 @@ export const addCourseMaterial = async (req, res) => {
             });
         }
 
-        // Upload file
-        const uploadResult = await uploadMedia(file.path);
+        // Create full URL including server address
+        const fullUrl = `${req.protocol}://${req.get('host')}/uploads/${file.filename}`;
 
         // Add material to course
         course.materials.push({
             title,
             type,
-            url: uploadResult.secure_url,
-            publicId: uploadResult.public_id
+            url: fullUrl, // Full URL to access the file
+            publicId: file.filename
         });
 
         await course.save();
@@ -381,14 +396,13 @@ export const addCourseMaterial = async (req, res) => {
             message: "Course material added successfully."
         });
     } catch (error) {
-        console.log(error);
+        console.error('Add Course Material Error:', error);
         return res.status(500).json({
             success: false,
             message: "Failed to add course material"
         });
     }
 };
-
 export const removeCourseMaterial = async (req, res) => {
     try {
         const { courseId, materialId } = req.params;
