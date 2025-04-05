@@ -87,7 +87,7 @@ const StudentNavbar = () => {
 
   // Sign out positioning logic - Only fixed for medium height screens (between 642px and 740px)
   const signOutClass = screenHeightType === 'medium' 
-    ? 'fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-4'
+    ? 'fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-1'
     : 'border-t border-gray-200 py-4';
   
   // Only show bottom spacing when sign out is fixed

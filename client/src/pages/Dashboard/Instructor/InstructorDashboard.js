@@ -134,8 +134,8 @@ const InstructorDashboard = () => {
     };
 
     return (
-      <div className="bg-white p-4 sm:p-6 rounded-lg shadow-[0_0px_10px_rgba(0,0,0,0.1)]">
-        <div className="text-gray-400 mb-2 sm:mb-4 text-base sm:text-lg">
+      <div className="bg-white p-6 rounded-lg shadow-[0_0px_10px_rgba(0,0,0,0.1)]">
+        <div className="text-gray-400 mb-2 text-lg">
           {title}
         </div>
         <div className="flex items-center justify-between">
@@ -235,18 +235,18 @@ const InstructorDashboard = () => {
       <div className="flex-1 w-full md:ml-0">
         <div className="max-w-7xl mx-auto p-2 sm:p-4">
           {/* Header Section */}
-          <div className="bg-white rounded-lg shadow-[0_0px_10px_rgba(0,0,0,0.1)] p-4 sm:p-6 mb-6">
+          <div className="bg-white rounded-lg shadow-[0_0px_10px_rgba(0,0,0,0.1)] p-6 mb-6">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
               <div className="w-full">
-                <div className="flex flex-col">
-                  <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-medium text-blue-500">
+                <div className="flex flex-col xl:flex-row xl:justify-between">
+                  <h1 className="text-2xl md:text-3xl lg:text-4xl font-medium text-blue-500">
                     Welcome Back, Prof. Hasan!
                   </h1>
-                  <div className="mt-2">
+                  <div className="mt-4 xl:mt-0">
                     <DateDisplay date="Tuesday, March 2025|" time="12:10 AM" />
                   </div>
                 </div>
-                <p className="text-gray-600 text-sm sm:text-base md:text-lg mt-4">
+                <p className="text-gray-600 text-base md:text-xl mt-4">
                   Your learning platform is showing exceptional growth! Get
                   comprehensive insights into your courses, student engagement,
                   and revenue metrics.
@@ -255,7 +255,7 @@ const InstructorDashboard = () => {
             </div>
 
             {/* First row of Stats Cards */}
-            <div className="grid grid-cols-1  md:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-6 mt-6">
+            <div className="grid grid-cols-1  md:grid-cols-2 2xl:grid-cols-4 gap-3 sm:gap-6 mt-6">
               <StatCard
                 icon={
                   <DollarSign
@@ -300,7 +300,7 @@ const InstructorDashboard = () => {
             </div>
 
             {/* Second row of Stats Cards */}
-            <div className="grid grid-cols-1  md:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-6 mt-6">
+            <div className="grid grid-cols-1  md:grid-cols-2 2xl:grid-cols-4 gap-3 sm:gap-6 mt-6">
               <StatCard
                 icon={
                   <BookOpen size={24} className="sm:size-32" color="#FFC107" />
