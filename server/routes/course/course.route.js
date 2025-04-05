@@ -26,7 +26,7 @@ courseRouter.get('/:courseId', getCourseById);
 courseRouter.use(isAuthenticated);
 
 // Routes for both instructors and admins
-courseRouter.post('/', isInstructorOrAdmin, upload.single('thumbnail'), createCourse);
+courseRouter.post('/create', isInstructorOrAdmin, upload.single('thumbnail'), createCourse);
 courseRouter.put('/:courseId', isInstructorOrAdmin, upload.single('thumbnail'), updateCourse);
 courseRouter.post('/:courseId/material', isInstructorOrAdmin, upload.single('file'), addCourseMaterial);
 courseRouter.delete('/:courseId/material/:materialId', isInstructorOrAdmin, removeCourseMaterial);

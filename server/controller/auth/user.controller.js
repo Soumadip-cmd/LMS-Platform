@@ -2,7 +2,7 @@ import { User } from "../../models/user.model.js";
 import { Language } from "../../models/language.model.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { generateToken } from "../../utils/generateToken.js";
+
 
 import { updateUserStatus, getIO } from "../../socket/socket.js";
 import nodemailer from "nodemailer";
@@ -347,131 +347,70 @@ export const resendOTP = async (req, res) => {
     }
 };
 
-// export const login = async (req, res) => {
-//     try {
-//         const { email, password } = req.body;
-        
-//         if (!email || !password) {
-//             return res.status(400).json({
-//                 success: false,
-//                 message: "All fields are required."
-//             });
-//         }
-
-//         const user = await User.findOne({ email });
-        
-//         if (!user) {
-//             return res.status(400).json({
-//                 success: false,
-//                 message: "Incorrect email or password"
-//             });
-//         }
-        
-//         // Check if user is verified
-//         if (!user.isVerified) {
-//             return res.status(403).json({
-//                 success: false,
-//                 message: "Please verify your account before logging in."
-//             });
-//         }
-
-//         const isPasswordMatch = await bcrypt.compare(password, user.password);
-        
-//         if (!isPasswordMatch) {
-//             return res.status(400).json({
-//                 success: false,
-//                 message: "Incorrect email or password"
-//             });
-//         }
-
-//         // Update user online status
-//         user.isOnline = true;
-//         user.lastActive = new Date();
-//         await user.save();
-
-//         // Broadcast user online status to all clients via socket
-//         updateUserStatus(user._id.toString(), true);
-        
-//         // Generate JWT token and send response
-//         generateToken(res, user, `Welcome back ${user.name}`);
-
-//     } catch (error) {
-//         console.log(error);
-//         return res.status(500).json({
-//             success: false,
-//             message: "Failed to login"
-//         });
-//     }
-// };
 
 export const login = async (req, res) => {
     try {
       const { email, password } = req.body;
-  
-      // Validate input
-      if (!email || !password) {
-        return res.status(400).json({
-          success: false,
-          message: "All fields are required."
-        });
-      }
   
       // Find user
       const user = await User.findOne({ email });
       if (!user) {
         return res.status(400).json({
           success: false,
-          message: "Incorrect email or password"
+          message: "Invalid credentials"
         });
       }
   
-      // Check if user is verified
-      if (!user.isVerified) {
-        return res.status(403).json({
-          success: false,
-          message: "Please verify your account before logging in."
-        });
-      }
-  
-      // Check password
+      // Verify password
       const isPasswordMatch = await bcrypt.compare(password, user.password);
       if (!isPasswordMatch) {
         return res.status(400).json({
           success: false,
-          message: "Incorrect email or password"
+          message: "Invalid credentials"
         });
       }
   
-      // Generate token
+      // Check user verification
+      if (!user.isVerified) {
+        return res.status(403).json({
+          success: false,
+          message: "Please verify your account"
+        });
+      }
+  
+      // Generate JWT token
       const token = jwt.sign(
         { 
-          userId: user._id, 
-          role: user.role 
+          userId: user._id.toString(), 
+          role: user.role,
+          email: user.email,
+          uniqueSignature: Date.now().toString()
         }, 
         process.env.SECRET_KEY, 
-        { expiresIn: '24h' }
+        { 
+          expiresIn: '24h',
+          algorithm: 'HS256'
+        }
       );
   
-      // Set cookie
-      res.cookie('token', token, {
+ 
+    res.cookie('access_token', token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production', // Use secure in production
-        sameSite: 'strict',
-        maxAge: 24 * 60 * 60 * 1000 // 24 hours
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax', // Less strict than 'strict'
+        maxAge: 24 * 60 * 60 * 1000, // 24 hours
+        path: '/', 
+        domain: 'localhost' // For local development
       });
-  
-      // Update user online status
+      
+      // Update user status
       user.isOnline = true;
       user.lastActive = new Date();
       await user.save();
   
-      // Broadcast user online status
-      updateUserStatus(user._id.toString(), true);
-  
-      // Respond with user details (excluding sensitive info)
       return res.status(200).json({
         success: true,
-        message: `Welcome back ${user.name}`,
+        message: `Welcome back, ${user.name}`,
         user: {
           id: user._id,
           name: user.name,
@@ -479,59 +418,51 @@ export const login = async (req, res) => {
           role: user.role
         }
       });
-  
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('Login Error:', error);
       return res.status(500).json({
         success: false,
-        message: "Failed to login"
+        message: "Login failed. Please try again."
       });
     }
   };
-export const logout = async (req, res) => {
+  export const logout = async (req, res) => {
     try {
-        // Update user online status
-        if (req.id) {
-            const user = await User.findById(req.id);
-            if (user) {
-                user.isOnline = false;
-                user.lastActive = new Date();
-                await user.save();
-                
-                // Broadcast user offline status to appropriate channels
-                updateUserStatus(user._id.toString(), false);
-                
-                // Get socket IO instance
-                const io = getIO();
-                if (io) {
-                    // Emit detailed logout event
-                    io.emit("userLogout", {
-                        userId: user._id.toString(),
-                        username: user.name,
-                        timestamp: new Date(),
-                        status: {
-                            isOnline: false,
-                            lastActive: user.lastActive
-                        }
-                    });
-                }
-            }
+      // Update user online status
+      if (req.id) {
+        const user = await User.findById(req.id);
+        if (user) {
+          user.isOnline = false;
+          user.lastActive = new Date();
+          await user.save();
+          
+          // Broadcast user offline status
+          updateUserStatus(user._id.toString(), false);
         }
-
-        return res.status(200).cookie("token", "", {maxAge: 0}).json({
-            message: "Logged out successfully.",
-            success: true,
-            timestamp: new Date(),
-            status: "offline"
+      }
+  
+      // Clear the access_token cookie
+      return res.status(200)
+        .cookie("access_token", "", { 
+          maxAge: 0,
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax'
+        })
+        .json({
+          message: "Logged out successfully.",
+          success: true,
+          timestamp: new Date(),
+          status: "offline"
         });
     } catch (error) {
-        console.log(error);
-        return res.status(500).json({
-            success: false,
-            message: "Failed to logout"
-        });
+      console.log(error);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to logout"
+      });
     }
-};
+  };
 
 export const forgotPassword = async (req, res) => {
     try {
