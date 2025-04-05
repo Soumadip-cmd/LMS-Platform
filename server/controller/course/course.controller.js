@@ -1,339 +1,592 @@
- 
-import { Course } from "../models/course.model.js";
-import { Lecture } from "../models/lecture.model.js";
-import {deleteMediaFromCloudinary, deleteVideoFromCloudinary, uploadMedia} from "../utils/cloudinary.js";
+import { Course } from "../../models/course.model.js";
+import { Lecture } from "../../models/lecture.model.js";
+import { Language } from "../../models/language.model.js";
+import { deleteMediaFromCloudinary, uploadMedia } from "../../utils/cloudinary.js";
 
-export const createCourse = async (req,res) => {
+export const createCourse = async (req, res) => {
     try {
-        const {courseTitle, category} = req.body;
-        if(!courseTitle || !category) {
+        const { title, language, level, description, duration, price, discountPrice, instructorId } = req.body;
+        
+        // Validate required fields
+        if (!title || !language || !level || !description || !duration?.weeks || !price) {
             return res.status(400).json({
-                message:"Course title and category is required."
-            })
-        }
-
-        const course = await Course.create({
-            courseTitle,
-            category,
-            creator:req.id
-        });
-
-        return res.status(201).json({
-            course,
-            message:"Course created."
-        })
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({
-            message:"Failed to create course"
-        })
-    }
-}
-
-export const searchCourse = async (req,res) => {
-    try {
-        const {query = "", categories = [], sortByPrice =""} = req.query;
-        console.log(categories);
-        
-        // create search query
-        const searchCriteria = {
-            isPublished:true,
-            $or:[
-                {courseTitle: {$regex:query, $options:"i"}},
-                {subTitle: {$regex:query, $options:"i"}},
-                {category: {$regex:query, $options:"i"}},
-            ]
-        }
-
-        // if categories selected
-        if(categories.length > 0) {
-            searchCriteria.category = {$in: categories};
-        }
-
-        // define sorting order
-        const sortOptions = {};
-        if(sortByPrice === "low"){
-            sortOptions.coursePrice = 1;//sort by price in ascending
-        }else if(sortByPrice === "high"){
-            sortOptions.coursePrice = -1; // descending
-        }
-
-        let courses = await Course.find(searchCriteria).populate({path:"creator", select:"name photoUrl"}).sort(sortOptions);
-
-        return res.status(200).json({
-            success:true,
-            courses: courses || []
-        });
-
-    } catch (error) {
-        console.log(error);
-        
-    }
-}
-
-export const getPublishedCourse = async (_,res) => {
-    try {
-        const courses = await Course.find({isPublished:true}).populate({path:"creator", select:"name photoUrl"});
-        if(!courses){
-            return res.status(404).json({
-                message:"Course not found"
-            })
-        }
-        return res.status(200).json({
-            courses,
-        })
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({
-            message:"Failed to get published courses"
-        })
-    }
-}
-export const getCreatorCourses = async (req,res) => {
-    try {
-        const userId = req.id;
-        const courses = await Course.find({creator:userId});
-        if(!courses){
-            return res.status(404).json({
-                courses:[],
-                message:"Course not found"
-            })
-        };
-        return res.status(200).json({
-            courses,
-        })
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({
-            message:"Failed to create course"
-        })
-    }
-}
-export const editCourse = async (req,res) => {
-    try {
-        const courseId = req.params.courseId;
-        const {courseTitle, subTitle, description, category, courseLevel, coursePrice} = req.body;
-        const thumbnail = req.file;
-
-        let course = await Course.findById(courseId);
-        if(!course){
-            return res.status(404).json({
-                message:"Course not found!"
-            })
-        }
-        let courseThumbnail;
-        if(thumbnail){
-            if(course.courseThumbnail){
-                const publicId = course.courseThumbnail.split("/").pop().split(".")[0];
-                await deleteMediaFromCloudinary(publicId); // delete old image
-            }
-            // upload a thumbnail on clourdinary
-            courseThumbnail = await uploadMedia(thumbnail.path);
-        }
-
- 
-        const updateData = {courseTitle, subTitle, description, category, courseLevel, coursePrice, courseThumbnail:courseThumbnail?.secure_url};
-
-        course = await Course.findByIdAndUpdate(courseId, updateData, {new:true});
-
-        return res.status(200).json({
-            course,
-            message:"Course updated successfully."
-        })
-
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({
-            message:"Failed to create course"
-        })
-    }
-}
-export const getCourseById = async (req,res) => {
-    try {
-        const {courseId} = req.params;
-
-        const course = await Course.findById(courseId);
-
-        if(!course){
-            return res.status(404).json({
-                message:"Course not found!"
-            })
-        }
-        return res.status(200).json({
-            course
-        })
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({
-            message:"Failed to get course by id"
-        })
-    }
-}
-
-export const createLecture = async (req,res) => {
-    try {
-        const {lectureTitle} = req.body;
-        const {courseId} = req.params;
-
-        if(!lectureTitle || !courseId){
-            return res.status(400).json({
-                message:"Lecture title is required"
-            })
-        };
-
-        // create lecture
-        const lecture = await Lecture.create({lectureTitle});
-
-        const course = await Course.findById(courseId);
-        if(course){
-            course.lectures.push(lecture._id);
-            await course.save();
-        }
-
-        return res.status(201).json({
-            lecture,
-            message:"Lecture created successfully."
-        });
-
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({
-            message:"Failed to create lecture"
-        })
-    }
-}
-export const getCourseLecture = async (req,res) => {
-    try {
-        const {courseId} = req.params;
-        const course = await Course.findById(courseId).populate("lectures");
-        if(!course){
-            return res.status(404).json({
-                message:"Course not found"
-            })
-        }
-        return res.status(200).json({
-            lectures: course.lectures
-        });
-
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({
-            message:"Failed to get lectures"
-        })
-    }
-}
-export const editLecture = async (req,res) => {
-    try {
-        const {lectureTitle, videoInfo, isPreviewFree} = req.body;
-        
-        const {courseId, lectureId} = req.params;
-        const lecture = await Lecture.findById(lectureId);
-        if(!lecture){
-            return res.status(404).json({
-                message:"Lecture not found!"
-            })
-        }
-
-        // update lecture
-        if(lectureTitle) lecture.lectureTitle = lectureTitle;
-        if(videoInfo?.videoUrl) lecture.videoUrl = videoInfo.videoUrl;
-        if(videoInfo?.publicId) lecture.publicId = videoInfo.publicId;
-        lecture.isPreviewFree = isPreviewFree;
-
-        await lecture.save();
-
-        // Ensure the course still has the lecture id if it was not aleardy added;
-        const course = await Course.findById(courseId);
-        if(course && !course.lectures.includes(lecture._id)){
-            course.lectures.push(lecture._id);
-            await course.save();
-        };
-        return res.status(200).json({
-            lecture,
-            message:"Lecture updated successfully."
-        })
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({
-            message:"Failed to edit lectures"
-        })
-    }
-}
-export const removeLecture = async (req,res) => {
-    try {
-        const {lectureId} = req.params;
-        const lecture = await Lecture.findByIdAndDelete(lectureId);
-        if(!lecture){
-            return res.status(404).json({
-                message:"Lecture not found!"
+                success: false,
+                message: "Required fields are missing."
             });
         }
-        // delete the lecture from couldinary as well
-        if(lecture.publicId){
-            await deleteVideoFromCloudinary(lecture.publicId);
+
+        // Determine the instructor ID
+        // If admin is creating course for an instructor, use the provided instructorId
+        // Otherwise use the current user's ID
+        const instructor = req.user.role === "admin" ? (instructorId || req.id) : req.id;
+
+        // Create course
+        const course = await Course.create({
+            title,
+            language,
+            level,
+            description,
+            duration: {
+                weeks: duration.weeks
+            },
+            instructor,
+            price,
+            discountPrice,
+            status: "draft"
+        });
+
+        // Update Language model to add this course
+        await Language.findByIdAndUpdate(
+            language,
+            { $push: { courses: course._id } }
+        );
+
+        return res.status(201).json({
+            success: true,
+            course,
+            message: "Course created successfully."
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to create course"
+        });
+    }
+};
+
+
+export const searchCourses = async (req, res) => {
+    try {
+        const { query = "", language = [], level = [], status, sortByPrice = "" } = req.query;
+        
+        // Create search criteria
+        const searchCriteria = {};
+
+        // If query is provided, add text search
+        if (query) {
+            searchCriteria.$or = [
+                { title: { $regex: query, $options: "i" } },
+                { description: { $regex: query, $options: "i" } }
+            ];
         }
 
-        // Remove the lecture reference from the associated course
-        await Course.updateOne(
-            {lectures:lectureId}, // find the course that contains the lecture
-            {$pull:{lectures:lectureId}} // Remove the lectures id from the lectures array
+        // Add status filter only if provided
+        if (status) {
+            searchCriteria.status = status;
+        }
+
+        // Filter by language
+        if (language.length > 0) {
+            searchCriteria.language = { $in: language };
+        }
+
+        // Filter by level
+        if (level.length > 0) {
+            searchCriteria.level = { $in: level };
+        }
+
+        // Define sorting options
+        const sortOptions = {};
+        if (sortByPrice === "low") {
+            sortOptions.price = 1;
+        } else if (sortByPrice === "high") {
+            sortOptions.price = -1;
+        } else {
+            sortOptions.createdAt = -1;
+        }
+
+        // Find courses
+        const courses = await Course.find(searchCriteria)
+            .populate({ path: "instructor", select: "name photoUrl" })
+            .populate({ path: "language", select: "name code" })
+            .sort(sortOptions);
+
+        return res.status(200).json({
+            success: true,
+            courses: courses.map(course => ({
+                _id: course._id,
+                title: course.title,
+                language: course.language,
+                level: course.level,
+                description: course.description,
+                instructor: course.instructor,
+                price: course.price,
+                discountPrice: course.discountPrice,
+                status: course.status,
+                duration: course.duration
+            })),
+            totalCourses: courses.length
+        });
+    } catch (error) {
+        console.error('Search Courses Error:', error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to search courses",
+            error: error.message
+        });
+    }
+};
+
+export const getPublishedCourses = async (req, res) => {
+    try {
+        const courses = await Course.find({ status: "published" })
+            .populate({ path: "instructor", select: "name photoUrl" })
+            .populate({ path: "language", select: "name code" });
+            
+        return res.status(200).json({
+            success: true,
+            courses
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to get published courses"
+        });
+    }
+};
+
+export const getInstructorCourses = async (req, res) => {
+    try {
+        // If admin, can see all courses or filter by instructor ID
+        // If instructor, can only see their own courses
+        const { instructorId } = req.query;
+        let query = {};
+        
+        if (req.user.role === "admin") {
+            // Admin can filter by instructor if specified, otherwise see all courses
+            if (instructorId) {
+                query = { instructor: instructorId };
+            }
+        } else {
+            // Instructor can only see their own courses
+            query = { instructor: req.id };
+        }
+        
+        const courses = await Course.find(query)
+            .populate({ path: "language", select: "name code" })
+            .populate({ path: "instructor", select: "name photoUrl" });
+            
+        return res.status(200).json({
+            success: true,
+            courses
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to get instructor courses"
+        });
+    }
+};
+
+export const getAllCoursesAdmin = async (req, res) => {
+    try {
+        const { status, language, level, sortBy } = req.query;
+        
+        // Build query
+        const query = {};
+        if (status) query.status = status;
+        if (language) query.language = language;
+        if (level) query.level = level;
+        
+        // Build sort options
+        const sortOptions = {};
+        if (sortBy === "recent") {
+            sortOptions.createdAt = -1;
+        } else if (sortBy === "price-asc") {
+            sortOptions.price = 1;
+        } else if (sortBy === "price-desc") {
+            sortOptions.price = -1;
+        } else if (sortBy === "title") {
+            sortOptions.title = 1;
+        } else {
+            sortOptions.createdAt = -1; // Default
+        }
+        
+        const courses = await Course.find(query)
+            .populate({ path: "instructor", select: "name photoUrl" })
+            .populate({ path: "language", select: "name code" })
+            .sort(sortOptions);
+            
+        return res.status(200).json({
+            success: true,
+            courses
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to get courses"
+        });
+    }
+};
+
+
+export const getCourseById = async (req, res) => {
+    try {
+        const { courseId } = req.params;
+
+        let course = await Course.findById(courseId)
+            .populate({ path: "instructor", select: "name photoUrl" })
+            .populate({ path: "language", select: "name code" })
+            .populate("lessons");
+
+        if (!course) {
+            return res.status(404).json({
+                success: false,
+                message: "Course not found!"
+            });
+        }
+
+        // Manually populate quizzes if needed
+        if (course.quizzes && course.quizzes.length > 0) {
+            try {
+                course = await course.populate({
+                    path: "quizzes",
+                    select: "title description level timeLimit passingScore status"
+                });
+            } catch (populateError) {
+                console.warn('Quiz population failed:', populateError);
+                // Continue without quiz population
+            }
+        }
+        
+        return res.status(200).json({
+            success: true,
+            course
+        });
+    } catch (error) {
+        console.error('Course Fetch Error:', error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to get course by id",
+            errorDetails: error.message
+        });
+    }
+};
+export const updateCourse = async (req, res) => {
+    try {
+        const courseId = req.params.courseId;
+        const {
+            title,
+            language,
+            level,
+            description,
+            duration,
+            price,
+            discountPrice,
+            status,
+            instructor
+        } = req.body;
+        const thumbnail = req.file;
+
+        // Check if course exists
+        let course = await Course.findById(courseId);
+        if (!course) {
+            return res.status(404).json({
+                success: false,
+                message: "Course not found!"
+            });
+        }
+
+        // Authorization check - Admin can update any course, Instructor can only update their own
+        if (req.user.role !== "admin" && course.instructor.toString() !== req.id) {
+            return res.status(403).json({
+                success: false,
+                message: "You are not authorized to update this course"
+            });
+        }
+
+        // Handle thumbnail upload
+        let thumbnailUrl;
+        if (thumbnail) {
+            if (course.thumbnailUrl) {
+                // Extract public ID from the URL
+                const publicId = course.thumbnailUrl.split("/").pop().split(".")[0];
+                await deleteMediaFromCloudinary(publicId);
+            }
+            // Upload new thumbnail
+            const uploadResult = await uploadMedia(thumbnail.path);
+            thumbnailUrl = uploadResult.secure_url;
+        }
+
+        // If language is being changed, update relationships
+        if (language && language !== course.language.toString()) {
+            // Remove course from old language
+            await Language.findByIdAndUpdate(
+                course.language,
+                { $pull: { courses: courseId } }
+            );
+            
+            // Add course to new language
+            await Language.findByIdAndUpdate(
+                language,
+                { $push: { courses: courseId } }
+            );
+        }
+
+        // Create update data object
+        const updateData = {
+            ...(title && { title }),
+            ...(language && { language }),
+            ...(level && { level }),
+            ...(description && { description }),
+            ...(duration?.weeks && { duration: { weeks: duration.weeks } }),
+            ...(price && { price }),
+            ...(discountPrice && { discountPrice }),
+            ...(status && { status }),
+            ...(thumbnailUrl && { thumbnailUrl })
+        };
+        
+        // If admin is updating the instructor
+        if (req.user.role === "admin" && instructor) {
+            updateData.instructor = instructor;
+        }
+
+        // Update course
+        course = await Course.findByIdAndUpdate(
+            courseId,
+            updateData,
+            { new: true }
         );
 
         return res.status(200).json({
-            message:"Lecture removed successfully."
-        })
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({
-            message:"Failed to remove lecture"
-        })
-    }
-}
-export const getLectureById = async (req,res) => {
-    try {
-        const {lectureId} = req.params;
-        const lecture = await Lecture.findById(lectureId);
-        if(!lecture){
-            return res.status(404).json({
-                message:"Lecture not found!"
-            });
-        }
-        return res.status(200).json({
-            lecture
+            success: true,
+            course,
+            message: "Course updated successfully."
         });
     } catch (error) {
         console.log(error);
         return res.status(500).json({
-            message:"Failed to get lecture by id"
-        })
+            success: false,
+            message: "Failed to update course"
+        });
     }
-}
+};
 
 
-// publich unpublish course logic
 
-export const togglePublishCourse = async (req,res) => {
+export const addCourseMaterial = async (req, res) => {
     try {
-        const {courseId} = req.params;
-        const {status} = req.query; // true, false
-        const course = await Course.findById(courseId);
-        if(!course){
-            return res.status(404).json({
-                message:"Course not found!"
+        const { courseId } = req.params;
+        const { title, type } = req.body;
+        const file = req.file;
+
+        if (!title || !type || !file) {
+            return res.status(400).json({
+                success: false,
+                message: "Title, type, and file are required"
             });
         }
-        // publish status based on the query paramter
-        course.isPublished = status=== "published";
+
+        // Check if course exists
+        const course = await Course.findById(courseId);
+        if (!course) {
+            return res.status(404).json({
+                success: false,
+                message: "Course not found!"
+            });
+        }
+
+        // Authorization check
+        if (req.user.role !== "admin" && course.instructor.toString() !== req.id) {
+            return res.status(403).json({
+                success: false,
+                message: "You are not authorized to update this course"
+            });
+        }
+
+        // Create full URL including server address
+        const fullUrl = `${req.protocol}://${req.get('host')}/uploads/${file.filename}`;
+
+        // Add material to course
+        course.materials.push({
+            title,
+            type,
+            url: fullUrl, // Full URL to access the file
+            publicId: file.filename
+        });
+
         await course.save();
 
-        const statusMessage = course.isPublished ? "Published" : "Unpublished";
         return res.status(200).json({
-            message:`Course is ${statusMessage}`
+            success: true,
+            course,
+            message: "Course material added successfully."
+        });
+    } catch (error) {
+        console.error('Add Course Material Error:', error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to add course material"
+        });
+    }
+};
+export const removeCourseMaterial = async (req, res) => {
+    try {
+        const { courseId, materialId } = req.params;
+
+        // Check if course exists
+        const course = await Course.findById(courseId);
+        if (!course) {
+            return res.status(404).json({
+                success: false,
+                message: "Course not found!"
+            });
+        }
+
+        // Authorization check - Admin can update any course, Instructor can only update their own
+        if (req.user.role !== "admin" && course.instructor.toString() !== req.id) {
+            return res.status(403).json({
+                success: false,
+                message: "You are not authorized to update this course"
+            });
+        }
+
+        // Find material
+        const material = course.materials.id(materialId);
+        if (!material) {
+            return res.status(404).json({
+                success: false,
+                message: "Material not found!"
+            });
+        }
+
+        // Delete file from cloudinary
+        if (material.publicId) {
+            await deleteMediaFromCloudinary(material.publicId);
+        }
+
+        // Remove material from course
+        course.materials.pull(materialId);
+        await course.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Course material removed successfully."
         });
     } catch (error) {
         console.log(error);
         return res.status(500).json({
-            message:"Failed to update status"
-        })
+            success: false,
+            message: "Failed to remove course material"
+        });
     }
-}
+};
+
+export const updateCourseStatus = async (req, res) => {
+    try {
+        const { courseId } = req.params;
+        const { status } = req.body;
+
+        if (!["draft", "inProgress", "published", "archived", "underReview"].includes(status)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid status value"
+            });
+        }
+
+        // Check if course exists
+        const course = await Course.findById(courseId);
+        if (!course) {
+            return res.status(404).json({
+                success: false,
+                message: "Course not found!"
+            });
+        }
+
+        // Authorization check - Admin can update any course, Instructor can only update their own
+        if (req.user.role !== "admin" && course.instructor.toString() !== req.id) {
+            return res.status(403).json({
+                success: false,
+                message: "You are not authorized to update this course"
+            });
+        }
+
+        // Update course status
+        course.status = status;
+        await course.save();
+
+        return res.status(200).json({
+            success: true,
+            message: `Course status updated to ${status}`
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to update course status"
+        });
+    }
+};
+
+export const deleteCourse = async (req, res) => {
+    try {
+        const { courseId } = req.params;
+        
+        // Check if course exists
+        const course = await Course.findById(courseId);
+        if (!course) {
+            return res.status(404).json({
+                success: false,
+                message: "Course not found!"
+            });
+        }
+        
+        // Delete thumbnail from cloudinary if exists
+        if (course.thumbnailUrl) {
+            const publicId = course.thumbnailUrl.split("/").pop().split(".")[0];
+            await deleteMediaFromCloudinary(publicId);
+        }
+        
+        // Delete all materials from cloudinary
+        for (const material of course.materials) {
+            if (material.publicId) {
+                await deleteMediaFromCloudinary(material.publicId);
+            }
+        }
+        
+        // Delete all associated lectures
+        const lectures = await Lecture.find({ course: courseId });
+        for (const lecture of lectures) {
+            // Delete lecture video if exists
+            if (lecture.publicId) {
+                await deleteMediaFromCloudinary(lecture.publicId);
+            }
+            
+            // Delete lecture attachments if any
+            for (const attachment of lecture.attachments || []) {
+                if (attachment.publicId) {
+                    await deleteMediaFromCloudinary(attachment.publicId);
+                }
+            }
+            
+            // Delete the lecture
+            await Lecture.findByIdAndDelete(lecture._id);
+        }
+        
+        // Remove course from language
+        if (course.language) {
+            await Language.findByIdAndUpdate(
+                course.language,
+                { $pull: { courses: courseId } }
+            );
+        }
+        
+        // Delete the course
+        await Course.findByIdAndDelete(courseId);
+        
+        return res.status(200).json({
+            success: true,
+            message: "Course and all associated content deleted successfully."
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to delete course"
+        });
+    }
+};

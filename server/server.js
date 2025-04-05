@@ -7,6 +7,13 @@ import http from "http";
 import connectDB from "./database/db.js";
 import mainRouter from "./routes/index.js";
 import { initializeSocket } from "./socket/socket.js"; 
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+
 
 // Load environment variables
 dotenv.config();
@@ -37,9 +44,14 @@ app.use(cors({
   }));
   
 
-  app.use(cookieParser());
+app.use(cookieParser());
+app.use(express.urlencoded({ extended: true }));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 
+// Serve static files for lecture videos and attachments
+app.use('/lecture-videos', express.static(path.join(__dirname, 'public/lecture-videos')));
+app.use('/lecture-attachments', express.static(path.join(__dirname, 'public/lecture-attachments')));
 // Routes
 app.use('/api/v1', mainRouter);
 

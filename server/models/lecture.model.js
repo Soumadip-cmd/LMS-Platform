@@ -26,9 +26,19 @@ const lectureSchema = new mongoose.Schema({
     publicId: { 
         type: String 
     },
+    videoFileName: {
+        type: String
+    },
+  
     isPreviewFree: { 
         type: Boolean,
         default: false
+    },
+    fileUrl: {
+        type: String
+    },
+    fileName: {
+        type: String
     },
     attachments: [
         {
@@ -38,6 +48,7 @@ const lectureSchema = new mongoose.Schema({
             fileType: String
         }
     ],
+    
     notes: {
         type: String
     },

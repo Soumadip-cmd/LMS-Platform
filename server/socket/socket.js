@@ -1,3 +1,4 @@
+
 // utils/socket.js
 import { Server } from "socket.io";
 import { User } from "../models/user.model.js";
@@ -145,6 +146,38 @@ export const sendUserNotification = (userId, notification) => {
   io.to(`user:${userId}`).emit("notification", notification);
 };
 
+/**
+ * Send course-related notification to a specific user
+ * @param {string} userId - Target user ID 
+ * @param {object} notification - Notification data containing course information
+ */
+export const sendCourseNotification = async (userId, notification) => {
+  try {
+    // Save notification to database
+    await Notification.create({
+      recipient: userId,
+      title: notification.title,
+      message: notification.message,
+      type: 'course',
+      relatedCourse: notification.courseId,
+      relatedLecture: notification.lectureId
+    });
+    
+    // Send real-time notification if user is online
+    if (io && isUserOnline(userId)) {
+      const courseNotification = {
+        ...notification,
+        type: 'course',
+        timestamp: new Date()
+      };
+      
+      io.to(`user:${userId}`).emit("courseNotification", courseNotification);
+      io.to(`user:${userId}`).emit("notification", courseNotification);
+    }
+  } catch (error) {
+    console.error("Error sending notification:", error);
+  }
+};
 /**
  * Get currently online users
  * @returns {Array} Array of online user IDs
