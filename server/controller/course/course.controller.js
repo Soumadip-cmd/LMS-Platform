@@ -55,18 +55,26 @@ export const createCourse = async (req, res) => {
     }
 };
 
+
 export const searchCourses = async (req, res) => {
     try {
-        const { query = "", language = [], level = [], status = "published", sortByPrice = "" } = req.query;
+        const { query = "", language = [], level = [], status, sortByPrice = "" } = req.query;
         
         // Create search criteria
-        const searchCriteria = {
-            status: status,
-            $or: [
+        const searchCriteria = {};
+
+        // If query is provided, add text search
+        if (query) {
+            searchCriteria.$or = [
                 { title: { $regex: query, $options: "i" } },
                 { description: { $regex: query, $options: "i" } }
-            ]
-        };
+            ];
+        }
+
+        // Add status filter only if provided
+        if (status) {
+            searchCriteria.status = status;
+        }
 
         // Filter by language
         if (language.length > 0) {
@@ -81,11 +89,11 @@ export const searchCourses = async (req, res) => {
         // Define sorting options
         const sortOptions = {};
         if (sortByPrice === "low") {
-            sortOptions.price = 1; // Ascending
+            sortOptions.price = 1;
         } else if (sortByPrice === "high") {
-            sortOptions.price = -1; // Descending
+            sortOptions.price = -1;
         } else {
-            sortOptions.createdAt = -1; // Default sort by newest
+            sortOptions.createdAt = -1;
         }
 
         // Find courses
@@ -96,13 +104,26 @@ export const searchCourses = async (req, res) => {
 
         return res.status(200).json({
             success: true,
-            courses: courses || []
+            courses: courses.map(course => ({
+                _id: course._id,
+                title: course.title,
+                language: course.language,
+                level: course.level,
+                description: course.description,
+                instructor: course.instructor,
+                price: course.price,
+                discountPrice: course.discountPrice,
+                status: course.status,
+                duration: course.duration
+            })),
+            totalCourses: courses.length
         });
     } catch (error) {
-        console.log(error);
+        console.error('Search Courses Error:', error);
         return res.status(500).json({
             success: false,
-            message: "Failed to search courses"
+            message: "Failed to search courses",
+            error: error.message
         });
     }
 };
