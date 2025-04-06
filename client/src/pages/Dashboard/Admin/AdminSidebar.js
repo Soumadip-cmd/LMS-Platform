@@ -9,17 +9,17 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
-const AdminSidebar = () => {
+const AdminSidebar = ({ active = "Dashboard" }) => {
   // Sidebar Item Component
-  const SidebarItem = ({ icon, text, active = false, path }) => (
+  const SidebarItem = ({ icon, text, path }) => (
     <Link to={path} className="block">
       <div
         className={`flex items-center space-x-3 px-4 py-3 rounded-lg cursor-pointer transition-colors ${
-          active ? "bg-blue-50 text-black" : "text-gray-600 hover:bg-gray-100"
+          active === text ? "bg-blue-50 text-black" : "text-gray-600 hover:bg-gray-100"
         }`}
       >
-        <span className={active ? "text-blue-500" : "text-gray-500"}>{icon}</span>
-        <span className={active ? "font-medium" : ""}>{text}</span>
+        <span className={active === text ? "text-blue-500" : "text-gray-500"}>{icon}</span>
+        <span className={active === text ? "font-medium" : ""}>{text}</span>
       </div>
     </Link>
   );
@@ -50,7 +50,6 @@ const AdminSidebar = () => {
                 </svg>
               }
               text="Dashboard"
-              active
               path="/dashboard/admin"
             />
             <SidebarItem icon={<BookOpen size={20} />} text="Courses" path="/dashboard/admin/courses" />

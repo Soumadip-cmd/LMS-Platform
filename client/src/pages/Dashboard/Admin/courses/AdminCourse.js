@@ -1,9 +1,10 @@
 import React from 'react'
+import AdminSidebar from '../AdminSidebar'
 
 const AdminCourse = () => {
   return (
     <div>
-      admin course
+            <AdminSidebar active="Courses" />
     </div>
   )
 }

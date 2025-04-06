@@ -164,14 +164,14 @@ const StudentDashboard = () => {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
             <div className="w-full ">
               <div className="flex flex-col items-start justify-between custom-header-flex space-y-4">
-                <h1 className="text-2xl md:text-[2.4rem] lg:text-[2.8rem] font-medium text-blue-500">
+                <h1 className="text-2xl md:text-[2.4rem] lg:text-4xl font-semibold text-[#1976D2]">
                   Welcome Back, Sarah!
                 </h1>
                 <div className="mt-2 custom-date-margin">
                   <DateDisplay date="Tuesday, March 2025|" time="12:10 AM" />
                 </div>
               </div>
-              <p className="text-gray-600 text-base md:text-xl mt-4 mb-8">
+              <p className="text-gray-600 text-base md:text-lg mt-4 mb-8">
                 Track your learning progress, upcoming assignments, and course
                 activities. Let's continue your language learning journey!
               </p>

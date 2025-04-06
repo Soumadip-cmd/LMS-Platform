@@ -181,17 +181,17 @@ const InstructorDashboard = () => {
         <div className="max-w-7xl mx-auto p-2 sm:p-4">
           {/* Header Section */}
           <div className="bg-white rounded-lg shadow-[0_0px_10px_rgba(0,0,0,0.1)] p-6 mb-6">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-12">
               <div className="w-full">
                 <div className="flex flex-col xl:flex-row xl:justify-between">
-                  <h1 className="text-2xl md:text-3xl lg:text-[2.8rem] font-medium text-blue-500">
+                  <h1 className="text-2xl md:text-3xl lg:text-4xl font-semibold text-[#1976D2]">
                     Welcome Back, Prof. Hasan!
                   </h1>
                   <div className="mt-4 xl:mt-0">
                     <DateDisplay date="Tuesday, March 2025|" time="12:10 AM" />
                   </div>
                 </div>
-                <p className="text-gray-600 text-base md:text-xl mt-4">
+                <p className="text-gray-600 text-base md:text-lg mt-4">
                   Your learning platform is showing exceptional growth! Get
                   comprehensive insights into your courses, student engagement,
                   and revenue metrics.
@@ -286,7 +286,7 @@ const InstructorDashboard = () => {
             </div>
           </div>
           {/* Blue Bar */}
-          <div className="w-[95%] p-2 rounded-t-lg mx-auto h-2 bg-blue-500"></div>
+          <div className="w-[95%] p-2 rounded-t-lg mx-auto h-2 bg-[#1976D2]"></div>
           {/* Main dashboard container with blue border */}
           <div className="bg-white rounded-lg shadow border overflow-hidden mb-6">
             {/* Analytics Section */}
