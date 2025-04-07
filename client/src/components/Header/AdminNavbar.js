@@ -15,7 +15,7 @@ import {
   Bell,
   Users,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 const AdminNavbar = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -25,6 +25,8 @@ const AdminNavbar = () => {
   const [screenHeightType, setScreenHeightType] = useState('normal');
   const dropdownRef = useRef(null);
   const sidebarRef = useRef(null);
+  const location = useLocation();
+  const currentPath = location.pathname;
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -32,6 +34,22 @@ const AdminNavbar = () => {
 
   const toggleProfile = () => {
     setIsProfileOpen(!isProfileOpen);
+  };
+
+  // Function to close sidebar
+  const closeSidebar = () => {
+    setIsSidebarOpen(false);
+  };
+
+  // Function to check if a route is active
+  const isActive = (path) => {
+    if (path === '/dashboard/admin' && currentPath === '/dashboard/admin') {
+      return true;
+    }
+    if (path !== '/dashboard/admin' && currentPath.startsWith(path)) {
+      return true;
+    }
+    return false;
   };
 
   // Screen height detection
@@ -93,6 +111,22 @@ const AdminNavbar = () => {
   
   // Only show bottom spacing when sign out is fixed
   const showBottomSpace = screenHeightType === 'medium';
+
+  // Active link classes
+  const getActiveClass = (path) => {
+    return isActive(path) 
+      ? "bg-blue-50 text-black font-semibold" 
+      : "text-gray-700 hover:bg-blue-50";
+  };
+
+  // Custom Link component that closes sidebar when clicked
+  const NavLink = ({ to, children, className }) => {
+    return (
+      <Link to={to} className={className} onClick={closeSidebar}>
+        {children}
+      </Link>
+    );
+  };
 
   return (
     <>
@@ -219,21 +253,21 @@ const AdminNavbar = () => {
                     </div>
                     <Link
                       to="/dashboard/admin/profile"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                      className=" px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
                     >
                       <User size={16} className="mr-2" />
                       Profile
                     </Link>
                     <Link
                       to="/dashboard/admin/settings"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                      className=" px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
                     >
                       <Settings size={16} className="mr-2" />
                       Settings
                     </Link>
                     <Link
                       to="/logout"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                      className=" px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
                     >
                       <LogOut size={16} className="mr-2" />
                       Sign out
@@ -308,7 +342,7 @@ const AdminNavbar = () => {
         <div className="p-4 bg-gray-50 border-b border-gray-200">
           <div className="flex items-center justify-around">
             {/* Chat Icon in Sidebar */}
-            <Link to="/dashboard/admin/messages" className="flex flex-col items-center cursor-pointer">
+            <NavLink to="/dashboard/admin/messages" className="flex flex-col items-center cursor-pointer">
               <div className="relative">
                 <div className="flex items-center justify-center w-12 h-12 bg-yellow-400 rounded-full cursor-pointer">
                   <img
@@ -324,7 +358,7 @@ const AdminNavbar = () => {
               <span className="mt-1 text-sm font-medium text-gray-700">
                 Messages
               </span>
-            </Link>
+            </NavLink>
 
             {/* Notification Icon in Sidebar */}
             <div className="flex flex-col items-center cursor-pointer">
@@ -350,9 +384,9 @@ const AdminNavbar = () => {
         {/* Regular Sidebar Menu */}
         <div className="py-4">
           {/* Dashboard */}
-          <Link
+          <NavLink
             to="/dashboard/admin"
-            className="block px-4 py-3 text-gray-700 hover:bg-blue-50 flex items-center"
+            className={`px-4 py-3 flex items-center ${getActiveClass('/dashboard/admin')}`}
           >
             <div className="flex items-center justify-center w-5 h-5 text-blue-600 mr-3">
               <svg
@@ -373,45 +407,47 @@ const AdminNavbar = () => {
               </svg>
             </div>
             <span className="font-medium">Dashboard</span>
-          </Link>
+          </NavLink>
           
           {/* Courses */}
-          <Link
+          <NavLink
             to="/dashboard/admin/courses"
-            className="block px-4 py-3 text-gray-700 hover:bg-blue-50 flex items-center"
+            className={`px-4 py-3 flex items-center ${getActiveClass('/dashboard/admin/courses')}`}
           >
             <BookOpen size={20} className="text-blue-600 mr-3" />
             <span>Courses</span>
-          </Link>
+          </NavLink>
+          
           {/* students */}
-          <Link
+          <NavLink
             to="/dashboard/admin/students"
-            className="block px-4 py-3 text-gray-700 hover:bg-blue-50 flex items-center"
+            className={`px-4 py-3 flex items-center ${getActiveClass('/dashboard/admin/students')}`}
           >
             <Users size={20} className="text-blue-600 mr-3" />
             <span>Students</span>
-          </Link>
-          <Link
+          </NavLink>
+          
+          <NavLink
             to="/dashboard/admin/instructors"
-            className="block px-4 py-3 text-gray-700 hover:bg-blue-50 flex items-center"
+            className={`px-4 py-3 flex items-center ${getActiveClass('/dashboard/admin/instructors')}`}
           >
             <Users size={20} className="text-blue-600 mr-3" />
             <span>Instructors</span>
-          </Link>
+          </NavLink>
           
           {/* Assignments */}
-          <Link
+          <NavLink
             to="/dashboard/admin/assignments"
-            className="block px-4 py-3 text-gray-700 hover:bg-blue-50 flex items-center"
+            className={`px-4 py-3 flex items-center ${getActiveClass('/dashboard/admin/assignments')}`}
           >
             <FileText size={20} className="text-blue-600 mr-3" />
             <span>Assignments</span>
-          </Link>
+          </NavLink>
           
           {/* Mock Tests */}
-          <Link
+          <NavLink
             to="/dashboard/admin/mock-tests"
-            className="block px-4 py-3 text-gray-700 hover:bg-blue-50 flex items-center"
+            className={`px-4 py-3 flex items-center ${getActiveClass('/dashboard/admin/mock-tests')}`}
           >
             <div className="flex items-center justify-center w-5 h-5 text-blue-600 mr-3">
               <svg
@@ -432,47 +468,45 @@ const AdminNavbar = () => {
               </svg>
             </div>
             <span>Mock Tests</span>
-          </Link>
+          </NavLink>
           
           {/* Analytics */}
-          <Link
+          <NavLink
             to="/dashboard/admin/analytics"
-            className="block px-4 py-3 text-gray-700 hover:bg-blue-50 flex items-center"
+            className={`px-4 py-3 flex items-center ${getActiveClass('/dashboard/admin/analytics')}`}
           >
             <BarChart size={20} className="text-blue-600 mr-3" />
             <span>Analytics</span>
-          </Link>
+          </NavLink>
           
           {/* Messages */}
-          <Link
+          <NavLink
             to="/dashboard/admin/messages"
-            className="block px-4 py-3 text-gray-700 hover:bg-blue-50 flex items-center"
+            className={`px-4 py-3 flex items-center ${getActiveClass('/dashboard/admin/messages')}`}
           >
             <MessageSquare size={20} className="text-blue-600 mr-3" />
             <span>Messages</span>
-          </Link>
+          </NavLink>
           
           {/* Settings */}
-          <Link
+          <NavLink
             to="/dashboard/admin/settings"
-            className="block px-4 py-3 text-gray-700 hover:bg-blue-50 flex items-center"
+            className={`px-4 py-3 flex items-center ${getActiveClass('/dashboard/admin/settings')}`}
           >
             <Settings size={20} className="text-blue-600 mr-3" />
             <span>Settings</span>
-          </Link>
-          
-          {/* "Become an Instructor" button has been removed */}
+          </NavLink>
         </div>
         
         {/* Sign Out - With conditional positioning */}
         <div className={signOutClass}>
-          <Link
+          <NavLink
             to="/logout"
-            className="block px-4 text-gray-700 hover:bg-blue-50 flex items-center"
+            className="px-4 text-gray-700 hover:bg-blue-50 flex items-center"
           >
             <LogOut size={20} className="text-red-500 mr-3" />
             <span>Sign out</span>
-          </Link>
+          </NavLink>
         </div>
         
         {/* Space at bottom for medium screens to prevent content hiding behind fixed sign out */}
