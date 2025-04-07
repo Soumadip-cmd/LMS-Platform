@@ -31,6 +31,8 @@ import ManageStudents from "./pages/Dashboard/Admin/Students/ManageStudents";
 import ManageInstructors from "./pages/Dashboard/Admin/instructors/ManageInstructors";
 import Assignment from "./pages/Dashboard/Admin/assignment/Assignment";
 import Mocktest from "./pages/Dashboard/Admin/mocktest/Mocktest";
+import Messages from "./pages/Dashboard/Admin/Messages/Messages";
+import AdminSettings from "./pages/Dashboard/Admin/settings/AdminSettings";
 // Create a wrapper component to handle the conditional navbar logic
 const AppContent = () => {
   const location = useLocation();
@@ -147,6 +149,8 @@ const AppContent = () => {
       <Route path="/dashboard/admin/instructors" element={<ManageInstructors />} />
       <Route path="/dashboard/admin/assignments" element={<Assignment />} />
       <Route path="/dashboard/admin/mock-tests" element={<Mocktest />} />
+      <Route path="/dashboard/admin/messages" element={<Messages />} />
+      <Route path="/dashboard/admin/settings" element={<AdminSettings />} />
       
       
       {/* Legal routes */}
