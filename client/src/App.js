@@ -120,27 +120,27 @@ const AppContent = () => {
       <Route 
         path="/dashboard/student" 
         element={
-          // <ProtectedRoute allowedRoles={["student"]}>
+          <ProtectedRoute allowedRoles={["student"]}>
             <StudentDashboard />
-          // </ProtectedRoute>
+          </ProtectedRoute>
         } 
       />
       
       <Route 
         path="/dashboard/instructor" 
         element={
-          // <ProtectedRoute allowedRoles={["instructor"]}>
+          <ProtectedRoute allowedRoles={["instructor"]}>
             <InstructorDashboard />
-          // </ProtectedRoute>
+          </ProtectedRoute>
         } 
       />
       
       <Route 
         path="/dashboard/admin" 
         element={
-          // <ProtectedRoute allowedRoles={["admin"]}>
+          <ProtectedRoute allowedRoles={["admin"]}>
             <AdminDashboard />
-          // </ProtectedRoute>
+          </ProtectedRoute>
         }
       />
 
