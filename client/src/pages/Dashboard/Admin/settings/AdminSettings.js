@@ -81,7 +81,7 @@ const AdminSettings = () => {
       <div className="flex-1 p-4 md:p-8 relative">
         <div className="mb-6">
           <div className="w-full">
-            <h1 className="text-2xl font-semibold text-gray-700">Settings</h1>
+            <h1 className="text-2xl font-medium text-gray-700">Settings</h1>
             <p className="text-sm text-gray-500">Configure platform preferences and security</p>
           </div>
           <div className="flex justify-end mt-4 sm:mt-0 sm:absolute sm:right-8 sm:top-8">
