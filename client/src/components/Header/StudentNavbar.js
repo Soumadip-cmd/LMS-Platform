@@ -262,7 +262,7 @@ const StudentNavbar = () => {
       </div>
 
       {/* Add padding to content below fixed navbar */}
-      <div className="pt-24 mb-8 md:mb-0">
+      <div className="pt-24 mb-2 md:mb-0">
         {/* Your page content goes here */}
       </div>
 

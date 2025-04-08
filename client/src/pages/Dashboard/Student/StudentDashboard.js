@@ -160,7 +160,7 @@ const StudentDashboard = () => {
 
       {/* Main Content - adjusted with margin to compensate for absolute sidebar */}
       <div className="flex-1 md:ml-64 p-2 sm:p-4">
-        <div className="bg-white rounded-lg shadow-[0_0px_10px_rgba(0,0,0,0.1)] p-6 mb-6">
+        <div className=" rounded-lg pt-8 md:pt-6 px-2 md:px-0 mb-6">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
             <div className="w-full ">
               <div className="flex flex-col items-start justify-between custom-header-flex space-y-4">

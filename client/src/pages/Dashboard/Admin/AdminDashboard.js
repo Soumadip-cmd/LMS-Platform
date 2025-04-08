@@ -180,7 +180,7 @@ const AdminDashboard = () => {
       <div className="flex-1 w-full md:ml-0">
         <div className="max-w-7xl mx-auto p-2 sm:p-4">
           {/* Header Section */}
-          <div className="bg-white rounded-lg shadow-[0_0px_10px_rgba(0,0,0,0.1)] p-6 mb-6">
+          <div className=" rounded-lg pt-10 md:pt-6 px-2 md:px-0 mb-6">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-12">
               <div className="w-full">
                 <div className="flex flex-col xl:flex-row xl:justify-between">
