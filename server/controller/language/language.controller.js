@@ -1,11 +1,7 @@
 import { Language } from "../../models/language.model.js";
 import { uploadMedia, deleteMediaFromCloudinary } from "../../utils/cloudinary.js";
 import{ Course} from "../../models/course.model.js";
-/**
- * Create a new language
- * @route POST /api/languages
- * @access Admin only
- */
+
 export const createLanguage = async (req, res) => {
     try {
         const { name, code, description, difficulty } = req.body;
@@ -62,11 +58,7 @@ export const createLanguage = async (req, res) => {
     }
 };
 
-/**
- * Get all languages
- * @route GET /api/languages
- * @access Public
- */
+
 export const getAllLanguages = async (req, res) => {
     try {
         const languages = await Language.find({ isActive: true })
@@ -86,11 +78,7 @@ export const getAllLanguages = async (req, res) => {
     }
 };
 
-/**
- * Get language by ID
- * @route GET /api/languages/:id
- * @access Public
- */
+
 export const getLanguageById = async (req, res) => {
     try {
         const language = await Language.findById(req.params.id)
@@ -119,11 +107,7 @@ export const getLanguageById = async (req, res) => {
     }
 };
 
-/**
- * Update language
- * @route PUT /api/languages/:id
- * @access Admin only
- */
+
 export const updateLanguage = async (req, res) => {
     try {
         const { name, description, difficulty, isActive } = req.body;
@@ -180,11 +164,7 @@ export const updateLanguage = async (req, res) => {
     }
 };
 
-/**
- * Delete language
- * @route DELETE /api/languages/:id
- * @access Admin only
- */
+
 export const deleteLanguage = async (req, res) => {
     try {
         const language = await Language.findById(req.params.id);
