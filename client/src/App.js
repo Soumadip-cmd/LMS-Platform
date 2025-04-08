@@ -33,6 +33,7 @@ import Assignment from "./pages/Dashboard/Admin/assignment/Assignment";
 import Mocktest from "./pages/Dashboard/Admin/mocktest/Mocktest";
 import Messages from "./pages/Dashboard/Admin/Messages/Messages";
 import AdminSettings from "./pages/Dashboard/Admin/settings/AdminSettings";
+import ContactUs from "./pages/support/ContactUs";
 // Create a wrapper component to handle the conditional navbar logic
 const AppContent = () => {
   const location = useLocation();
@@ -152,6 +153,8 @@ const AppContent = () => {
       <Route path="/dashboard/admin/messages" element={<Messages />} />
       <Route path="/dashboard/admin/settings" element={<AdminSettings />} />
       
+      {/* Support - Contact Us */}
+      <Route path="/support/contact-us" element={<ContactUs />} />
       
       {/* Legal routes */}
       <Route path="/legal/terms-of-service" element={<TermsService />} />

@@ -126,13 +126,19 @@ const Navbar = () => {
                 { name: "Courses", hasDropdown: true, path: "/courses" },
                 { name: "Exams", hasDropdown: true, path: "/exams" },
                 { name: "Dashboard", hasDropdown: false, path: "/dashboard/student" },
-                { name: "Support", hasDropdown: true, path: "/support" },
+                { name: "Support", hasDropdown: false, path: "/support/contact-us" },
               ].map((item) => (
                 <div key={item.name} className="group relative cursor-pointer">
                   <div className="flex items-center transition-transform duration-300 group-hover:scale-110">
-                    <span className="transition-colors duration-300 group-hover:text-blue-600 relative after:absolute after:w-0 after:h-0.5 after:bg-blue-600 after:left-0 after:bottom-0 after:transition-all after:duration-300 group-hover:after:w-full">
-                      {item.name}
-                    </span>
+                    {item.name === "Support" ? (
+                      <Link to="/support/contact-us" className="transition-colors duration-300 group-hover:text-blue-600 relative after:absolute after:w-0 after:h-0.5 after:bg-blue-600 after:left-0 after:bottom-0 after:transition-all after:duration-300 group-hover:after:w-full">
+                        {item.name}
+                      </Link>
+                    ) : (
+                      <span className="transition-colors duration-300 group-hover:text-blue-600 relative after:absolute after:w-0 after:h-0.5 after:bg-blue-600 after:left-0 after:bottom-0 after:transition-all after:duration-300 group-hover:after:w-full">
+                        {item.name}
+                      </span>
+                    )}
                     {item.hasDropdown && (
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -269,14 +275,19 @@ const Navbar = () => {
                 { name: "Courses", hasDropdown: true, path: "/courses" },
                 { name: "Exams", hasDropdown: true, path: "/exams" },
                 { name: "Dashboard", hasDropdown: false, path: "/dashboard/student" },
-                { name: "Support", hasDropdown: true, path: "/support" },
+                { name: "Support", hasDropdown: false, path: "/support/contact-us" },
               ].map((item) => (
                 <div key={item.name} className="mb-2">
                   <div
                     className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-blue-50 transition-colors duration-200 cursor-pointer"
-                    onClick={() =>
-                      item.hasDropdown ? toggleDropdown(item.name) : null
-                    }
+                    onClick={() => {
+                      if (item.name === "Support") {
+                        navigate("/support/contact-us");
+                        toggleMobileMenu();
+                      } else if (item.hasDropdown) {
+                        toggleDropdown(item.name);
+                      }
+                    }}
                   >
                     <span
                       className={`transition-colors duration-200 ${
@@ -359,7 +370,7 @@ const Navbar = () => {
       </div>
 
       {/* Add padding to the main content to prevent it from being hidden behind the fixed navbar */}
-      <div className=" h-32 md:h-[109px]"></div> {/* Adjust this height based on your navbar's total height */}
+      <div className="h-32 md:h-[109px]"></div> {/* Adjust this height based on your navbar's total height */}
     </>
   );
 };
