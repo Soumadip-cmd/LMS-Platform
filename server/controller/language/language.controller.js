@@ -1,11 +1,7 @@
 import { Language } from "../../models/language.model.js";
 import { uploadMedia, deleteMediaFromCloudinary } from "../../utils/cloudinary.js";
+import{ Course} from "../../models/course.model.js";
 
-/**
- * Create a new language
- * @route POST /api/languages
- * @access Admin only
- */
 export const createLanguage = async (req, res) => {
     try {
         const { name, code, description, difficulty } = req.body;
@@ -62,11 +58,7 @@ export const createLanguage = async (req, res) => {
     }
 };
 
-/**
- * Get all languages
- * @route GET /api/languages
- * @access Public
- */
+
 export const getAllLanguages = async (req, res) => {
     try {
         const languages = await Language.find({ isActive: true })
@@ -86,11 +78,7 @@ export const getAllLanguages = async (req, res) => {
     }
 };
 
-/**
- * Get language by ID
- * @route GET /api/languages/:id
- * @access Public
- */
+
 export const getLanguageById = async (req, res) => {
     try {
         const language = await Language.findById(req.params.id)
@@ -119,11 +107,7 @@ export const getLanguageById = async (req, res) => {
     }
 };
 
-/**
- * Update language
- * @route PUT /api/languages/:id
- * @access Admin only
- */
+
 export const updateLanguage = async (req, res) => {
     try {
         const { name, description, difficulty, isActive } = req.body;
@@ -180,11 +164,7 @@ export const updateLanguage = async (req, res) => {
     }
 };
 
-/**
- * Delete language
- * @route DELETE /api/languages/:id
- * @access Admin only
- */
+
 export const deleteLanguage = async (req, res) => {
     try {
         const language = await Language.findById(req.params.id);
@@ -222,6 +202,81 @@ export const deleteLanguage = async (req, res) => {
         return res.status(500).json({
             success: false,
             message: "Failed to delete language."
+        });
+    }
+};
+
+
+export const getLanguageCourses = async (req, res) => {
+    try {
+        const languageId = req.params.id;
+        
+        // Check if language exists
+        const language = await Language.findById(languageId);
+        
+        if (!language) {
+            return res.status(404).json({
+                success: false,
+                message: "Language not found."
+            });
+        }
+        
+        // Find all courses for this language with available information
+      
+        const courses = await Course.find({ 
+            language: languageId
+          
+        })
+        .populate({ path: "instructor", select: "name photoUrl" })
+        .populate({
+            path: "lessons",
+            select: "title description duration"
+        })
+        .select("title description level duration price discountPrice thumbnailUrl rating status materials")
+        .sort({ createdAt: -1 });
+        
+        // Format the response with detailed course information
+        const formattedCourses = courses.map(course => ({
+            _id: course._id,
+            title: course.title,
+            description: course.description,
+            level: course.level,
+            duration: course.duration,
+            price: course.price,
+            discountPrice: course.discountPrice,
+            thumbnailUrl: course.thumbnailUrl,
+            rating: course.rating,
+            status: course.status,
+            instructor: course.instructor,
+            enrollmentCount: course.enrolledStudents ? course.enrolledStudents.length : 0,
+            lessonCount: course.lessons ? course.lessons.length : 0,
+         
+            materialCount: course.materials ? course.materials.length : 0,
+          
+            lessons: course.lessons,
+         
+            materials: course.materials
+        }));
+        
+        return res.status(200).json({
+            success: true,
+            language: {
+                _id: language._id,
+                name: language.name,
+                code: language.code,
+                description: language.description,
+                difficulty: language.difficulty,
+                iconUrl: language.iconUrl
+            },
+            courses: formattedCourses,
+            count: formattedCourses.length
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to fetch language courses.",
+            error: error.message
         });
     }
 };
