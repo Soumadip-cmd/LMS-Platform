@@ -1,6 +1,6 @@
 import { Language } from "../../models/language.model.js";
 import { uploadMedia, deleteMediaFromCloudinary } from "../../utils/cloudinary.js";
-
+import{ Course} from "../../models/course.model.js";
 /**
  * Create a new language
  * @route POST /api/languages
@@ -222,6 +222,81 @@ export const deleteLanguage = async (req, res) => {
         return res.status(500).json({
             success: false,
             message: "Failed to delete language."
+        });
+    }
+};
+
+
+export const getLanguageCourses = async (req, res) => {
+    try {
+        const languageId = req.params.id;
+        
+        // Check if language exists
+        const language = await Language.findById(languageId);
+        
+        if (!language) {
+            return res.status(404).json({
+                success: false,
+                message: "Language not found."
+            });
+        }
+        
+        // Find all courses for this language with available information
+      
+        const courses = await Course.find({ 
+            language: languageId
+          
+        })
+        .populate({ path: "instructor", select: "name photoUrl" })
+        .populate({
+            path: "lessons",
+            select: "title description duration"
+        })
+        .select("title description level duration price discountPrice thumbnailUrl rating status materials")
+        .sort({ createdAt: -1 });
+        
+        // Format the response with detailed course information
+        const formattedCourses = courses.map(course => ({
+            _id: course._id,
+            title: course.title,
+            description: course.description,
+            level: course.level,
+            duration: course.duration,
+            price: course.price,
+            discountPrice: course.discountPrice,
+            thumbnailUrl: course.thumbnailUrl,
+            rating: course.rating,
+            status: course.status,
+            instructor: course.instructor,
+            enrollmentCount: course.enrolledStudents ? course.enrolledStudents.length : 0,
+            lessonCount: course.lessons ? course.lessons.length : 0,
+         
+            materialCount: course.materials ? course.materials.length : 0,
+          
+            lessons: course.lessons,
+         
+            materials: course.materials
+        }));
+        
+        return res.status(200).json({
+            success: true,
+            language: {
+                _id: language._id,
+                name: language.name,
+                code: language.code,
+                description: language.description,
+                difficulty: language.difficulty,
+                iconUrl: language.iconUrl
+            },
+            courses: formattedCourses,
+            count: formattedCourses.length
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to fetch language courses.",
+            error: error.message
         });
     }
 };

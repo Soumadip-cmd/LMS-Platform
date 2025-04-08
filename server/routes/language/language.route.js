@@ -4,7 +4,8 @@ import {
     getAllLanguages, 
     getLanguageById, 
     updateLanguage, 
-    deleteLanguage 
+    deleteLanguage, 
+    getLanguageCourses
 } from "../../controller/language/language.controller.js";
 import { isAuthenticated, isAdmin } from "../../middlewares/isAuthenticated.js";
 import multer from "multer";
@@ -47,5 +48,6 @@ languageRouter.delete('/delete/:id',
     isAdmin, 
     deleteLanguage
 );
+languageRouter.get('/:id/language-courses',isAuthenticated,getLanguageCourses)
 
 export default languageRouter;
