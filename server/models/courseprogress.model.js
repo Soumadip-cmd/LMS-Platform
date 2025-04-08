@@ -16,6 +16,22 @@ const lectureProgressSchema = new mongoose.Schema({
   }
 });
 
+// Add study session schema
+const studySessionSchema = new mongoose.Schema({
+  startTime: {
+    type: Date,
+    required: true
+  },
+  endTime: {
+    type: Date,
+    default: null
+  },
+  duration: {
+    type: Number, // Duration in seconds
+    default: 0
+  }
+});
+
 const courseProgressSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -35,6 +51,16 @@ const courseProgressSchema = new mongoose.Schema({
   lastAccessedAt: {
     type: Date,
     default: Date.now
+  },
+  studyTime: {
+    type: Number,
+    default: 0
+  },
+  studySessions: [studySessionSchema],
+
+  processedRequests: {
+    type: [String],
+    default: []
   }
 }, { timestamps: true });
 

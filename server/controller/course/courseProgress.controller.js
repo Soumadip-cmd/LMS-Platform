@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { CourseProgress } from "../../models/courseprogress.model.js";
 import { Course } from "../../models/course.model.js";
+import { UserAchievement } from "../../models/achievement.model.js";
 
 /**
  * Get user's progress for a specific course
@@ -414,6 +415,67 @@ export const resetCourseProgress = async (req, res) => {
   }
 };
 
+// export const getDashboardStats = async (req, res) => {
+//   try {
+//     const userId = req.id;
+    
+//     // Get all course progress for the user
+//     const allProgress = await CourseProgress.find({ userId });
+    
+//     // Find courses for all progresses
+//     const courseIds = allProgress.map(prog => prog.courseId);
+//     const courses = await Course.find({ _id: { $in: courseIds } });
+    
+//     // Map courses by ID for easy lookup
+//     const coursesMap = courses.reduce((map, course) => {
+//       map[course._id.toString()] = course;
+//       return map;
+//     }, {});
+    
+//     // Calculate overall progress percentage
+//     let overallProgress = 0;
+//     if (allProgress.length > 0) {
+//       let totalProgressPercentage = 0;
+      
+//       allProgress.forEach(prog => {
+//         const course = coursesMap[prog.courseId.toString()];
+//         if (course && course.lessons && course.lessons.length > 0) {
+//           const completedLectures = prog.lectureProgress.filter(l => l.viewed).length;
+//           const totalLectures = course.lessons.length;
+//           const courseProgressPercent = (completedLectures / totalLectures) * 100;
+//           totalProgressPercentage += courseProgressPercent;
+//         }
+//       });
+      
+//       overallProgress = Math.round(totalProgressPercentage / allProgress.length);
+//     }
+    
+//     // Count active courses (not completed)
+//     const activeCourses = allProgress.filter(prog => !prog.completed).length;
+    
+//     // Get achievements
+//     const achievements = 12; // Placeholder
+    
+//     // Calculate total study time 
+//     const studyTime = 24; // Placeholder in hours
+    
+//     return res.status(200).json({
+//       success: true,
+//       stats: {
+//         overallProgress,
+//         activeCourses,
+//         achievements,
+//         studyTime
+//       }
+//     });
+//   } catch (error) {
+//     console.log(error);
+//     return res.status(500).json({
+//       success: false,
+//       message: "Failed to fetch dashboard statistics"
+//     });
+//   }
+// };
 export const getDashboardStats = async (req, res) => {
   try {
     const userId = req.id;
@@ -452,11 +514,15 @@ export const getDashboardStats = async (req, res) => {
     // Count active courses (not completed)
     const activeCourses = allProgress.filter(prog => !prog.completed).length;
     
-    // Get achievements (implement based on your achievement system)
-    const achievements = 12; // Placeholder
+    // Get user achievements count
+  
+    const achievements = await UserAchievement.countDocuments({ userId });
     
-    // Calculate total study time (implement based on your tracking system)
-    const studyTime = 24; // Placeholder in hours
+    // Calculate total study time (convert from seconds to hours)
+    const totalStudySeconds = allProgress.reduce((total, prog) => {
+      return total + (prog.studyTime || 0);
+    }, 0);
+    const studyTime = Math.round(totalStudySeconds / 3600);
     
     return res.status(200).json({
       success: true,
@@ -475,7 +541,6 @@ export const getDashboardStats = async (req, res) => {
     });
   }
 };
-
 
 
 export const getAllCoursesProgress = async (req, res) => {

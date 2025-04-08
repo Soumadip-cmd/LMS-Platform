@@ -8,7 +8,8 @@ import Socialrouter from "./auth/social.route.js";
 import courseRouter from "./course/course.route.js";
 import Lecturerouter from "./lectures/lecture.route.js";
 import courseProgressRouter from "./progress/course-progress.route.js";
-
+import achievementRouter from "./acheivement/achievement.route.js";
+import studySessionRouter from "./progress/studySession.routes.js";
 const mainRouter = express.Router();
 
 mainRouter.use('/auth', authRouter);
@@ -19,4 +20,6 @@ mainRouter.use('/languages', languageRouter);
 mainRouter.use('/courses',courseRouter)
 mainRouter.use('/lectures',Lecturerouter)
 mainRouter.use('/progress',courseProgressRouter)
+mainRouter.use('/achievements', achievementRouter);
+mainRouter.use('/study-session', studySessionRouter);
 export default mainRouter;

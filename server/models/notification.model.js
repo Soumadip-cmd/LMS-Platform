@@ -16,10 +16,10 @@ const notificationSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['course', 'message', 'system', 'enrollment', 'reminder'],
+    enum: ['course', 'achievement', 'progress', 'system'],
     required: true
   },
-  isRead: {
+  read: {
     type: Boolean,
     default: false
   },
@@ -31,14 +31,14 @@ const notificationSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Lecture'
   },
+  relatedAchievement: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Achievement'
+  },
   createdAt: {
     type: Date,
-    default: Date.now,
-    expires: '30d' // Auto-delete notifications after 30 days
+    default: Date.now
   }
-}, { timestamps: true });
-
-// Index for faster querying by recipient
-notificationSchema.index({ recipient: 1, isRead: 1 });
+});
 
 export const Notification = mongoose.model("Notification", notificationSchema);
