@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
-import { CourseProgress } from "../models/courseprogress.model.js";
-import { Course } from "../models/course.model.js";
+import { CourseProgress } from "../../models/courseprogress.model.js";
+import { Course } from "../../models/course.model.js";
 
 /**
  * Get user's progress for a specific course
@@ -75,11 +75,6 @@ export const getCourseProgress = async (req, res) => {
   }
 };
 
-/**
- * Update progress for a specific lecture
- * @route PUT /api/progress/:courseId/:lectureId
- * @access Private
- */
 export const updateLectureProgress = async (req, res) => {
   try {
     const { courseId, lectureId } = req.params;
@@ -157,10 +152,60 @@ export const updateLectureProgress = async (req, res) => {
       lectureProg => lectureProg.viewed
     ).length;
 
+    // Store previous completion status to detect changes
+    const wasCompletedBefore = courseProgress.completed;
+    
+    // Update completion status
     courseProgress.completed = totalLectures === completedLectures;
 
     // Step 5: Save progress
     await courseProgress.save();
+
+    // Step 6: Send notifications for milestones
+    try {
+      // Calculate progress percentage
+      const progressPercentage = Math.round((completedLectures / totalLectures) * 100);
+      
+      // Send notification when course is completed
+      if (!wasCompletedBefore && courseProgress.completed) {
+        // Course just got completed
+        const notification = {
+          title: "Course Completed!",
+          message: `Congratulations! You've completed the course: ${course.title}`,
+          courseId: courseId,
+          type: 'achievement'
+        };
+        
+        // Check if user is online and socket functions are available
+        if (typeof isUserOnline === 'function' && 
+            typeof sendCourseNotification === 'function' && 
+            isUserOnline(userId)) {
+          sendCourseNotification(userId, notification);
+        }
+      }
+      // Send notifications for significant milestones (25%, 50%, 75%)
+      else if ([25, 50, 75].includes(progressPercentage) && 
+               // Only notify if this exact percentage was just reached
+               progressPercentage === Math.round((completedLectures / totalLectures) * 100)) {
+        
+        const notification = {
+          title: `${progressPercentage}% Milestone Reached!`,
+          message: `You've completed ${progressPercentage}% of ${course.title}`,
+          courseId: courseId,
+          type: 'progress'
+        };
+        
+        // Check if user is online and socket functions are available
+        if (typeof isUserOnline === 'function' && 
+            typeof sendCourseNotification === 'function' && 
+            isUserOnline(userId)) {
+          sendCourseNotification(userId, notification);
+        }
+      }
+    } catch (notifError) {
+      // Log error but don't fail the request
+      console.error("Failed to send progress notification:", notifError);
+    }
 
     return res.status(200).json({
       success: true,
@@ -169,7 +214,8 @@ export const updateLectureProgress = async (req, res) => {
         completedLectures,
         totalLectures,
         isCompleted: courseProgress.completed,
-        lastAccessedAt: courseProgress.lastAccessedAt
+        lastAccessedAt: courseProgress.lastAccessedAt,
+        progressPercentage: Math.round((completedLectures / totalLectures) * 100)
       }
     });
   } catch (error) {
@@ -368,21 +414,87 @@ export const resetCourseProgress = async (req, res) => {
   }
 };
 
-/**
- * Get user's progress for all enrolled courses
- * @route GET /api/progress
- * @access Private
- */
-export const getAllCoursesProgress = async (req, res) => {
+export const getDashboardStats = async (req, res) => {
   try {
     const userId = req.id;
     
     // Get all course progress for the user
-    const allProgress = await CourseProgress.find({ userId })
+    const allProgress = await CourseProgress.find({ userId });
+    
+    // Find courses for all progresses
+    const courseIds = allProgress.map(prog => prog.courseId);
+    const courses = await Course.find({ _id: { $in: courseIds } });
+    
+    // Map courses by ID for easy lookup
+    const coursesMap = courses.reduce((map, course) => {
+      map[course._id.toString()] = course;
+      return map;
+    }, {});
+    
+    // Calculate overall progress percentage
+    let overallProgress = 0;
+    if (allProgress.length > 0) {
+      let totalProgressPercentage = 0;
+      
+      allProgress.forEach(prog => {
+        const course = coursesMap[prog.courseId.toString()];
+        if (course && course.lessons && course.lessons.length > 0) {
+          const completedLectures = prog.lectureProgress.filter(l => l.viewed).length;
+          const totalLectures = course.lessons.length;
+          const courseProgressPercent = (completedLectures / totalLectures) * 100;
+          totalProgressPercentage += courseProgressPercent;
+        }
+      });
+      
+      overallProgress = Math.round(totalProgressPercentage / allProgress.length);
+    }
+    
+    // Count active courses (not completed)
+    const activeCourses = allProgress.filter(prog => !prog.completed).length;
+    
+    // Get achievements (implement based on your achievement system)
+    const achievements = 12; // Placeholder
+    
+    // Calculate total study time (implement based on your tracking system)
+    const studyTime = 24; // Placeholder in hours
+    
+    return res.status(200).json({
+      success: true,
+      stats: {
+        overallProgress,
+        activeCourses,
+        achievements,
+        studyTime
+      }
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch dashboard statistics"
+    });
+  }
+};
+
+
+
+export const getAllCoursesProgress = async (req, res) => {
+  try {
+    const userId = req.id;
+    const { status } = req.query; // 'All', 'Ongoing', or 'Completed'
+    
+    // Get all course progress for the user
+    let allProgress = await CourseProgress.find({ userId })
       .populate({
         path: "courseId",
-        select: "title thumbnailUrl level"
+        select: "title thumbnailUrl level lessons"
       });
+    
+    // Filter by status if specified
+    if (status && status !== 'All') {
+      const isCompleted = status === 'Completed';
+      allProgress = allProgress.filter(prog => prog.completed === isCompleted);
+    }
     
     if (!allProgress || allProgress.length === 0) {
       return res.status(200).json({
@@ -392,15 +504,24 @@ export const getAllCoursesProgress = async (req, res) => {
     }
     
     // Format the response
-    const progress = allProgress.map(item => ({
-      courseId: item.courseId._id,
-      title: item.courseId.title,
-      thumbnailUrl: item.courseId.thumbnailUrl,
-      level: item.courseId.level,
-      completed: item.completed,
-      completedLectures: item.lectureProgress.filter(lecture => lecture.viewed).length,
-      lastAccessedAt: item.lastAccessedAt
-    }));
+    const progress = allProgress.map(item => {
+      const course = item.courseId;
+      const totalLectures = course.lessons ? course.lessons.length : 1;
+      const completedLectures = item.lectureProgress.filter(lecture => lecture.viewed).length;
+      
+      return {
+        courseId: course._id,
+        title: course.title,
+        thumbnailUrl: course.thumbnailUrl,
+        level: course.level,
+        completed: item.completed,
+        completedLectures,
+        totalLectures,
+        lastAccessedAt: item.lastAccessedAt,
+        // Calculate progress percentage for each course
+        progress: Math.round((completedLectures / totalLectures) * 100)
+      };
+    });
     
     return res.status(200).json({
       success: true,

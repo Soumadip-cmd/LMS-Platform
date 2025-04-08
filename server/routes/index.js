@@ -7,6 +7,8 @@ import languageRouter from "./language/language.route.js";
 import Socialrouter from "./auth/social.route.js";
 import courseRouter from "./course/course.route.js";
 import Lecturerouter from "./lectures/lecture.route.js";
+import courseProgressRouter from "./progress/course-progress.route.js";
+
 const mainRouter = express.Router();
 
 mainRouter.use('/auth', authRouter);
@@ -16,4 +18,5 @@ mainRouter.use('/admin', adminRouter);
 mainRouter.use('/languages', languageRouter);
 mainRouter.use('/courses',courseRouter)
 mainRouter.use('/lectures',Lecturerouter)
+mainRouter.use('/progress',courseProgressRouter)
 export default mainRouter;

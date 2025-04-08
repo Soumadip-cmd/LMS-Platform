@@ -2,65 +2,6 @@
 import jwt from "jsonwebtoken";
 import { User } from "../models/user.model.js";
 
-// const isAuthenticated = async (req, res, next) => {
-//   try {
-//      Check for token in cookies
-//     const token = req.cookies.token;
-
-//     if (!token) {
-//       return res.status(401).json({
-//         message: "User not authenticated",
-//         success: false,
-//       });
-//     }
-
-//      Verify token
-//     const decoded = jwt.verify(token, process.env.SECRET_KEY);
-
-//    Find user to ensure they still exist and are active
-//     const user = await User.findById(decoded.userId);
-
-//     if (!user) {
-//       return res.status(401).json({
-//         message: "User no longer exists",
-//         success: false,
-//       });
-//     }
-
-//     // Attach user information to request object
-//     req.user = {
-//       id: user._id,
-//       role: user.role,
-//       email: user.email
-//     };
-
-//     // Set req.id for backward compatibility with existing code
-//     req.id = user._id;
-//     req.role = user.role;
-
-//     next();
-//   } catch (error) {
-//     if (error.name === 'JsonWebTokenError') {
-//       return res.status(401).json({
-//         message: "Invalid token",
-//         success: false,
-//       });
-//     }
-
-//     if (error.name === 'TokenExpiredError') {
-//       return res.status(401).json({
-//         message: "Token expired. Please login again.",
-//         success: false,
-//       });
-//     }
-
-//     console.error('Authentication error:', error);
-//     return res.status(500).json({
-//       message: "Authentication failed",
-//       success: false,
-//     });
-//   }
-// };
 
 
 const isAuthenticated = async (req, res, next) => {
@@ -238,4 +179,27 @@ const isInstructorOrAdmin = async (req, res, next) => {
   }
 };
 
-export { isAuthenticated, isInstructor, isAdmin, isInstructorOrAdmin };
+const isStudent = async (req, res, next) => {
+  try {
+    // Reuse isAuthenticated middleware logic
+    await isAuthenticated(req, res, () => {
+      // Check if user is a student
+      if (req.user.role !== "student") {
+        return res.status(403).json({
+          message: "Access denied. Student privileges required.",
+          success: false,
+        });
+      }
+      next();
+    });
+  } catch (error) {
+    console.error('Student authentication error:', error);
+    return res.status(500).json({
+      message: "Authentication failed",
+      success: false,
+    });
+  }
+};
+
+
+export { isAuthenticated, isInstructor, isAdmin, isInstructorOrAdmin,isStudent };

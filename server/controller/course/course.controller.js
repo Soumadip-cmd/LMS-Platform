@@ -224,6 +224,10 @@ export const getAllCoursesAdmin = async (req, res) => {
 };
 
 
+
+
+
+
 export const getCourseById = async (req, res) => {
     try {
         const { courseId } = req.params;
