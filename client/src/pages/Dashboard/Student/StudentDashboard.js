@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect,useContext } from "react";
 import {
   Users,
   BookOpen,
@@ -17,6 +17,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import StudentSidebar from "./StudentSidebar";
+import authContext from "../../../context/auth/authContext";
 
 const StudentDashboard = () => {
   const [activeTab, setActiveTab] = useState("All");
@@ -51,7 +52,8 @@ const StudentDashboard = () => {
       document.head.removeChild(style);
     };
   }, []);
-
+ const AuthContext = useContext(authContext);
+ const { user, isAuthenticated } = AuthContext;
   // Dummy data for courses
   const courses = [
     {
@@ -165,7 +167,7 @@ const StudentDashboard = () => {
             <div className="w-full ">
               <div className="flex flex-col items-start justify-between custom-header-flex space-y-4">
                 <h1 className="text-2xl md:text-[2.4rem] lg:text-4xl font-semibold text-[#1976D2]">
-                  Welcome Back, Sarah!
+                  Welcome Back, {user ? user.name.split(' ')[0] : ''}!
                 </h1>
                 <div className="mt-2 custom-date-margin">
                   <DateDisplay date="Tuesday, March 2025|" time="12:10 AM" />
