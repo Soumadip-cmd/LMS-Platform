@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect,useContext} from "react";
 import {
   Search,
   User,
@@ -15,7 +15,9 @@ import {
   Bell,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-
+import authContext from "../../context/auth/authContext";
+import toast from 'react-hot-toast';
+import { useNavigate } from "react-router-dom";
 const StudentNavbar = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -24,7 +26,9 @@ const StudentNavbar = () => {
   const [screenHeightType, setScreenHeightType] = useState('normal');
   const dropdownRef = useRef(null);
   const sidebarRef = useRef(null);
-
+  const navigate = useNavigate();
+  const AuthContext = useContext(authContext);
+  const { user, isAuthenticated, logout } = AuthContext;
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
@@ -32,6 +36,11 @@ const StudentNavbar = () => {
   const toggleProfile = () => {
     setIsProfileOpen(!isProfileOpen);
   };
+  useEffect(() => {
+    if (!user && isAuthenticated) {
+      authContext.loadUser();
+    }
+  }, [isAuthenticated]);
 
   // Screen height detection
   useEffect(() => {
@@ -85,6 +94,17 @@ const StudentNavbar = () => {
     };
   }, [isSidebarOpen]);
 
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast.success("Logged out successfully!");
+      // Navigate to login page after successful logout
+      navigate('/login');
+    } catch (error) {
+      toast.error("Logout failed. Please try again.");
+    }
+  };
   // Sign out positioning logic - Only fixed for medium height screens (between 642px and 740px)
   const signOutClass = screenHeightType === 'medium' 
     ? 'fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-1'
@@ -188,13 +208,13 @@ const StudentNavbar = () => {
                   >
                     <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-gray-200">
                       <img
-                        src="https://placehold.co/40x40"
+                         src={user?.avatar || "https://placehold.co/40x40"}
                         alt="User Avatar"
                         className="w-full h-full object-cover"
                       />
                     </div>
                     <span className="ml-2 font-medium text-gray-800">
-                      Sarah U.
+                    {user ? user.name.split(' ')[0] : ''}
                     </span>
                     <ChevronDown size={16} className="ml-1 text-gray-600" />
                   </button>
@@ -210,10 +230,10 @@ const StudentNavbar = () => {
                   >
                     <div className="px-4 py-3 border-b border-gray-100">
                       <p className="text-sm font-medium text-gray-900">
-                        Sarah Uddin
+                      {user ? user.name : ''}
                       </p>
                       <p className="text-xs text-gray-500">
-                        sarah.uddin@example.com
+                      {user ? user.email : ''}
                       </p>
                     </div>
                     <a
@@ -232,6 +252,10 @@ const StudentNavbar = () => {
                     </a>
                     <a
                       href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleLogout();
+                      }}
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
                     >
                       <LogOut size={16} className="mr-2" />
@@ -291,8 +315,8 @@ const StudentNavbar = () => {
               />
             </div>
             <div className="ml-3">
-              <p className="font-medium text-gray-800">Sarah Uddin</p>
-              <p className="text-xs text-gray-500">sarah.uddin@example.com</p>
+              <p className="font-medium text-gray-800">{user ? user.name.split(' ')[0] : ''}</p>
+              <p className="text-xs text-gray-500">{user ? user.email : ''}</p>
             </div>
           </div>
           <button
@@ -457,6 +481,10 @@ const StudentNavbar = () => {
         <div className={signOutClass}>
           <a
             href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              handleLogout();
+            }}
             className="block px-4 py-3 text-gray-700 hover:bg-blue-50 flex items-center"
           >
             <LogOut size={20} className="text-red-500 mr-3" />
