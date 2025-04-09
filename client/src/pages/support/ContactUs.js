@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Twitter, Mail, MapPin, Phone, Facebook, Instagram } from "lucide-react";
+import {
+  Twitter,
+  Mail,
+  MapPin,
+  Phone,
+  Facebook,
+  Instagram,
+} from "lucide-react";
 
 // Custom styles for the fade-in animation
 const styles = `
@@ -37,40 +44,54 @@ const ContactUs = () => {
   }, [selectedSubject]);
 
   return (
-    <div className="max-w-5xl mx-auto p-4 bg-white">
+    <div className="m-2 lg:mx-4 xl:mx-12 p-4 bg-white">
       {/* Add the custom styles */}
       <style>{styles}</style>
       <h1 className="text-3xl font-bold text-blue-500 mb-6">Contact Us</h1>
 
-      <div className="flex flex-col md:flex-row rounded-lg overflow-hidden shadow-md border border-blue-100 h-full">
+      <div
+        className="flex flex-col md:flex-row rounded-lg overflow-hidden relative h-full"
+        style={{
+          boxShadow:
+            "0 1px 2px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.07), 0 4px 8px rgba(0,0,0,0.07), 0 8px 16px rgba(0,0,0,0.07), 0 16px 32px rgba(0,0,0,0.07), 0 32px 64px rgba(0,0,0,0.07)",
+        }}
+      >
         {/* Left Side - Yellow Contact Information */}
-        <div className="bg-[#FFB71C] p-8 md:w-2/5 relative overflow-hidden flex flex-col h-full min-h-[600px]" >
+        <div className="bg-[#FFB71C] m-2 p-8 xl:w-2/5 relative overflow-hidden flex flex-col h-full min-h-[600px] rounded-md">
           {/* Header Section */}
           <div className="mb-12">
-            <h2 className="text-2xl font-bold text-white mb-2">
+            <h2 className="text-2xl xl:text-4xl font-medium text-white mb-2">
               Contact Information
             </h2>
-            <p className="text-white">Say something to start a live chat!</p>
+            <p className="text-white font-light text-base lg:text-xl">
+              Say something to start a live chat!
+            </p>
           </div>
 
           {/* Middle Section with Contact Details */}
-          <div className="flex-grow space-y-8 justify-center flex flex-col">
-            <a href="tel:+10123456789" className="flex items-center text-white hover:text-black hover:underline group">
+          <div className="flex-grow space-y-8 justify-center flex flex-col font-light lg:text-lg">
+            <a
+              href="tel:+10123456789"
+              className="flex items-center text-white hover:text-black hover:underline group"
+            >
               <div className="mr-4 text-white group-hover:text-black">
                 <Phone size={20} />
               </div>
               <span>+1012 3456 789</span>
             </a>
 
-            <a href="mailto:demo@gmail.com" className="flex items-center text-white hover:text-black hover:underline group">
+            <a
+              href="mailto:demo@gmail.com"
+              className="flex items-center text-white hover:text-black hover:underline group font-light lg:text-lg"
+            >
               <div className="mr-4 text-white group-hover:text-black">
                 <Mail size={20} />
               </div>
               <span>demo@gmail.com</span>
             </a>
 
-            <div className="flex items-start text-white">
-              <div className="mr-4 mt-1 text-white">
+            <div className="flex items-start text-white hover:text-black group font-light lg:text-lg">
+              <div className="mr-4 mt-1 text-white group-hover:text-black">
                 <MapPin size={20} />
               </div>
               <div>
@@ -84,28 +105,42 @@ const ContactUs = () => {
           <div className="mt-auto pt-12">
             <div className="flex space-x-4">
               {/* Twitter */}
-              <div className="group bg-black bg-opacity-30 w-8 h-8 rounded-full flex items-center justify-center cursor-pointer hover:bg-white transition-colors duration-200">
-                <Twitter size={16} className="text-white group-hover:text-[#FFB71C]" />
+              <div className="group bg-black bg-opacity-30 w-8 h-8 rounded-full flex items-center justify-center cursor-pointer hover:bg-white hover:border-black transition-colors duration-200">
+                <Twitter
+                  size={16}
+                  className="text-white group-hover:text-black"
+                />
               </div>
-              
+
               {/* Facebook */}
               <div className="group bg-black bg-opacity-30 w-8 h-8 rounded-full flex items-center justify-center cursor-pointer hover:bg-white transition-colors duration-200">
-                <Facebook size={16} className="text-white group-hover:text-[#FFB71C]" />
+                <Facebook
+                  size={16}
+                  className="text-white group-hover:text-black"
+                />
               </div>
-              
+
               {/* Instagram */}
               <div className="group bg-black bg-opacity-30 w-8 h-8 rounded-full flex items-center justify-center cursor-pointer hover:bg-white transition-colors duration-200">
-                <Instagram size={16} className="text-white group-hover:text-[#FFB71C]" />
+                <Instagram
+                  size={16}
+                  className="text-white group-hover:text-black"
+                />
               </div>
             </div>
           </div>
 
           {/* Decorative Circles - Positioned exactly as in image */}
           <div className="absolute right-0 bottom-0 pointer-events-none">
-            <div className="w-full h-full relative">
-              <div className="absolute right-0 bottom-0 w-64 h-64 opacity-80 rounded-full translate-x-24 translate-y-24 z-20 bg-black"></div>
-              <div className="absolute right-0 bottom-0 size-20 bg-black opacity-50 rounded-full translate-x-32 translate-y-32 z-30"></div>
+            <div className="w-full h-full absolute">
+              <div className="absolute right-0 bottom-0 size-48 lg:size-64  opacity-80 rounded-full translate-x-24 translate-y-24 z-20 bg-black"></div>
+             
             </div>
+            <div className="w-full h-full absolute">
+              <div className="absolute size-20 right-[128px] bottom-[123px] lg:size-32 lg:right-[168px] lg:bottom-[145px] opacity-50 rounded-full translate-x-24 translate-y-24 z-20 bg-black"></div>
+             
+            </div>
+           
           </div>
         </div>
 
@@ -138,7 +173,7 @@ const ContactUs = () => {
               <label className="block text-sm text-gray-600 mb-1">Email</label>
               <input
                 type="email"
-                placeholder=""
+                placeholder="johndoe@email.com"
                 className="w-full p-2 border-b border-gray-300 focus:outline-none focus:border-blue-500"
               />
             </div>
@@ -192,10 +227,16 @@ const ContactUs = () => {
           </div>
 
           {/* Send Button with paper airplane */}
-          <div className="mt-8 flex justify-end relative">
+          <div className="mt-8 flex justify-end relative z-30">
             <button className="bg-[#FFB71C] hover:bg-yellow-500 hover:text-sky-950 text-white py-3 px-8 rounded font-medium cursor-pointer">
               Send Message
             </button>
+          </div>
+          <div className=" absolute hidden md:block md:-bottom-[85px] lg:right-[94px]  xl:right-24 xl:-bottom-12  z-10">
+            <img
+              src={`${process.env.PUBLIC_URL}/assets/ContactUs/letter_send.png`}
+              alt="Aeroplane IMg"
+            />
           </div>
         </div>
       </div>
