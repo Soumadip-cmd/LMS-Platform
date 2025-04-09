@@ -50,25 +50,7 @@ const Login = () => {
   const handlePasswordChange = (e) => {
     setPassword(e.target.value);
   };
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-
-  //   if (!email || !password) {
-  //     setError('Please fill in all fields');
-  //     toast.error('Please fill in all fields');
-  //     return;
-  //   }
-
-  //   try {
-  //     await login(email, password);
-  //     toast.success('Login successful!');
-  //     // Login automatically redirects to home page due to useEffect with isAuthenticated
-  //   } catch (err) {
-  //     setError(err.response?.data?.message || 'Login failed. Please try again.');
-  //     toast.error(err.response?.data?.message || 'Login failed. Please try again.');
-  //   }
-  // };
-
+ 
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -85,8 +67,7 @@ const Login = () => {
       console.log('Login successful');
       toast.success('Login successful!');
       
-      // Use useEffect in login component to handle navigation
-      // Remove the setTimeout logic
+    
     } catch (err) {
       console.error('Login error:', err);
       setError(err.response?.data?.message || 'Login failed. Please try again.');
