@@ -124,20 +124,20 @@ const Navbar = () => {
             <div className="flex space-x-6">
               {[
                 { name: "Courses", hasDropdown: true, path: "/courses" },
-                { name: "Exams", hasDropdown: true, path: "/exams" },
+                { name: "Exams", hasDropdown: false, path: "/exams" },
                 { name: "Dashboard", hasDropdown: false, path: "/dashboard/student" },
                 { name: "Support", hasDropdown: false, path: "/support/contact-us" },
               ].map((item) => (
                 <div key={item.name} className="group relative cursor-pointer">
                   <div className="flex items-center transition-transform duration-300 group-hover:scale-110">
-                    {item.name === "Support" ? (
-                      <Link to="/support/contact-us" className="transition-colors duration-300 group-hover:text-blue-600 relative after:absolute after:w-0 after:h-0.5 after:bg-blue-600 after:left-0 after:bottom-0 after:transition-all after:duration-300 group-hover:after:w-full">
-                        {item.name}
-                      </Link>
-                    ) : (
+                    {item.hasDropdown ? (
                       <span className="transition-colors duration-300 group-hover:text-blue-600 relative after:absolute after:w-0 after:h-0.5 after:bg-blue-600 after:left-0 after:bottom-0 after:transition-all after:duration-300 group-hover:after:w-full">
                         {item.name}
                       </span>
+                    ) : (
+                      <Link to={item.path} className="transition-colors duration-300 group-hover:text-blue-600 relative after:absolute after:w-0 after:h-0.5 after:bg-blue-600 after:left-0 after:bottom-0 after:transition-all after:duration-300 group-hover:after:w-full">
+                        {item.name}
+                      </Link>
                     )}
                     {item.hasDropdown && (
                       <svg
@@ -273,7 +273,7 @@ const Navbar = () => {
             <div className="px-4 py-2">
               {[
                 { name: "Courses", hasDropdown: true, path: "/courses" },
-                { name: "Exams", hasDropdown: true, path: "/exams" },
+                { name: "Exams", hasDropdown: false, path: "/exams" },
                 { name: "Dashboard", hasDropdown: false, path: "/dashboard/student" },
                 { name: "Support", hasDropdown: false, path: "/support/contact-us" },
               ].map((item) => (
@@ -281,8 +281,8 @@ const Navbar = () => {
                   <div
                     className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-blue-50 transition-colors duration-200 cursor-pointer"
                     onClick={() => {
-                      if (item.name === "Support") {
-                        navigate("/support/contact-us");
+                      if (!item.hasDropdown) {
+                        navigate(item.path);
                         toggleMobileMenu();
                       } else if (item.hasDropdown) {
                         toggleDropdown(item.name);
