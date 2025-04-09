@@ -1,14 +1,6 @@
 import React, { useState, useEffect,useContext } from "react";
 import {
-  Users,
-  BookOpen,
-  FileText,
-  Activity,
-  BarChart2,
-  MessageSquare,
-  Settings,
-  Menu,
-  X,
+
   DollarSign,
   Users as UsersIcon,
   Award,
@@ -18,6 +10,7 @@ import {
 } from "lucide-react";
 import StudentSidebar from "./StudentSidebar";
 import authContext from "../../../context/auth/authContext";
+import courseContext from "../../../context/course/courseContext";
 
 const StudentDashboard = () => {
   const [activeTab, setActiveTab] = useState("All");
@@ -53,88 +46,45 @@ const StudentDashboard = () => {
     };
   }, []);
  const AuthContext = useContext(authContext);
+ const CourseContextData = useContext(courseContext);
  const { user, isAuthenticated } = AuthContext;
-  // Dummy data for courses
-  const courses = [
-    {
-      id: 1,
-      title: "German B2 Course",
-      progress: 75,
-      status: "Ongoing",
-      color: "bg-yellow-400",
-    },
-    {
-      id: 2,
-      title: "German B2 Course",
-      progress: 100,
-      status: "Completed",
-      color: "bg-green-500",
-    },
-    {
-      id: 3,
-      title: "German B2 Course",
-      progress: 40,
-      status: "Ongoing",
-      color: "bg-purple-500",
-    },
-    {
-      id: 4,
-      title: "German B2 Course",
-      progress: 25,
-      status: "Ongoing",
-      color: "bg-yellow-400",
-    },
-    {
-      id: 5,
-      title: "German B2 Course",
-      progress: 60,
-      status: "Ongoing",
-      color: "bg-purple-500",
-    },
-    {
-      id: 6,
-      title: "French A1 Course",
-      progress: 15,
-      status: "Ongoing",
-      color: "bg-blue-500",
-    },
-    {
-      id: 7,
-      title: "Spanish B1 Course",
-      progress: 50,
-      status: "Ongoing",
-      color: "bg-red-500",
-    },
-    {
-      id: 8,
-      title: "Italian A2 Course",
-      progress: 80,
-      status: "Ongoing",
-      color: "bg-green-500",
-    },
-    {
-      id: 9,
-      title: "Portuguese Basics",
-      progress: 30,
-      status: "Ongoing",
-      color: "bg-yellow-400",
-    },
-  ];
 
-  // Filter courses based on active tab
-  const filteredCourses =
-    activeTab === "All"
-      ? courses
-      : courses.filter((course) => course.status === activeTab);
+ const { 
+  dashboardStats, 
+  coursesProgress, 
+  loading, 
+  getDashboardStats, 
+  getCoursesProgress 
+} = CourseContextData;
+ useEffect(() => {
+  if (getDashboardStats && getCoursesProgress) {
+    getDashboardStats();
+    getCoursesProgress(activeTab);
+  }
+}, [activeTab, getDashboardStats, getCoursesProgress]);
+ 
+ 
+
 
   // Pagination logic
   const indexOfLastCourse = currentPage * coursesPerPage;
   const indexOfFirstCourse = indexOfLastCourse - coursesPerPage;
-  const currentCourses = filteredCourses.slice(
-    indexOfFirstCourse,
-    indexOfLastCourse
-  );
-  const totalPages = Math.ceil(filteredCourses.length / coursesPerPage);
+  const currentCourses = loading || !coursesProgress ? [] : coursesProgress
+  .filter(course => activeTab === "All" ? true : 
+          activeTab === "Completed" ? course.completed : !course.completed)
+  .slice(indexOfFirstCourse, indexOfLastCourse)
+  .map(course => ({
+    id: course.courseId,
+    title: course.title,
+    progress: course.progress || 0,
+    status: course.completed ? "Completed" : "Ongoing",
+    color: course.completed ? "bg-green-500" : 
+           course.progress > 70 ? "bg-green-500" :
+           course.progress > 40 ? "bg-yellow-400" :
+           course.progress > 20 ? "bg-purple-500" : "bg-blue-500",
+    thumbnailUrl: course.thumbnailUrl
+  }));
+  const totalPages = Math.ceil((coursesProgress?.length || 0) / coursesPerPage);
 
   // Handle page navigation
   const nextPage = () => {
@@ -170,7 +120,10 @@ const StudentDashboard = () => {
                   Welcome Back, {user ? user.name.split(' ')[0] : ''}!
                 </h1>
                 <div className="mt-2 custom-date-margin">
-                  <DateDisplay date="Tuesday, March 2025|" time="12:10 AM" />
+                <DateDisplay 
+    date={`${new Date().toLocaleString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}|`} 
+    time={new Date().toLocaleString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })}
+  />
                 </div>
               </div>
               <p className="text-gray-600 text-base md:text-lg mt-4 mb-8">
@@ -183,35 +136,38 @@ const StudentDashboard = () => {
           {/* Stats Cards */}
 
           <div className="grid grid-cols-1  md:grid-cols-2 2xl:grid-cols-4 gap-6 mt-6">
-            <StatCard
-              icon={<DollarSign size={32} color="#FFC107" />}
-              title="Course Prgress"
-              value="78%"
-              trend={12}
-              trendText="vs last month"
-            />
-            <StatCard
-              icon={<UsersIcon size={32} color="#FFC107" />}
-              title="Active Courses"
-              value="3"
-              trend={12}
-              trendText="vs Yesterday"
-              trendDown
-            />
-            <StatCard
-              icon={<Award size={32} color="#FFC107" />}
-              title="Achievements"
-              value="12"
-              trend={4}
-              trendText="vs last month"
-            />
-            <StatCard
-              icon={<Clock size={32} color="#FFC107" />}
-              title="Study Time"
-              value="24h"
-              trend={12}
-              trendText="vs Yesterday"
-            />
+           
+<StatCard
+  icon={<DollarSign size={32} color="#FFC107" />}
+  title="Course Progress"
+  value={`${dashboardStats?.overallProgress || 0}%`}
+  trend={12}
+  trendText="vs last month"
+/>
+<StatCard
+  icon={<UsersIcon size={32} color="#FFC107" />}
+  title="Active Courses"
+  value={dashboardStats?.activeCourses || 0}
+  trend={12}
+  trendText="vs Yesterday"
+  trendDown
+/>
+
+
+<StatCard
+  icon={<Award size={32} color="#FFC107" />}
+  title="Achievements"
+  value={dashboardStats?.achievements || 0}
+  trend={4}
+  trendText="vs last month"
+/>
+<StatCard
+  icon={<Clock size={32} color="#FFC107" />}
+  title="Study Time"
+  value={`${dashboardStats?.studyTime || 0}h`}
+  trend={12}
+  trendText="vs Yesterday"
+/>
           </div>
         </div>
 
@@ -240,15 +196,16 @@ const StudentDashboard = () => {
 
           {/* Course Cards Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {currentCourses.map((course) => (
-              <CourseCard
-                key={course.id}
-                title={course.title}
-                progress={course.progress}
-                status={course.status}
-                color={course.color}
-              />
-            ))}
+          {currentCourses.map((course) => (
+  <CourseCard
+    key={course.id}
+    title={course.title}
+    progress={course.progress}
+    status={course.status}
+    color={course.color}
+    thumbnailUrl={course.thumbnailUrl}
+  />
+))}
           </div>
 
           {/* Pagination Controls */}
@@ -442,14 +399,14 @@ const TabButton = ({ text, active, onClick }) => (
 );
 
 // Course card component
-const CourseCard = ({ title, progress, status, color }) => {
+const CourseCard = ({ title, progress, status, color,thumbnailUrl }) => {
   return (
     <div className="bg-white rounded-lg border border-gray-100 overflow-hidden shadow-[0_0px_10px_rgba(0,0,0,0.1)] hover:shadow-[0_0px_15px_rgba(0,0,0,0.15)] cursor-pointer transform transition-all duration-300 hover:scale-105">
-      <img
-        src={`https://placehold.co/400x200?text=${title.replace(/\s+/g, "+")}`}
-        alt={title}
-        className="w-full h-48 object-cover"
-      />
+    <img
+  src={thumbnailUrl || `https://placehold.co/400x200?text=${title.replace(/\s+/g, "+")}`}
+  alt={title}
+  className="w-full h-48 object-cover"
+/>
       <div className="p-4">
         <h3 className="font-bold mb-2">{title}</h3>
         <div className="w-full bg-gray-200 rounded-full h-2 mb-2">

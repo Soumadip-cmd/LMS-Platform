@@ -34,7 +34,7 @@ import Mocktest from "./pages/Dashboard/Admin/mocktest/Mocktest";
 import Messages from "./pages/Dashboard/Admin/Messages/Messages";
 import AdminSettings from "./pages/Dashboard/Admin/settings/AdminSettings";
 import ContactUs from "./pages/support/ContactUs";
-// Create a wrapper component to handle the conditional navbar logic
+import CourseState from "./context/course/CourseState";
 const AppContent = () => {
   const location = useLocation();
   const authContext = useContext(AuthContext);
@@ -77,33 +77,7 @@ const AppContent = () => {
   };
 
   return (
-    // <>
-    //   {renderNavbar()}
-    //   <Toaster position="top-center" reverseOrder={false} />
-    //   <Routes>
-    //     {/* Public routes */}
-    //     <Route path="/" element={<HomePage />} />
-    //     <Route path="/courses" element={<CourseSection />} /> //after signup
-        
-    //     {/* Authentication routes */}
-    //     <Route path="/auth/login" element={<Login />} />
-    //     <Route path="/auth/forgot-password" element={<ForgotPassword />} />
-    //     <Route path="/auth/signup" element={<Signup />} />
-        
-    //     {/* Dashboard routes */}
-    //     <Route path="/dashboard/student" element={<StudentDashboard />} />   //after login
-    //     <Route path="/dashboard/instructor" element={<InstructorDashboard />} /> //after approved instructre page 
-    //     <Route path="/dashboard/admin" element={<AdminDashboard />} />   //same for admin
-        
-    //     {/* Legal routes */}
-    //     <Route path="/legal/terms-of-service" element={<TermsService />} />
-    //     <Route path="/legal/privacy-policy" element={<PrivacyPolicy />} />
-        
-    //     {/* Fallback route */}
-    //     <Route path="*" element={<Navigate to="/" />} />
-    //   </Routes>
-    //   <Footer />
-    // </>
+   
     <>
     {renderNavbar()}
     <Toaster position="top-center" reverseOrder={false} />
@@ -171,9 +145,11 @@ const AppContent = () => {
 function App() {
   return (
     <AuthState>
+       <CourseState>
       <Router>
         <AppContent />
       </Router>
+      </CourseState>
     </AuthState>
   );
 }

@@ -22,7 +22,7 @@ const CourseState = (props) => {
   };
 
   const [state, dispatch] = useReducer(courseReducer, initialState);
-
+  axios.defaults.baseURL = 'http://localhost:8000/api/v1';
   // Get published courses
   const getPublishedCourses = async () => {
     try {

@@ -24,6 +24,7 @@ const StudentNavbar = () => {
   const [hasNewMessage, setHasNewMessage] = useState(true);
   const [hasNewNotification, setHasNewNotification] = useState(true);
   const [screenHeightType, setScreenHeightType] = useState('normal');
+  
   const dropdownRef = useRef(null);
   const sidebarRef = useRef(null);
   const navigate = useNavigate();
@@ -36,12 +37,15 @@ const StudentNavbar = () => {
   const toggleProfile = () => {
     setIsProfileOpen(!isProfileOpen);
   };
+
+  
   useEffect(() => {
+    
     if (!user && isAuthenticated) {
       authContext.loadUser();
     }
-  }, [isAuthenticated]);
-
+   
+  }, [isAuthenticated, user]);
   // Screen height detection
   useEffect(() => {
     const checkScreenHeight = () => {
