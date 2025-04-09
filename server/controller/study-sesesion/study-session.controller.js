@@ -1,5 +1,5 @@
 import { CourseProgress } from "../../models/courseprogress.model.js";
-import { checkAndAwardAchievements } from "../../utils/achievement.service.js";
+
 import mongoose from "mongoose";
 
 // Get study time stats for a specific course

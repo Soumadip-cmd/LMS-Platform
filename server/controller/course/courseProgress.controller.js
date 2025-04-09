@@ -1,8 +1,6 @@
 import mongoose from "mongoose";
 import { CourseProgress } from "../../models/courseprogress.model.js";
 import { Course } from "../../models/course.model.js";
-import { UserAchievement } from "../../models/achievement.model.js";
-
 /**
  * Get user's progress for a specific course
  * @route GET /api/progress/:courseId
