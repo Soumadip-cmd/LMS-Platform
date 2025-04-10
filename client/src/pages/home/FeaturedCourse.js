@@ -1,11 +1,15 @@
 import React, { useState, useRef, useEffect } from "react";
 import { ChevronDown, Filter } from "lucide-react";
 import TagStyle from "../../components/TagStyle/TagStyle";
+// Import for navigation - depending on your routing setup, you might need to adjust this
+import { useNavigate } from "react-router-dom";
 
 const FeaturedCourses = () => {
   const [activeSlide, setActiveSlide] = useState(0);
   const [buttonPositions, setButtonPositions] = useState(null);
   const cardRefs = useRef([]);
+  // Add navigate hook for routing
+  const navigate = useNavigate();
 
   const courses = [
     {
@@ -52,6 +56,15 @@ const FeaturedCourses = () => {
 
   const handleDotClick = (index) => {
     setActiveSlide(index);
+  };
+
+  // Add a function to handle the enrollment button click
+  const handleEnrollClick = (courseType) => {
+    if (courseType === "Live Online") {
+      navigate("/details/live-online");
+    } else if (courseType === "Recorded") {
+      navigate("/detail/recorded-class");
+    }
   };
 
   return (
@@ -149,9 +162,12 @@ const FeaturedCourses = () => {
                   </h3>
                   <p className="text-gray-600 text-sm">{course.description}</p>
                 </div>
-                {/* Absolute positioned button at the bottom */}
+                {/* Absolute positioned button at the bottom with added onClick handler */}
                 <div className="absolute bottom-4 left-4">
-                  <button className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md transition w-32">
+                  <button 
+                    className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md transition w-32"
+                    onClick={() => handleEnrollClick(course.type)}
+                  >
                     Enroll Now
                   </button>
                 </div>

@@ -38,6 +38,20 @@ import CourseState from "./context/course/CourseState";
 import CourseType from "./pages/ExamsNav/courseType/CourseType";
 import GeneralPractice from "./pages/ExamsNav/Practice/GeneralPractice";
 import LiveOnline from "./pages/Details/LiveOnline/LiveOnline";
+import RecordedClass from "./pages/Details/Recorded/RecordedClass";
+// You'll need to create this component
+
+// ScrollToTop component to handle scrolling on route changes
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+  
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  
+  return null;
+};
+
 const AppContent = () => {
   const location = useLocation();
   const authContext = useContext(AuthContext);
@@ -80,85 +94,87 @@ const AppContent = () => {
   };
 
   return (
-   
     <>
-    {renderNavbar()}
-    <Toaster position="top-center" reverseOrder={false} />
-    <Routes>
-      {/* Public routes */}
-      <Route path="/" element={<HomePage />} />
-      <Route path="/courses" element={<CourseSection />} />
-      <Route path="/exams" element={<CourseType />} />
+      {/* Add ScrollToTop component here */}
+      <ScrollToTop />
+      {renderNavbar()}
+      <Toaster position="top-center" reverseOrder={false} />
+      <Routes>
+        {/* Public routes */}
+        <Route path="/" element={<HomePage />} />
+        <Route path="/courses" element={<CourseSection />} />
+        <Route path="/exams" element={<CourseType />} />
 
-      {/* Live online Details */}
-      <Route path="/details/live-online" element={<LiveOnline />} />
+        {/* Course Details Routes */}
+        <Route path="/details/live-online" element={<LiveOnline />} />
+        <Route path="/detail/recorded-class" element={<RecordedClass />} />
 
-      {/* exams home page */}
-      <Route path="/general-practice" element={<GeneralPractice />} />
-      
-      {/* Authentication routes */}
-      <Route path="/auth/login" element={<Login />} />
-      <Route path="/auth/forgot-password" element={<ForgotPassword />} />
-      <Route path="/auth/signup" element={<Signup />} />
-      
-      {/* Protected Dashboard routes */}
-      <Route 
-        path="/dashboard/student" 
-        element={
-          // <ProtectedRoute allowedRoles={["student"]}>
-            <StudentDashboard />
-          // </ProtectedRoute>
-        } 
-      />
-      
-      <Route 
-        path="/dashboard/instructor" 
-        element={
-          // <ProtectedRoute allowedRoles={["instructor"]}>
-            <InstructorDashboard />
-          //</ProtectedRoute>
-        } 
-      />
-      
-      <Route 
-        path="/dashboard/admin" 
-        element={
-          // <ProtectedRoute allowedRoles={["admin"]}>
-            <AdminDashboard />
-          // </ProtectedRoute>
-        }
-      />
+        {/* exams home page */}
+        <Route path="/general-practice" element={<GeneralPractice />} />
+        
+        {/* Authentication routes */}
+        <Route path="/auth/login" element={<Login />} />
+        <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+        <Route path="/auth/signup" element={<Signup />} />
+        
+        {/* Protected Dashboard routes */}
+        <Route 
+          path="/dashboard/student" 
+          element={
+            // <ProtectedRoute allowedRoles={["student"]}>
+              <StudentDashboard />
+            // </ProtectedRoute>
+          } 
+        />
+        
+        <Route 
+          path="/dashboard/instructor" 
+          element={
+            // <ProtectedRoute allowedRoles={["instructor"]}>
+              <InstructorDashboard />
+            //</ProtectedRoute>
+          } 
+        />
+        
+        <Route 
+          path="/dashboard/admin" 
+          element={
+            // <ProtectedRoute allowedRoles={["admin"]}>
+              <AdminDashboard />
+            // </ProtectedRoute>
+          }
+        />
 
-      <Route path="/dashboard/admin/courses" element={<AdminCourse />} />
-      <Route path="/dashboard/admin/students" element={<ManageStudents />} />
-      <Route path="/dashboard/admin/instructors" element={<ManageInstructors />} />
-      <Route path="/dashboard/admin/assignments" element={<Assignment />} />
-      <Route path="/dashboard/admin/mock-tests" element={<Mocktest />} />
-      <Route path="/dashboard/admin/messages" element={<Messages />} />
-      <Route path="/dashboard/admin/settings" element={<AdminSettings />} />
-      
-      {/* Support - Contact Us */}
-      <Route path="/support/contact-us" element={<ContactUs />} />
-      
-      {/* Legal routes */}
-      <Route path="/legal/terms-of-service" element={<TermsService />} />
-      <Route path="/legal/privacy-policy" element={<PrivacyPolicy />} />
-      
-      {/* Fallback route */}
-      <Route path="*" element={<Navigate to="/" />} />
-    </Routes>
-    <Footer />
-  </>
+        <Route path="/dashboard/admin/courses" element={<AdminCourse />} />
+        <Route path="/dashboard/admin/students" element={<ManageStudents />} />
+        <Route path="/dashboard/admin/instructors" element={<ManageInstructors />} />
+        <Route path="/dashboard/admin/assignments" element={<Assignment />} />
+        <Route path="/dashboard/admin/mock-tests" element={<Mocktest />} />
+        <Route path="/dashboard/admin/messages" element={<Messages />} />
+        <Route path="/dashboard/admin/settings" element={<AdminSettings />} />
+        
+        {/* Support - Contact Us */}
+        <Route path="/support/contact-us" element={<ContactUs />} />
+        
+        {/* Legal routes */}
+        <Route path="/legal/terms-of-service" element={<TermsService />} />
+        <Route path="/legal/privacy-policy" element={<PrivacyPolicy />} />
+        
+        {/* Fallback route */}
+        <Route path="*" element={<Navigate to="/" />} />
+      </Routes>
+      <Footer />
+    </>
   );
 };
 
 function App() {
   return (
     <AuthState>
-       <CourseState>
-      <Router>
-        <AppContent />
-      </Router>
+      <CourseState>
+        <Router>
+          <AppContent />
+        </Router>
       </CourseState>
     </AuthState>
   );
