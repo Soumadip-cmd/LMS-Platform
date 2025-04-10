@@ -370,7 +370,7 @@ const Navbar = () => {
       </div>
 
       {/* Add padding to the main content to prevent it from being hidden behind the fixed navbar */}
-      <div className="h-32 md:h-[109px]"></div> {/* Adjust this height based on your navbar's total height */}
+      <div className=" h-[7.5rem] md:h-[109px]"></div> {/* Adjust this height based on your navbar's total height */}
     </>
   );
 };

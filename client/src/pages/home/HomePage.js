@@ -28,12 +28,10 @@ const HomePage = () => {
 
   return (
     <div className=" min-h-screen flex flex-col ">
-      
-      
       <section className="md:mx-10">
         {/* Main content */}
         <main className="flex-grow bg-white">
-          <div className="container mx-auto md:pt-16 md:pb-4 px-4 py-8 pb-8  ">
+          <div className=" md:pt-16 md:pb-4 px-4 py-8 pb-8  ">
             <div className="flex flex-col lg:flex-row items-center justify-between">
               {/* Left side text content */}
               <div className="lg:w-1/2 mb-10 xl:mb-[100px] 2xl:mb-[196px] ">
@@ -61,7 +59,10 @@ const HomePage = () => {
 
                     <div className="flex flex-wrap gap-4 items-start">
                       <div className="flex flex-col items-start">
-                        <Link to='/auth/signup' className="bg-blue-500 text-white px-6 py-3 rounded-[20px] hover:bg-blue-600 transition font-medium">
+                        <Link
+                          to="/auth/signup"
+                          className="bg-blue-500 text-white px-6 py-3 rounded-[20px] hover:bg-blue-600 transition font-medium"
+                        >
                           START LEARNING FREE
                         </Link>
                         <div className="flex items-center ml-2 mt-2">
@@ -140,113 +141,115 @@ const HomePage = () => {
             {/* Bottom section */}
 
             {/* powered by advanced AI */}
+            <section className="2xl:flex justify-center">
+              <div className="container mx-auto 2xl:mx-1 mt-14 mb-8 md:mt-0 lg:my-14 px-4 py-12 ">
+                {/* Header Section */}
+                <div className="text-center mb-16">
+                  <p className="text-[#0D47A1] font-medium md:text-[27px] mb-2">
+                    Powered by advanced AI
+                  </p>
+                  <h1 className="text-2xl md:text-4xl xl:text-5xl font-bold mb-6">
+                    Language learning reimagined with{" "}
+                    <br className="hidden md:block" />
+                    intelligent feedback
+                  </h1>
+                  <p className="text-gray-600 max-w-3xl mx-auto text-lg">
+                    Our AI-powered platform analyzes your speaking and writing,
+                    providing personalized feedback and targeted practice
+                    opportunities to accelerate your language learning journey.
+                  </p>
+                </div>
 
-            <div className="container mx-auto 2xl:mx-1 mt-14 mb-8 md:mt-0 lg:my-14 px-4 py-12 ">
-              {/* Header Section */}
-              <div className="text-center mb-16">
-                <p className="text-[#0D47A1] font-medium md:text-[27px] mb-2">
-                  Powered by advanced AI
-                </p>
-                <h1 className="text-2xl md:text-4xl xl:text-5xl font-bold mb-6">
-                  Language learning reimagined with{" "}
-                  <br className="hidden md:block" />
-                  intelligent feedback
-                </h1>
-                <p className="text-gray-600 max-w-3xl mx-auto text-lg">
-                  Our AI-powered platform analyzes your speaking and writing,
-                  providing personalized feedback and targeted practice
-                  opportunities to accelerate your language learning journey.
-                </p>
+                {/* Features Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {/* Feature 1 */}
+                  <div className="bg-white rounded-lg p-6 shadow-md border border-gray-100 transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer">
+                    <div className="bg-blue-100 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
+                      <Mic className="text-blue-500" size={24} />
+                    </div>
+                    <h3 className="text-xl font-semibold mb-3">
+                      Speech Recognition & Analysis
+                    </h3>
+                    <p className="text-gray-600">
+                      Advanced AI listens to your pronunciation and provides
+                      real-time feedback to improve your accent and fluency.
+                    </p>
+                  </div>
+
+                  {/* Feature 2 */}
+                  <div className="bg-white rounded-lg p-6 shadow-md border border-gray-100 transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer">
+                    <div className="bg-blue-100 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
+                      <CheckCircle className="text-blue-500" size={24} />
+                    </div>
+                    <h3 className="text-xl font-semibold mb-3">
+                      Writing Assessment
+                    </h3>
+                    <p className="text-gray-600">
+                      Get detailed feedback on your written language skills with
+                      suggestions for grammar, vocabulary, and style
+                      improvements.
+                    </p>
+                  </div>
+
+                  {/* Feature 3 */}
+                  <div className="bg-white rounded-lg p-6 shadow-md border border-gray-100 transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer">
+                    <div className="bg-blue-100 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
+                      <Users className="text-blue-500" size={24} />
+                    </div>
+                    <h3 className="text-xl font-semibold mb-3">
+                      Personalized Curriculum
+                    </h3>
+                    <p className="text-gray-600">
+                      AI adapts lessons to focus on your specific needs,
+                      creating a custom learning path based on your progress and
+                      goals.
+                    </p>
+                  </div>
+
+                  {/* Feature 4 */}
+                  <div className="bg-white rounded-lg p-6 shadow-md border border-gray-100 transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer">
+                    <div className="bg-blue-100 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
+                      <MessageSquare className="text-blue-500" size={24} />
+                    </div>
+                    <h3 className="text-xl font-semibold mb-3">
+                      Immersive Conversations
+                    </h3>
+                    <p className="text-gray-600">
+                      Practice real-life scenarios with AI conversation partners
+                      that adjust to your proficiency level.
+                    </p>
+                  </div>
+
+                  {/* Feature 5 */}
+                  <div className="bg-white rounded-lg p-6 shadow-md border border-gray-100 transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer">
+                    <div className="bg-blue-100 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
+                      <Sparkles className="text-blue-500" size={24} />
+                    </div>
+                    <h3 className="text-xl font-semibold mb-3">
+                      Cultural Context
+                    </h3>
+                    <p className="text-gray-600">
+                      Learn language within authentic cultural contexts,
+                      including idioms, expressions, and customs.
+                    </p>
+                  </div>
+
+                  {/* Feature 6 */}
+                  <div className="bg-white rounded-lg p-6 shadow-md border border-gray-100 transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer">
+                    <div className="bg-blue-100 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
+                      <TrendingUp className="text-blue-500" size={24} />
+                    </div>
+                    <h3 className="text-xl font-semibold mb-3">
+                      Progress Tracking
+                    </h3>
+                    <p className="text-gray-600">
+                      Visualize your improvement over time with detailed
+                      analytics and achievement milestones.
+                    </p>
+                  </div>
+                </div>
               </div>
-
-              {/* Features Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {/* Feature 1 */}
-                <div className="bg-white rounded-lg p-6 shadow-md border border-gray-100 transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer">
-                  <div className="bg-blue-100 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
-                    <Mic className="text-blue-500" size={24} />
-                  </div>
-                  <h3 className="text-xl font-semibold mb-3">
-                    Speech Recognition & Analysis
-                  </h3>
-                  <p className="text-gray-600">
-                    Advanced AI listens to your pronunciation and provides
-                    real-time feedback to improve your accent and fluency.
-                  </p>
-                </div>
-
-                {/* Feature 2 */}
-                <div className="bg-white rounded-lg p-6 shadow-md border border-gray-100 transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer">
-                  <div className="bg-blue-100 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
-                    <CheckCircle className="text-blue-500" size={24} />
-                  </div>
-                  <h3 className="text-xl font-semibold mb-3">
-                    Writing Assessment
-                  </h3>
-                  <p className="text-gray-600">
-                    Get detailed feedback on your written language skills with
-                    suggestions for grammar, vocabulary, and style improvements.
-                  </p>
-                </div>
-
-                {/* Feature 3 */}
-                <div className="bg-white rounded-lg p-6 shadow-md border border-gray-100 transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer">
-                  <div className="bg-blue-100 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
-                    <Users className="text-blue-500" size={24} />
-                  </div>
-                  <h3 className="text-xl font-semibold mb-3">
-                    Personalized Curriculum
-                  </h3>
-                  <p className="text-gray-600">
-                    AI adapts lessons to focus on your specific needs, creating
-                    a custom learning path based on your progress and goals.
-                  </p>
-                </div>
-
-                {/* Feature 4 */}
-                <div className="bg-white rounded-lg p-6 shadow-md border border-gray-100 transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer">
-                  <div className="bg-blue-100 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
-                    <MessageSquare className="text-blue-500" size={24} />
-                  </div>
-                  <h3 className="text-xl font-semibold mb-3">
-                    Immersive Conversations
-                  </h3>
-                  <p className="text-gray-600">
-                    Practice real-life scenarios with AI conversation partners
-                    that adjust to your proficiency level.
-                  </p>
-                </div>
-
-                {/* Feature 5 */}
-                <div className="bg-white rounded-lg p-6 shadow-md border border-gray-100 transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer">
-                  <div className="bg-blue-100 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
-                    <Sparkles className="text-blue-500" size={24} />
-                  </div>
-                  <h3 className="text-xl font-semibold mb-3">
-                    Cultural Context
-                  </h3>
-                  <p className="text-gray-600">
-                    Learn language within authentic cultural contexts, including
-                    idioms, expressions, and customs.
-                  </p>
-                </div>
-
-                {/* Feature 6 */}
-                <div className="bg-white rounded-lg p-6 shadow-md border border-gray-100 transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer">
-                  <div className="bg-blue-100 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
-                    <TrendingUp className="text-blue-500" size={24} />
-                  </div>
-                  <h3 className="text-xl font-semibold mb-3">
-                    Progress Tracking
-                  </h3>
-                  <p className="text-gray-600">
-                    Visualize your improvement over time with detailed analytics
-                    and achievement milestones.
-                  </p>
-                </div>
-              </div>
-            </div>
-
+            </section>
             {/* why choose prempling section */}
             <div className="mx-auto 2xl:mx-1 md:px-4 px-6 lg:py-12  bg-white">
               <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between lg:gap-12 xl:gap-20">
@@ -397,7 +400,7 @@ const HomePage = () => {
               </div>
             </div>
             {/* courses section */}
-            <section>
+            <section className=" 2xl:flex justify-center">
               {/* Top courses */}
               <Courses />
             </section>
@@ -429,8 +432,6 @@ const HomePage = () => {
         <section>
           <PreplingsNews />
         </section>
-
-        
       </div>
     </div>
   );
