@@ -35,6 +35,9 @@ import Messages from "./pages/Dashboard/Admin/Messages/Messages";
 import AdminSettings from "./pages/Dashboard/Admin/settings/AdminSettings";
 import ContactUs from "./pages/support/ContactUs";
 import CourseState from "./context/course/CourseState";
+import CourseType from "./pages/ExamsNav/courseType/CourseType";
+import GeneralPractice from "./pages/ExamsNav/Practice/GeneralPractice";
+import LiveOnline from "./pages/Details/LiveOnline/LiveOnline";
 const AppContent = () => {
   const location = useLocation();
   const authContext = useContext(AuthContext);
@@ -85,6 +88,13 @@ const AppContent = () => {
       {/* Public routes */}
       <Route path="/" element={<HomePage />} />
       <Route path="/courses" element={<CourseSection />} />
+      <Route path="/exams" element={<CourseType />} />
+
+      {/* Live online Details */}
+      <Route path="/details/live-online" element={<LiveOnline />} />
+
+      {/* exams home page */}
+      <Route path="/general-practice" element={<GeneralPractice />} />
       
       {/* Authentication routes */}
       <Route path="/auth/login" element={<Login />} />
