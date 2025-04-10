@@ -11,17 +11,17 @@ import {
   getUserAttempts,
   getAttemptResults,
   gradeManualReviewQuestions
-} from "../controllers/mockTest.controller.js";
-import { isAuthenticated, isInstructorOrAdmin, isAdmin } from "../middlewares/isAuthenticated.js";
-import { upload } from "../middlewares/multer.js";
+} from "../../controller/mock-exam/mock-exam.controller.js";
+import { isAuthenticated, isInstructorOrAdmin, isAdmin } from "../../middlewares/isAuthenticated.js";
+import { upload } from "../../middlewares/multer.js";
 
-const router = Router();
+const Mockrouter = Router();
 
 // Apply authentication to all routes
-router.use(isAuthenticated);
+Mockrouter.use(isAuthenticated);
 
 // Mock test management routes (Admin/Instructor only)
-router.route("/")
+Mockrouter.route("/")
   .post(
     isInstructorOrAdmin, 
     upload.single("thumbnail"), 
@@ -29,7 +29,7 @@ router.route("/")
   )
   .get(getAllMockTests);
 
-router.route("/:testId")
+Mockrouter.route("/:testId")
   .get(getMockTestById)
   .patch(
     isInstructorOrAdmin, 
@@ -38,27 +38,26 @@ router.route("/:testId")
   )
   .delete(isInstructorOrAdmin, deleteMockTest);
 
-router.route("/:testId/publish")
+Mockrouter.route("/:testId/publish")
   .patch(isInstructorOrAdmin, togglePublishStatus);
 
 // Test attempt routes (All authenticated users)
-router.route("/:testId/start")
+Mockrouter.route("/:testId/start")
   .post(startMockTestAttempt);
 
-router.route("/attempts/:attemptId/submit")
+Mockrouter.route("/attempts/:attemptId/submit")
   .post(submitMockTestAnswers);
-
-router.route("/attempts/user")
+Mockrouter.route("/attempts/user")
   .get(getUserAttempts);
 
-router.route("/attempts/user/:userId")
+Mockrouter.route("/attempts/user/:userId")
   .get(isAdmin, getUserAttempts);
 
-router.route("/attempts/:attemptId")
+Mockrouter.route("/attempts/:attemptId")
   .get(getAttemptResults);
 
 // Grading routes (Admin/Instructor only)
-router.route("/attempts/:attemptId/grade")
+Mockrouter.route("/attempts/:attemptId/grade")
   .patch(isInstructorOrAdmin, gradeManualReviewQuestions);
 
-export default router;
+export default Mockrouter;
