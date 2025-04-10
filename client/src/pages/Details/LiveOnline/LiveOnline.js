@@ -67,18 +67,18 @@ const LiveOnline = () => {
         </div>
 
         {/* Main Content using Flexbox instead of Grid */}
-        <div className="flex flex-col lg:flex-row gap-6">
+        <div className="flex flex-col lg:flex-row gap-8">
           {/* Left Column */}
-          <div className="lg:w-[55%] space-y-6">
+          <div className="lg:w-[55%] space-y-6 ">
             {/* Key Features */}
-            <div className="bg-white rounded-lg p-6" style={customShadow}>
-              <div className="space-y-4">
+            <div className="bg-white rounded-lg p-6 md:px-6 md:py-8" style={customShadow}>
+              <div className="space-y-4 md:space-y-8">
                 <div className="flex items-start">
-                  <div className="bg-[#FFBE33] p-3 rounded-lg mr-4">
-                    <Video className="h-6 w-6 text-white" />
+                  <div className="bg-[#FFBE33] p-3 md:py-2 md:px-3 rounded-md mr-4">
+                    <Video className=" size-6 md:size-8 text-white" />
                   </div>
                   <div>
-                    <h3 className="font-semibold">Live Interactive Sessions</h3>
+                    <h3 className="font-medium md:text-xl mb-0.5">Live Interactive Sessions</h3>
                     <p className="text-gray-600 text-sm">
                       <span className="numbers">5</span> sessions per week, <span className="numbers">60</span> minutes each.
                     </p>
@@ -86,11 +86,11 @@ const LiveOnline = () => {
                 </div>
 
                 <div className="flex items-start">
-                  <div className="bg-[#FFBE33] p-3 rounded-lg mr-4">
-                    <Users className="h-6 w-6 text-white" />
+                  <div className="bg-[#FFBE33] p-3 md:py-2 md:px-3 rounded-md mr-4">
+                    <Users className=" size-6 md:size-8 text-white" />
                   </div>
                   <div>
-                    <h3 className="font-semibold">Small Group Size</h3>
+                    <h3 className="font-medium md:text-xl mb-0.5">Small Group Size</h3>
                     <p className="text-gray-600 text-sm">
                       Maximum <span className="numbers">5-8</span> students per class
                     </p>
@@ -98,11 +98,11 @@ const LiveOnline = () => {
                 </div>
 
                 <div className="flex items-start">
-                  <div className="bg-[#FFBE33] p-3 rounded-lg mr-4">
-                    <Settings className="h-6 w-6 text-white" />
+                  <div className="bg-[#FFBE33] p-3 md:py-2 md:px-3 rounded-md mr-4">
+                    <Settings className=" size-6 md:size-8 text-white" />
                   </div>
                   <div>
-                    <h3 className="font-semibold">Exam Preparation</h3>
+                    <h3 className="font-medium md:text-xl mb-0.5">Exam Preparation</h3>
                     <p className="text-gray-600 text-sm">
                       Tailored for Goethe B1 certification
                     </p>
@@ -112,15 +112,15 @@ const LiveOnline = () => {
             </div>
 
             {/* Interactive Features */}
-            <div className="bg-white rounded-lg p-6" style={customShadow}>
-              <h2 className="text-lg font-bold mb-4">Interactive Features</h2>
-              <div className="space-y-4">
+            <div className="bg-white rounded-lg p-6 md:px-6 md:py-8" style={customShadow}>
+              <h2 className="text-xl font-semibold mb-4 md:mb-7">Interactive Features</h2>
+              <div className="space-y-4 md:space-y-8">
                 <div className="flex items-start">
-                  <div className="bg-[#FFBE33] p-3 rounded-lg mr-4">
-                    <MessageCircle className="h-6 w-6 text-white" />
+                  <div className="bg-[#FFBE33] p-3 md:py-2 md:px-3 rounded-md mr-4">
+                    <MessageCircle className=" size-6 md:size-8 text-white" />
                   </div>
                   <div>
-                    <h3 className="font-semibold">Live Q&A Sessions</h3>
+                    <h3 className="font-medium md:text-xl mb-0.5">Live Q&A Sessions</h3>
                     <p className="text-gray-600 text-sm">
                       Weekly discussion forums and doubt-clearing sessions
                     </p>
@@ -128,11 +128,11 @@ const LiveOnline = () => {
                 </div>
 
                 <div className="flex items-start">
-                  <div className="bg-[#FFBE33] p-3 rounded-lg mr-4">
-                    <Clipboard className="h-6 w-6 text-white" />
+                  <div className="bg-[#FFBE33] p-3 md:py-2 md:px-3 rounded-md mr-4">
+                    <Clipboard className=" size-6 md:size-8 text-white" />
                   </div>
                   <div>
-                    <h3 className="font-semibold">Real-time Feedback</h3>
+                    <h3 className="font-medium md:text-xl mb-0.5">Real-time Feedback</h3>
                     <p className="text-gray-600 text-sm">
                       Instant assessment and personalized recommendations
                     </p>
@@ -140,11 +140,11 @@ const LiveOnline = () => {
                 </div>
 
                 <div className="flex items-start">
-                  <div className="bg-[#FFBE33] p-3 rounded-lg mr-4">
-                    <UserPlus className="h-6 w-6 text-white" />
+                  <div className="bg-[#FFBE33] p-3 md:py-2 md:px-3 rounded-md mr-4">
+                    <UserPlus className=" size-6 md:size-8 text-white" />
                   </div>
                   <div>
-                    <h3 className="font-semibold">Community Access</h3>
+                    <h3 className="font-medium md:text-xl mb-0.5">Community Access</h3>
                     <p className="text-gray-600 text-sm">
                       Join study groups and practice with peers
                     </p>
@@ -154,34 +154,34 @@ const LiveOnline = () => {
             </div>
 
             {/* What You'll Learn */}
-            <div className="bg-white rounded-lg p-6" style={customShadow}>
-              <h2 className="text-lg font-bold mb-4">What You'll Learn</h2>
+            <div className="bg-white rounded-lg p-6 md:px-6 md:py-8" style={customShadow}>
+              <h2 className="text-xl font-semibold  mb-4">What You'll Learn</h2>
 
               <div className="flex flex-col md:flex-row gap-6">
                 <div className="flex-1">
-                  <h3 className="font-semibold mb-2">Language Skills</h3>
-                  <ul className="space-y-2 mb-4">
+                  <h3 className="font-medium mb-4 text-lg md:text-xl">Language Skills</h3>
+                  <ul className="space-y-2 md:space-y-3 mb-4">
                     <li className="flex items-center">
-                      <div className="h-5 w-5 mr-2 rounded-full border border-gray-500 flex items-center justify-center">
-                        <Check className="h-3 w-3 text-gray-500" />
+                      <div className="h-5 w-5 mr-2 rounded-full border-2 border-gray-500 flex items-center justify-center">
+                        <Check className="h-3 w-3 stroke-[4] text-gray-500" />
                       </div>
                       <span>Speaking & Pronunciation</span>
                     </li>
                     <li className="flex items-center">
-                      <div className="h-5 w-5 mr-2 rounded-full border border-gray-500 flex items-center justify-center">
-                        <Check className="h-3 w-3 text-gray-500" />
+                      <div className="h-5 w-5 mr-2 rounded-full border-2 border-gray-500 flex items-center justify-center">
+                        <Check className="h-3 w-3 stroke-[4] text-gray-500" />
                       </div>
                       <span>Writing & Grammar</span>
                     </li>
                     <li className="flex items-center">
-                      <div className="h-5 w-5 mr-2 rounded-full border border-gray-500 flex items-center justify-center">
-                        <Check className="h-3 w-3 text-gray-500" />
+                      <div className="h-5 w-5 mr-2 rounded-full border-2 border-gray-500 flex items-center justify-center">
+                        <Check className="h-3 w-3 stroke-[4] text-gray-500" />
                       </div>
                       <span>Listening Comprehension</span>
                     </li>
                     <li className="flex items-center">
-                      <div className="h-5 w-5 mr-2 rounded-full border border-gray-500 flex items-center justify-center">
-                        <Check className="h-3 w-3 text-gray-500" />
+                      <div className="h-5 w-5 mr-2 rounded-full border-2 border-gray-500 flex items-center justify-center">
+                        <Check className="h-3 w-3 stroke-[4] text-gray-500" />
                       </div>
                       <span>Reading & Vocabulary</span>
                     </li>
@@ -189,29 +189,29 @@ const LiveOnline = () => {
                 </div>
 
                 <div className="flex-1">
-                  <h3 className="font-semibold mb-2">Exam Preparation</h3>
-                  <ul className="space-y-2">
+                  <h3 className="font-medium mb-4 text-lg md:text-xl">Exam Preparation</h3>
+                  <ul className="space-y-2 md:space-y-3">
                     <li className="flex items-center">
-                      <div className="h-5 w-5 mr-2 rounded-full border border-gray-500 flex items-center justify-center">
-                        <Check className="h-3 w-3 text-gray-500" />
+                      <div className="h-5 w-5 mr-2 rounded-full border-2 border-gray-500 flex items-center justify-center">
+                        <Check className="h-3 w-3 stroke-[4] text-gray-500" />
                       </div>
                       <span>Test Strategies</span>
                     </li>
                     <li className="flex items-center">
-                      <div className="h-5 w-5 mr-2 rounded-full border border-gray-500 flex items-center justify-center">
-                        <Check className="h-3 w-3 text-gray-500" />
+                      <div className="h-5 w-5 mr-2 rounded-full border-2 border-gray-500 flex items-center justify-center">
+                        <Check className="h-3 w-3 stroke-[4] text-gray-500" />
                       </div>
                       <span>Practice Exams</span>
                     </li>
                     <li className="flex items-center">
-                      <div className="h-5 w-5 mr-2 rounded-full border border-gray-500 flex items-center justify-center">
-                        <Check className="h-3 w-3 text-gray-500" />
+                      <div className="h-5 w-5 mr-2 rounded-full border-2 border-gray-500 flex items-center justify-center">
+                        <Check className="h-3 w-3 stroke-[4] text-gray-500" />
                       </div>
                       <span>Time Management</span>
                     </li>
                     <li className="flex items-center">
-                      <div className="h-5 w-5 mr-2 rounded-full border border-gray-500 flex items-center justify-center">
-                        <Check className="h-3 w-3 text-gray-500" />
+                      <div className="h-5 w-5 mr-2 rounded-full border-2 border-gray-500 flex items-center justify-center">
+                        <Check className="h-3 w-3 stroke-[4] text-gray-500" />
                       </div>
                       <span>Error Analysis</span>
                     </li>
@@ -238,7 +238,7 @@ const LiveOnline = () => {
             <div className="flex flex-col md:flex-row gap-6">
               {/* Course Includes */}
               <div className="bg-white rounded-lg p-6 flex-1" style={customShadow}>
-                <h2 className="text-lg font-bold mb-4">Course Includes</h2>
+                <h2 className="text-xl font-semibold mb-4">Course Includes</h2>
                 <ul className="space-y-3">
                   <li className="flex items-center">
                     <div className="bg-white border-[3px] border-[#FFBE33] rounded-full p-1 mr-3">
@@ -263,7 +263,7 @@ const LiveOnline = () => {
 
               {/* Requirements */}
               <div className="bg-white rounded-lg p-6 flex-1" style={customShadow}>
-                <h2 className="text-lg font-bold mb-4">Requirements</h2>
+                <h2 className="text-xl font-semibold mb-4">Requirements</h2>
                 <ul className="space-y-3">
                   <li className="flex items-center">
                     <div className="bg-white border-[2px] border-[#FFBE33] rounded-full p-1 mr-3">
@@ -309,14 +309,14 @@ const LiveOnline = () => {
             </div>
 
             {/* Course Delivery */}
-            <div className="bg-white rounded-lg p-6" style={customShadow}>
-              <h2 className="text-lg font-bold mb-4">Course Delivery</h2>
+            <div className="bg-white rounded-lg p-6 md:pb-10" style={customShadow}>
+              <h2 className="text-xl font-semibold mb-4">Course Delivery</h2>
               <div className="flex items-start">
-                <div className="bg-[#FFBE33] p-3 rounded-lg mr-4">
-                  <Laptop className="h-6 w-6 text-white" />
+                <div className="bg-[#FFBE33] p-3  md:py-2 md:px-2 rounded-md mr-4">
+                  <Laptop className="size-6 md:size-12 text-white" />
                 </div>
-                <div>
-                  <h3 className="font-semibold">
+                <div className="md:mt-[3px]">
+                  <h3 className="font-medium md:text-xl mb-0.5">
                     Live via Zoom & Preplings Platform
                   </h3>
                   <p className="text-gray-600 text-sm">
