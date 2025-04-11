@@ -107,7 +107,7 @@ const AppContent = () => {
 
         {/* Course Details Routes */}
         <Route path="/details/live-online" element={<LiveOnline />} />
-        <Route path="/detail/recorded-class" element={<RecordedClass />} />
+        <Route path="/details/recorded-class" element={<RecordedClass />} />
 
         {/* exams home page */}
         <Route path="/general-practice" element={<GeneralPractice />} />
