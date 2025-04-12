@@ -63,7 +63,7 @@ const FeaturedCourses = () => {
     if (courseType === "Live Online") {
       navigate("/details/live-online");
     } else if (courseType === "Recorded") {
-      navigate("/detail/recorded-class");
+      navigate("/details/recorded-class");
     }
   };
 
