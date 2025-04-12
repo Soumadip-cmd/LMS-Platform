@@ -172,7 +172,7 @@ const RecordedClass = () => {
               </div>
 
               {expandedSections["Project Introduction"] && (
-                <div className="px-8 pb-3">
+                <div className="px-8 pb-3 text-sm">
                   <div className="flex items-center gap-2 p-2 cursor-pointer">
                     <svg viewBox="0 0 30 30" xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-gray-500">
                       <g data-name="Layer 2" id="Layer_2">
@@ -245,7 +245,7 @@ const RecordedClass = () => {
               </div>
 
               {expandedSections["Project Setup and configuration"] && (
-                <div className="px-8 pb-3">
+                <div className="px-8 pb-3 text-sm">
                   <div className="flex items-center gap-2 p-2 cursor-pointer">
                     <svg viewBox="0 0 30 30" xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-gray-500">
                       <g data-name="Layer 2" id="Layer_2">
@@ -339,7 +339,7 @@ const RecordedClass = () => {
                 </div>
 
                 {expandedSections[section] && (
-                  <div className="px-8 pb-3">
+                  <div className="px-8 pb-3 text-sm">
                     <div className="flex items-center gap-2 p-2 cursor-pointer">
                       <svg viewBox="0 0 30 30" xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-gray-500">
                         <g data-name="Layer 2" id="Layer_2">
