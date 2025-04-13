@@ -183,7 +183,7 @@ const Navbar = () => {
               </Link>
               <Link
                 to="/auth/signup"
-                className="bg-yellow-400 text-white px-4 py-1 rounded hover:bg-yellow-500 hover:text-[#0D47A1] font-medium transition-colors duration-300"
+                className="bg-[#FFB71C] text-white px-4 py-1 rounded hover:bg-yellow-400 hover:text-[#0D47A1] font-medium transition-colors duration-300"
               >
                 Sign up
               </Link>

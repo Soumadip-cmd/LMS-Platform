@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 
 const StudentSidebar = () => {
   // Component for sidebar items
@@ -190,9 +191,11 @@ const StudentSidebar = () => {
             </div>
 
             <div className="mt-6 md:mt-9 mb-4">
-              <button className="w-full bg-[#FFB71C] hover:bg-yellow-500 transition-colors text-white py-2 px-4 rounded-lg hover:text-[#0D47A1] text-sm font-medium duration-300">
-                Become an Instructor
-              </button>
+              <Link to="/become-an-instructor">
+                <button className="w-full bg-[#FFB71C] hover:bg-yellow-500 transition-colors text-white py-2 px-4 rounded-lg hover:text-[#0D47A1] text-sm font-medium duration-300">
+                  Become an Instructor
+                </button>
+              </Link>
             </div>
           </nav>
         </div>

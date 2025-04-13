@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect,useContext} from "react";
+import React, { useState, useRef, useEffect, useContext } from "react";
 import {
   Search,
   User,
@@ -14,20 +14,21 @@ import {
   MessageSquare,
   Bell,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import authContext from "../../context/auth/authContext";
-import toast from 'react-hot-toast';
+import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 const StudentNavbar = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [hasNewMessage, setHasNewMessage] = useState(true);
   const [hasNewNotification, setHasNewNotification] = useState(true);
-  const [screenHeightType, setScreenHeightType] = useState('normal');
-  
+  const [screenHeightType, setScreenHeightType] = useState("normal");
+
   const dropdownRef = useRef(null);
   const sidebarRef = useRef(null);
   const navigate = useNavigate();
+  const location = useLocation(); // Add this to track route changes
   const AuthContext = useContext(authContext);
   const { user, isAuthenticated, logout } = AuthContext;
   const toggleSidebar = () => {
@@ -38,32 +39,36 @@ const StudentNavbar = () => {
     setIsProfileOpen(!isProfileOpen);
   };
 
-  
   useEffect(() => {
-    
     if (!user && isAuthenticated) {
       authContext.loadUser();
     }
-   
   }, [isAuthenticated, user]);
+
+  // Close sidebar when location changes
+  useEffect(() => {
+    setIsSidebarOpen(false);
+    setIsProfileOpen(false);
+  }, [location.pathname]);
+  
   // Screen height detection
   useEffect(() => {
     const checkScreenHeight = () => {
       const height = window.innerHeight;
       if (height > 740) {
-        setScreenHeightType('large');
+        setScreenHeightType("large");
       } else if (height > 642) {
-        setScreenHeightType('medium');
+        setScreenHeightType("medium");
       } else {
-        setScreenHeightType('small');
+        setScreenHeightType("small");
       }
     };
-    
+
     checkScreenHeight();
-    window.addEventListener('resize', checkScreenHeight);
-    
+    window.addEventListener("resize", checkScreenHeight);
+
     return () => {
-      window.removeEventListener('resize', checkScreenHeight);
+      window.removeEventListener("resize", checkScreenHeight);
     };
   }, []);
 
@@ -85,37 +90,37 @@ const StudentNavbar = () => {
 
     // Toggle body scroll when sidebar opens/closes
     if (isSidebarOpen) {
-      document.body.style.overflow = 'hidden';
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = 'auto';
+      document.body.style.overflow = "auto";
     }
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
       // Reset overflow when component unmounts
-      document.body.style.overflow = 'auto';
+      document.body.style.overflow = "auto";
     };
   }, [isSidebarOpen]);
-
 
   const handleLogout = async () => {
     try {
       await logout();
       toast.success("Logged out successfully!");
       // Navigate to login page after successful logout
-      navigate('/login');
+      navigate("/login");
     } catch (error) {
       toast.error("Logout failed. Please try again.");
     }
   };
   // Sign out positioning logic - Only fixed for medium height screens (between 642px and 740px)
-  const signOutClass = screenHeightType === 'medium' 
-    ? 'fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-1'
-    : 'border-t border-gray-200 py-4';
-  
+  const signOutClass =
+    screenHeightType === "medium"
+      ? "fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-1"
+      : "border-t border-gray-200 py-4";
+
   // Only show bottom spacing when sign out is fixed
-  const showBottomSpace = screenHeightType === 'medium';
+  const showBottomSpace = screenHeightType === "medium";
 
   return (
     <>
@@ -212,13 +217,13 @@ const StudentNavbar = () => {
                   >
                     <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-gray-200">
                       <img
-                         src={user?.avatar || "https://placehold.co/40x40"}
+                        src={user?.avatar || "https://placehold.co/40x40"}
                         alt="User Avatar"
                         className="w-full h-full object-cover"
                       />
                     </div>
                     <span className="ml-2 font-medium text-gray-800">
-                    {user ? user.name.split(' ')[0] : ''}
+                      {user ? user.name.split(" ")[0] : ""}
                     </span>
                     <ChevronDown size={16} className="ml-1 text-gray-600" />
                   </button>
@@ -234,10 +239,10 @@ const StudentNavbar = () => {
                   >
                     <div className="px-4 py-3 border-b border-gray-100">
                       <p className="text-sm font-medium text-gray-900">
-                      {user ? user.name : ''}
+                        {user ? user.name : ""}
                       </p>
                       <p className="text-xs text-gray-500">
-                      {user ? user.email : ''}
+                        {user ? user.email : ""}
                       </p>
                     </div>
                     <a
@@ -297,7 +302,9 @@ const StudentNavbar = () => {
       {/* Mobile-only Right Sidebar Overlay */}
       <div
         className={`fixed inset-0 bg-black bg-opacity-50 z-50 transition-opacity duration-300 md:hidden ${
-          isSidebarOpen ? "opacity-100 overflow-hidden" : "opacity-0 pointer-events-none"
+          isSidebarOpen
+            ? "opacity-100 overflow-hidden"
+            : "opacity-0 pointer-events-none"
         }`}
         onClick={() => setIsSidebarOpen(false)}
       ></div>
@@ -319,8 +326,10 @@ const StudentNavbar = () => {
               />
             </div>
             <div className="ml-3">
-              <p className="font-medium text-gray-800">{user ? user.name.split(' ')[0] : ''}</p>
-              <p className="text-xs text-gray-500">{user ? user.email : ''}</p>
+              <p className="font-medium text-gray-800">
+                {user ? user.name.split(" ")[0] : ""}
+              </p>
+              <p className="text-xs text-gray-500">{user ? user.email : ""}</p>
             </div>
           </div>
           <button
@@ -377,8 +386,8 @@ const StudentNavbar = () => {
         {/* Regular Sidebar Menu */}
         <div className="py-4">
           {/* Dashboard */}
-          <a
-            href="#"
+          <Link
+            to="/dashboard/student"
             className="block px-4 py-3 text-gray-700 hover:bg-blue-50 flex items-center"
           >
             <div className="flex items-center justify-center w-5 h-5 text-blue-600 mr-3">
@@ -400,29 +409,29 @@ const StudentNavbar = () => {
               </svg>
             </div>
             <span className="font-medium">Dashboard</span>
-          </a>
-          
+          </Link>
+
           {/* Courses */}
-          <a
-            href="#"
+          <Link
+            to="/courses"
             className="block px-4 py-3 text-gray-700 hover:bg-blue-50 flex items-center"
           >
             <BookOpen size={20} className="text-blue-600 mr-3" />
             <span>Courses</span>
-          </a>
-          
+          </Link>
+
           {/* Assignments */}
-          <a
-            href="#"
+          <Link
+            to="/assignments"
             className="block px-4 py-3 text-gray-700 hover:bg-blue-50 flex items-center"
           >
             <FileText size={20} className="text-blue-600 mr-3" />
             <span>Assignments</span>
-          </a>
-          
+          </Link>
+
           {/* Mock Tests */}
-          <a
-            href="#"
+          <Link
+            to="/mock-tests"
             className="block px-4 py-3 text-gray-700 hover:bg-blue-50 flex items-center"
           >
             <div className="flex items-center justify-center w-5 h-5 text-blue-600 mr-3">
@@ -444,43 +453,45 @@ const StudentNavbar = () => {
               </svg>
             </div>
             <span>Mock Tests</span>
-          </a>
-          
+          </Link>
+
           {/* Analytics */}
-          <a
-            href="#"
+          <Link
+            to="/analytics"
             className="block px-4 py-3 text-gray-700 hover:bg-blue-50 flex items-center"
           >
             <BarChart size={20} className="text-blue-600 mr-3" />
             <span>Analytics</span>
-          </a>
-          
+          </Link>
+
           {/* Messages */}
-          <a
-            href="#"
+          <Link
+            to="/messages"
             className="block px-4 py-3 text-gray-700 hover:bg-blue-50 flex items-center"
           >
             <MessageSquare size={20} className="text-blue-600 mr-3" />
             <span>Messages</span>
-          </a>
-          
+          </Link>
+
           {/* Settings */}
-          <a
-            href="#"
+          <Link
+            to="/settings"
             className="block px-4 py-3 text-gray-700 hover:bg-blue-50 flex items-center"
           >
             <Settings size={20} className="text-blue-600 mr-3" />
             <span>Settings</span>
-          </a>
-          
+          </Link>
+
           {/* Become an Instructor */}
           <div className="px-4 mt-6 mb-6">
-            <button className="w-full bg-[#FFB71C] hover:bg-yellow-500 transition-colors text-white py-3 px-4 rounded-lg hover:text-[#0D47A1] text-sm font-medium duration-300">
-              Become an Instructor
-            </button>
+            <Link to="/become-an-instructor">
+              <button className="w-full bg-[#FFB71C] hover:bg-yellow-500 transition-colors text-white py-3 px-4 rounded-lg hover:text-[#0D47A1] text-sm font-medium duration-300">
+                Become an Instructor
+              </button>
+            </Link>
           </div>
         </div>
-        
+
         {/* Sign Out - With conditional positioning */}
         <div className={signOutClass}>
           <a
@@ -495,7 +506,7 @@ const StudentNavbar = () => {
             <span>Sign out</span>
           </a>
         </div>
-        
+
         {/* Space at bottom for medium screens to prevent content hiding behind fixed sign out */}
         {showBottomSpace && <div className="h-16"></div>}
       </div>

@@ -2,7 +2,7 @@ import React from 'react';
 
 const CourseSection = () => {
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8 bg-gray-50 min-h-screen">
+    <div className="m-2 lg:mx-4 xl:mx-12  px-4 py-8 bg-gray-50 min-h-screen">
       <div className="mb-10">
         <h1 className="text-3xl font-bold text-blue-500 mb-2">Choose your course to get started!</h1>
         <p className="text-gray-600">Select a language course or exam to personalize your learning experience and start progressing today!</p>
