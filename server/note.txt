@@ -1,0 +1,16 @@
+# Pending Features
+
+## User Activity
+* Real-time tracking of learning time and resource usage
+* Progress visualization with personalized learning dashboards
+* Automated engagement notifications and reminders
+
+## User Achievements
+* Digital badges and certificates for completing learning milestones
+* Skill mastery levels with visual progression indicators
+* Achievement showcasing on user profiles and optional leaderboards
+
+## User Assignments
+* Custom assignment creation tools for instructors
+* Multiple submission formats (text, audio, file uploads)
+* Structured feedback system with performance analytics

@@ -15,49 +15,55 @@ import {
 import { isAuthenticated, isInstructorOrAdmin, isAdmin } from "../../middlewares/isAuthenticated.js";
 import { upload } from "../../middlewares/multer.js";
 
+// Middleware to debug user information
+const debugUserMiddleware = (req, res, next) => {
+  console.log("User info in request:", req.user);
+  console.log("User ID:", req.user?.id);
+  if (!req.user || !req.user.id) {
+    console.error("User information is missing in the request");
+  }
+  next();
+};
+
 const Mockrouter = Router();
 
 // Apply authentication to all routes
 Mockrouter.use(isAuthenticated);
 
-// Mock test management routes (Admin/Instructor only)
-Mockrouter.route("/")
-  .post(
-    isInstructorOrAdmin, 
-    upload.single("thumbnail"), 
-    createMockTest
-  )
-  .get(getAllMockTests);
+// GET all mock tests
+Mockrouter.get("/all", getAllMockTests);
 
-Mockrouter.route("/:testId")
-  .get(getMockTestById)
-  .patch(
-    isInstructorOrAdmin, 
-    upload.single("thumbnail"), 
-    updateMockTest
-  )
-  .delete(isInstructorOrAdmin, deleteMockTest);
+// POST create a new mock test
+Mockrouter.post("/create", isAdmin, debugUserMiddleware, upload.single("thumbnail"), createMockTest);
 
-Mockrouter.route("/:testId/publish")
-  .patch(isInstructorOrAdmin, togglePublishStatus);
+// GET mock test by ID
+Mockrouter.get("/:testId", getMockTestById);
 
-// Test attempt routes (All authenticated users)
-Mockrouter.route("/:testId/start")
-  .post(startMockTestAttempt);
+// UPDATE mock test
+Mockrouter.patch("/update/:testId", isInstructorOrAdmin, upload.single("thumbnail"), updateMockTest);
 
-Mockrouter.route("/attempts/:attemptId/submit")
-  .post(submitMockTestAnswers);
-Mockrouter.route("/attempts/user")
-  .get(getUserAttempts);
+// DELETE mock test
+Mockrouter.delete("/delete/:testId", isInstructorOrAdmin, deleteMockTest);
 
-Mockrouter.route("/attempts/user/:userId")
-  .get(isAdmin, getUserAttempts);
+// PUBLISH/UNPUBLISH mock test
+Mockrouter.patch("/:testId/publish", isInstructorOrAdmin, togglePublishStatus);
 
-Mockrouter.route("/attempts/:attemptId")
-  .get(getAttemptResults);
+// START a mock test attempt
+Mockrouter.post("/:testId/start", startMockTestAttempt);
 
-// Grading routes (Admin/Instructor only)
-Mockrouter.route("/attempts/:attemptId/grade")
-  .patch(isInstructorOrAdmin, gradeManualReviewQuestions);
+// SUBMIT mock test answers
+Mockrouter.post("/attempts/:attemptId/submit", submitMockTestAnswers);
+
+// GET user's own attempts
+Mockrouter.get("/attempts/user", getUserAttempts);
+
+// GET another user's attempts (Admin only)
+Mockrouter.get("/attempts/user/:userId", isAdmin, getUserAttempts);
+
+// GET attempt results
+Mockrouter.get("/attempts/:attemptId", getAttemptResults);
+
+// GRADE manual review questions
+Mockrouter.patch("/attempts/:attemptId/grade", isInstructorOrAdmin, gradeManualReviewQuestions);
 
 export default Mockrouter;
