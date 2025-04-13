@@ -98,6 +98,53 @@ const courseSchema = new mongoose.Schema({
     thumbnailUrl: {
         type: String
     },
+    isLive: {
+        type: Boolean,
+        default: false
+    },
+    liveSessionDetails: {
+        platform: {
+            type: String,
+            enum: ["Zoom", "Google Meet", "Microsoft Teams", "Preplings Platform", "Other"],
+            default: "Zoom"
+        },
+        sessionsPerWeek: {
+            type: Number,
+            default: 0
+        },
+        sessionDuration: {
+            type: Number, // in minutes
+            default: 60
+        },
+        maxStudentsPerSession: {
+            type: Number,
+            default: 20
+        },
+        timeZone: {
+            type: String,
+            default: "UTC"
+        }
+    },
+    batches: [{
+        batchName: String,
+        startDate: Date,
+        endDate: Date,
+        enrollmentOpen: {
+            type: Boolean,
+            default: true
+        },
+        maxStudents: {
+            type: Number,
+            default: 30
+        },
+        currentEnrollments: {
+            type: Number,
+            default: 0
+        }
+    }],
+    requirements: [String],
+    learningOutcomes: [String],
+
     createdAt: {
         type: Date,
         default: Date.now

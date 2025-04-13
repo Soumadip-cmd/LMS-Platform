@@ -10,6 +10,7 @@ import Lecturerouter from "./lectures/lecture.route.js";
 import courseProgressRouter from "./progress/course-progress.route.js";
 import Mockrouter from "./mock-exam/mock-exam.route.js";
 import studySessionRouter from "./progress/studySession.routes.js";
+import LiveCourserouter from "./course/live.course.route.js";
 const mainRouter = express.Router();
 
 mainRouter.use('/auth', authRouter);
@@ -18,6 +19,7 @@ mainRouter.use('/users', userRouter);
 mainRouter.use('/admin', adminRouter);
 mainRouter.use('/languages', languageRouter);
 mainRouter.use('/courses',courseRouter)
+mainRouter.use('/live-course', LiveCourserouter);
 mainRouter.use('/lectures',Lecturerouter)
 mainRouter.use('/progress',courseProgressRouter)
 mainRouter.use('/mock',Mockrouter)
