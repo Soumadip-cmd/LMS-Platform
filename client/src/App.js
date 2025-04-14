@@ -40,6 +40,8 @@ import LiveOnline from "./pages/Details/LiveOnline/LiveOnline";
 import RecordedClass from "./pages/Details/Recorded/RecordedClass";
 import BecomeAnInstructor from "./pages/Dashboard/Student/BecomeAnInstructor/BecomeAnInstructor";
 import PrivacyPolicy from "./pages/Terms&condition/PrivacyPolicy/PrivacyPolicy";
+import AddCourse from "./pages/Dashboard/Admin/courses/AddCourse/AddCourse";
+import GeneralPracticeReading from "./pages/Practice/Reading/GeneralPracticeReading";
 // You'll need to create this component
 
 // ScrollToTop component to handle scrolling on route changes
@@ -71,7 +73,8 @@ const AppContent = () => {
       "/auth/forgot-password",
       "/legal/terms-of-service",
       "/legal/privacy-policy",
-      "/become-an-instructor"
+      "/become-an-instructor",
+      "/general-practice-reading",
     ];
 
     if (publicRoutes.includes(path)) {
@@ -158,10 +161,19 @@ const AppContent = () => {
         <Route path="/dashboard/admin/messages" element={<Messages />} />
         <Route path="/dashboard/admin/settings" element={<AdminSettings />} />
 
-        {/* dashboard student routes */}
+        {/* dashboard admin -course */}
         <Route
-          path="/become-an-instructor"
-          element={<BecomeAnInstructor />}
+          path="/dashboard/admin/courses/add-course"
+          element={<AddCourse />}
+        />
+
+        {/* dashboard student routes */}
+        <Route path="/become-an-instructor" element={<BecomeAnInstructor />} />
+
+        {/* general-practice */}
+        <Route
+          path="/general-practice-reading"
+          element={<GeneralPracticeReading />}
         />
 
         {/* Support - Contact Us */}

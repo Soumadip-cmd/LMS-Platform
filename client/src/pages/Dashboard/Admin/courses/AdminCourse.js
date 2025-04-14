@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import AdminSidebar from "../AdminSidebar";
 import { Search, Calendar, Eye, Edit, ChevronDown } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const AdminCourse = () => {
   const [currentPage, setCurrentPage] = useState(2);
@@ -219,7 +220,7 @@ const AdminCourse = () => {
                 Export
               </button>
 
-              <button className="flex items-center justify-center gap-2 bg-yellow-400 text-white py-2 px-4 rounded-md">
+              <Link className="flex items-center justify-center gap-2 bg-yellow-400 text-white py-2 px-4 rounded-md" to='/dashboard/admin/courses/add-course'>
                 <svg
                   width="20"
                   height="20"
@@ -236,7 +237,7 @@ const AdminCourse = () => {
                   />
                 </svg>
                 Add New Course
-              </button>
+              </Link>
             </div>
           </div>
 
