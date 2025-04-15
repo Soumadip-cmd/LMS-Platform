@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import {
   Home,
   Newspaper,
@@ -18,7 +18,11 @@ import {
   UserPlus
 } from "lucide-react";
 
-const ResourcesSidebar = ({ active  }) => {
+const ResourcesSidebar = () => {
+  // Get current location to determine active route
+  const location = useLocation();
+  const currentPath = location.pathname;
+
   // Sidebar sections configuration
   const sections = [
     {
@@ -53,20 +57,25 @@ const ResourcesSidebar = ({ active  }) => {
   ];
 
   // Sidebar Item Component
-  const SidebarItem = ({ icon, text, path }) => (
-    <Link to={path} className="block">
-      <div
-        className={`flex items-center space-x-3 px-4 py-2 rounded-lg cursor-pointer transition-colors ${
-          active === text
-             ? "bg-blue-50 text-black font-medium"
-             : "text-gray-600 hover:bg-gray-100"
-        }`}
-      >
-        <span className={active === text ? "text-blue-500" : "text-gray-500"}>{icon}</span>
-        <span>{text}</span>
-      </div>
-    </Link>
-  );
+  const SidebarItem = ({ icon, text, path }) => {
+    // Check if this item is active based on current path
+    const isActive = currentPath === path;
+
+    return (
+      <Link to={path} className="block">
+        <div
+          className={`flex items-center space-x-3 px-4 py-2 rounded-lg cursor-pointer transition-colors ${
+            isActive
+              ? "bg-blue-50 text-black font-medium"
+              : "text-gray-600 hover:bg-gray-100"
+          }`}
+        >
+          <span className={isActive ? "text-blue-500" : "text-gray-500"}>{icon}</span>
+          <span>{text}</span>
+        </div>
+      </Link>
+    );
+  };
 
   // Sidebar Section Component
   const SidebarSection = ({ title, items }) => (

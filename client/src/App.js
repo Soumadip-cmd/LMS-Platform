@@ -43,7 +43,7 @@ import PrivacyPolicy from "./pages/Terms&condition/PrivacyPolicy/PrivacyPolicy";
 import AddCourse from "./pages/Dashboard/Admin/courses/AddCourse/AddCourse";
 import GeneralPracticeReading from "./pages/courses/Practice/Reading/GeneralPracticeReading";
 import ResourcesHomePage from "./pages/ResourcesDashboard/Home/ResourcesHomePage";
-// You'll need to create this component
+import ResourceSidebar from "./pages/ResourcesDashboard/ResourceSidebar/ResourceSidebar";
 
 // ScrollToTop component to handle scrolling on route changes
 const ScrollToTop = () => {
@@ -61,6 +61,9 @@ const AppContent = () => {
   const authContext = useContext(AuthContext);
   const { userType } = authContext; // Assuming your auth context tracks user type
 
+  // Check if current path is a resources page
+  const isResourcesPage = location.pathname.startsWith('/resources');
+
   // Function to determine which navbar to show based on route and user type
   const renderNavbar = () => {
     const path = location.pathname;
@@ -77,6 +80,11 @@ const AppContent = () => {
       "/become-an-instructor",
       "/general-practice-reading",
     ];
+
+    // For resources pages, add a special class to hide navbar on mobile only
+    if (isResourcesPage) {
+      return <div className="hidden md:block"><Navbar /></div>; // Hidden on mobile, visible on md and larger screens
+    }
 
     if (publicRoutes.includes(path)) {
       return <Navbar />;
@@ -105,101 +113,112 @@ const AppContent = () => {
       <ScrollToTop />
       {renderNavbar()}
       <Toaster position="top-center" reverseOrder={false} />
-      <Routes>
-        {/* Public routes */}
-        <Route path="/" element={<HomePage />} />
-        <Route path="/courses" element={<CourseSection />} />
-        <Route path="/exams" element={<CourseType />} />
+      
+      {/* Layout wrapper with conditional ResourcesSidebar */}
+      <div className={isResourcesPage ? "flex" : ""}>
+        {isResourcesPage && <ResourceSidebar />}
+        <div className={isResourcesPage ? "flex-1" : ""}>
+          <Routes>
+            {/* Public routes */}
+            <Route path="/" element={<HomePage />} />
+            <Route path="/courses" element={<CourseSection />} />
+            <Route path="/exams" element={<CourseType />} />
 
-        {/* Course Details Routes */}
-        <Route path="/details/live-online" element={<LiveOnline />} />
-        <Route path="/details/recorded-class" element={<RecordedClass />} />
+            {/* Course Details Routes */}
+            <Route path="/details/live-online" element={<LiveOnline />} />
+            <Route path="/details/recorded-class" element={<RecordedClass />} />
 
-        {/* exams home page */}
-        <Route path="/general-practice" element={<GeneralPractice />} />
+            {/* exams home page */}
+            <Route path="/general-practice" element={<GeneralPractice />} />
 
-        {/* Authentication routes */}
-        <Route path="/auth/login" element={<Login />} />
-        <Route path="/auth/forgot-password" element={<ForgotPassword />} />
-        <Route path="/auth/signup" element={<Signup />} />
+            {/* Authentication routes */}
+            <Route path="/auth/login" element={<Login />} />
+            <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+            <Route path="/auth/signup" element={<Signup />} />
 
-        {/* Protected Dashboard routes */}
-        <Route
-          path="/dashboard/student"
-          element={
-            // <ProtectedRoute allowedRoles={["student"]}>
-            <StudentDashboard />
-            // </ProtectedRoute>
-          }
-        />
+            {/* Protected Dashboard routes */}
+            <Route
+              path="/dashboard/student"
+              element={
+                // <ProtectedRoute allowedRoles={["student"]}>
+                <StudentDashboard />
+                // </ProtectedRoute>
+              }
+            />
 
-        <Route
-          path="/dashboard/instructor"
-          element={
-            // <ProtectedRoute allowedRoles={["instructor"]}>
-            <InstructorDashboard />
-            //</ProtectedRoute>
-          }
-        />
+            <Route
+              path="/dashboard/instructor"
+              element={
+                // <ProtectedRoute allowedRoles={["instructor"]}>
+                <InstructorDashboard />
+                //</ProtectedRoute>
+              }
+            />
 
-        <Route
-          path="/dashboard/admin"
-          element={
-            // <ProtectedRoute allowedRoles={["admin"]}>
-            <AdminDashboard />
-            // </ProtectedRoute>
-          }
-        />
-        {/* dasboard -admin routes */}
-        <Route path="/dashboard/admin/courses" element={<AdminCourse />} />
-        <Route path="/dashboard/admin/students" element={<ManageStudents />} />
-        <Route
-          path="/dashboard/admin/instructors"
-          element={<ManageInstructors />}
-        />
-        <Route path="/dashboard/admin/assignments" element={<Assignment />} />
-        <Route path="/dashboard/admin/mock-tests" element={<Mocktest />} />
-        <Route path="/dashboard/admin/messages" element={<Messages />} />
-        <Route path="/dashboard/admin/settings" element={<AdminSettings />} />
+            <Route
+              path="/dashboard/admin"
+              element={
+                // <ProtectedRoute allowedRoles={["admin"]}>
+                <AdminDashboard />
+                // </ProtectedRoute>
+              }
+            />
+            {/* dasboard -admin routes */}
+            <Route path="/dashboard/admin/courses" element={<AdminCourse />} />
+            <Route path="/dashboard/admin/students" element={<ManageStudents />} />
+            <Route
+              path="/dashboard/admin/instructors"
+              element={<ManageInstructors />}
+            />
+            <Route path="/dashboard/admin/assignments" element={<Assignment />} />
+            <Route path="/dashboard/admin/mock-tests" element={<Mocktest />} />
+            <Route path="/dashboard/admin/messages" element={<Messages />} />
+            <Route path="/dashboard/admin/settings" element={<AdminSettings />} />
 
-        {/* dashboard admin -course */}
-        <Route
-          path="/dashboard/admin/courses/add-course"
-          element={<AddCourse />}
-        />
+            {/* dashboard admin -course */}
+            <Route
+              path="/dashboard/admin/courses/add-course"
+              element={<AddCourse />}
+            />
 
-        {/* dashboard student routes */}
-        <Route path="/become-an-instructor" element={<BecomeAnInstructor />} />
+            {/* dashboard student routes */}
+            <Route path="/become-an-instructor" element={<BecomeAnInstructor />} />
 
-        {/* general-practice */}
-        <Route
-          path="/general-practice-reading"
-          element={<GeneralPracticeReading />}
-        />
+            {/* general-practice */}
+            <Route
+              path="/general-practice-reading"
+              element={<GeneralPracticeReading />}
+            />
 
+            {/* Resource Dashboard */}
+            <Route path="/resources/home" element={<ResourcesHomePage />} />
+            {/* Add all other resource routes here */}
+            <Route path="/resources/feed" element={<div>Feed Page</div>} />
+            <Route path="/resources/get-started" element={<div>Get Started Page</div>} />
+            <Route path="/resources/blog" element={<div>Blog Page</div>} />
+            <Route path="/resources/help" element={<div>Help Center Page</div>} />
+            <Route path="/resources/updates" element={<div>Product Updates Page</div>} />
+            <Route path="/resources/roadmap" element={<div>Roadmap Page</div>} />
+            <Route path="/resources/changelog" element={<div>Changelog Page</div>} />
+            <Route path="/resources/introduce" element={<div>Introduce Yourself Page</div>} />
+            <Route path="/resources/discussions" element={<div>Discussions Page</div>} />
+            <Route path="/resources/ask" element={<div>Ask the Community Page</div>} />
+            <Route path="/resources/wishlist" element={<div>Wishlist Page</div>} />
+            <Route path="/resources/events" element={<div>Events Page</div>} />
+            <Route path="/resources/groups" element={<div>Groups Page</div>} />
 
+            {/* Support - Contact Us */}
+            <Route path="/support/contact-us" element={<ContactUs />} />
 
+            {/* Legal routes */}
+            <Route path="/legal/terms-of-service" element={<TermsService />} />
+            <Route path="/legal/privacy-policy" element={<PrivacyPolicy />} />
 
-
-
-
-
-        {/* Resource Dashboard */}
-        <Route path="/resources/home" element={<ResourcesHomePage />} />
-
-
-
-
-        {/* Support - Contact Us */}
-        <Route path="/support/contact-us" element={<ContactUs />} />
-
-        {/* Legal routes */}
-        <Route path="/legal/terms-of-service" element={<TermsService />} />
-        <Route path="/legal/privacy-policy" element={<PrivacyPolicy />} />
-
-        {/* Fallback route */}
-        <Route path="*" element={<Navigate to="/" />} />
-      </Routes>
+            {/* Fallback route */}
+            <Route path="*" element={<Navigate to="/" />} />
+          </Routes>
+        </div>
+      </div>
       <Footer />
     </>
   );
