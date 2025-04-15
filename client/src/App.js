@@ -41,7 +41,8 @@ import RecordedClass from "./pages/Details/Recorded/RecordedClass";
 import BecomeAnInstructor from "./pages/Dashboard/Student/BecomeAnInstructor/BecomeAnInstructor";
 import PrivacyPolicy from "./pages/Terms&condition/PrivacyPolicy/PrivacyPolicy";
 import AddCourse from "./pages/Dashboard/Admin/courses/AddCourse/AddCourse";
-import GeneralPracticeReading from "./pages/Practice/Reading/GeneralPracticeReading";
+import GeneralPracticeReading from "./pages/courses/Practice/Reading/GeneralPracticeReading";
+import ResourcesHomePage from "./pages/ResourcesDashboard/Home/ResourcesHomePage";
 // You'll need to create this component
 
 // ScrollToTop component to handle scrolling on route changes
@@ -175,6 +176,19 @@ const AppContent = () => {
           path="/general-practice-reading"
           element={<GeneralPracticeReading />}
         />
+
+
+
+
+
+
+
+
+        {/* Resource Dashboard */}
+        <Route path="/resources/home" element={<ResourcesHomePage />} />
+
+
+
 
         {/* Support - Contact Us */}
         <Route path="/support/contact-us" element={<ContactUs />} />

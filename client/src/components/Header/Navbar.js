@@ -215,7 +215,7 @@ const Navbar = () => {
               onClick={toggleMobileMenu}
             >
               <img
-                src="assets\logo\logo.png"
+                src={`${process.env.PUBLIC_URL}/assets/logo/logo.png`}
                 alt="logo.png"
                 className=" h-12"
               />
