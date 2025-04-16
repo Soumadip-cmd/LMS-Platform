@@ -248,7 +248,7 @@ const ResourcesSidebar = () => {
 
       <div className="flex  flex-1">
         {/* Desktop Sidebar - hidden on mobile */}
-        <div className="hidden md:block w-60  bg-white border-gray-200 h-full overflow-y-auto ">
+        <div className="hidden md:block w-60  bg-white border-gray-200 h-full overflow-y-auto z-10 shadow-lg">
           <SidebarContent />
         </div>
 
