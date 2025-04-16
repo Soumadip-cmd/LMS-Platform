@@ -47,7 +47,7 @@ app.use(cors({
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
+app.use('/lecture-videos', express.static(path.join(__dirname, 'uploads')));
 
 // Serve static files for lecture videos and attachments
 app.use('/lecture-videos', express.static(path.join(__dirname, 'public/lecture-videos')));

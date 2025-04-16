@@ -165,7 +165,15 @@ export const scheduleLiveSession = async (req, res) => {
                 message: "You are not authorized to schedule sessions for this course"
             });
         }
+    
 
+        let materialPaths = [];
+        if (req.files && req.files.length > 0) {
+            materialPaths = req.files.map(file => {
+                // Create full URL for the file
+                return `${req.protocol}://${req.get('host')}/uploads/${file.filename}`;
+            });
+        }
         // Create live session
         const liveSession = await LiveSession.create({
             course: courseId,
@@ -175,11 +183,11 @@ export const scheduleLiveSession = async (req, res) => {
             instructor: req.id,
             scheduledTime: new Date(scheduledTime),
             duration: duration || 60,
-            platform: platform || "Zoom",
+            platform: platform || "Zoho",
             meetingLink,
             meetingId,
             meetingPassword,
-            materials: materials || [],
+            materials: materialPaths || [],
             status: "scheduled"
         });
 
@@ -224,7 +232,6 @@ export const updateLiveSession = async (req, res) => {
             meetingLink,
             meetingId,
             meetingPassword,
-            materials,
             status
         } = req.body;
 
@@ -254,6 +261,18 @@ export const updateLiveSession = async (req, res) => {
             });
         }
 
+        // Process uploaded files
+        let materialPaths = liveSession.materials || [];
+        if (req.files && req.files.length > 0) {
+            const newMaterialPaths = req.files.map(file => {
+                // Create full URL for the file
+                return `${req.protocol}://${req.get('host')}/uploads/${file.filename}`;
+            });
+            
+            // Combine existing materials with new ones
+            materialPaths = [...materialPaths, ...newMaterialPaths];
+        }
+
         // Create update object
         const updateData = {
             ...(title && { title }),
@@ -264,8 +283,8 @@ export const updateLiveSession = async (req, res) => {
             ...(meetingLink && { meetingLink }),
             ...(meetingId && { meetingId }),
             ...(meetingPassword && { meetingPassword }),
-            ...(materials && { materials }),
-            ...(status && { status })
+            ...(status && { status }),
+            materials: materialPaths
         };
 
         // Update session
@@ -304,7 +323,6 @@ export const updateLiveSession = async (req, res) => {
         });
     }
 };
-
 // Cancel a live session
 export const cancelLiveSession = async (req, res) => {
     try {
@@ -578,9 +596,13 @@ export const leaveLiveSession = async (req, res) => {
             });
         }
 
-        // Find participant
+       
+        // Log to debug
+        console.log("Looking for user:", userId);
+        console.log("Participants:", JSON.stringify(liveSession.participants));
+        
         const participantIndex = liveSession.participants.findIndex(
-            p => p.user.toString() === userId
+            p => p.user.toString() === userId.toString() // Make sure to compare strings to strings
         );
 
         if (participantIndex === -1) {
@@ -595,7 +617,9 @@ export const leaveLiveSession = async (req, res) => {
 
         // If this is the instructor leaving and the session is ongoing, check if we should end it
         const course = await Course.findById(liveSession.course);
-        if (course.instructor.toString() === userId && liveSession.status === "ongoing") {
+        if (course && course.instructor && 
+            course.instructor.toString() === userId.toString() && 
+            liveSession.status === "ongoing") {
             // Check if all participants have left
             const allLeft = liveSession.participants.every(p => p.leaveTime);
             if (allLeft) {
@@ -797,18 +821,12 @@ export const getLiveSessionAnalytics = async (req, res) => {
 };
 
 // Add session recording
+//Add session recording after  session ends . after ading session recoing it will autometcally update the sttus as a a completed 
 export const addSessionRecording = async (req, res) => {
     try {
         const { sessionId } = req.params;
         const { recordingUrl } = req.body;
-
-        if (!recordingUrl) {
-            return res.status(400).json({
-                success: false,
-                message: "Recording URL is required"
-            });
-        }
-
+        
         // Check if session exists
         const liveSession = await LiveSession.findById(sessionId);
         if (!liveSession) {
@@ -835,8 +853,27 @@ export const addSessionRecording = async (req, res) => {
             });
         }
 
+        // Handle recording source (either uploaded file or external URL)
+        let finalRecordingUrl;
+        
+        // If file was uploaded
+        if (req.file) {
+            finalRecordingUrl = `${req.protocol}://${req.get('host')}/lecture-videos/${req.file.filename}`;
+        } 
+        // If URL was provided
+        else if (recordingUrl) {
+            finalRecordingUrl = recordingUrl;
+        } 
+        // If neither was provided
+        else {
+            return res.status(400).json({
+                success: false,
+                message: "Either a recording file or URL is required"
+            });
+        }
+
         // Add recording URL
-        liveSession.recordingUrl = recordingUrl;
+        liveSession.recordingUrl = finalRecordingUrl;
         
         // If session is not already completed, mark it as completed
         if (liveSession.status !== "completed") {
@@ -861,7 +898,8 @@ export const addSessionRecording = async (req, res) => {
 
         return res.status(200).json({
             success: true,
-            message: "Session recording added successfully."
+            message: "Session recording added successfully.",
+            recordingUrl: finalRecordingUrl
         });
     } catch (error) {
         console.error('Add Session Recording Error:', error);
