@@ -115,9 +115,9 @@ const AppContent = () => {
       <Toaster position="top-center" reverseOrder={false} />
       
       {/* Layout wrapper with conditional ResourcesSidebar */}
-      <div className={isResourcesPage ? "flex" : ""}>
+      <div className={isResourcesPage ? "md:flex" : ""}>
         {isResourcesPage && <ResourceSidebar />}
-        <div className={isResourcesPage ? "flex-1" : ""}>
+        <div className={isResourcesPage ? "flex-1 bg-gray-50" : ""}>
           <Routes>
             {/* Public routes */}
             <Route path="/" element={<HomePage />} />

@@ -5,9 +5,9 @@ import TagStyle from '../../../components/TagStyle/TagStyle';
 
 const ResourcesHomePage = () => {
   return (
-    <div className="flex flex-col md:flex-row min-h-screen m-2 lg:mx-4">
+    <div className="flex flex-col md:flex-row min-h-screen mx-2 lg:mx-4 bg-gray-50">
       
-      <div className="flex-1 p-4 sm:p-6 bg-gray-50">
+      <div className="flex-1 p-4 sm:p-6 ">
         <div className="mx-auto md:mx-2">
           {/* Welcome Banner */}
           <div className="bg-white rounded-lg shadow-md p-4 lg:p-12 mb-8">
