@@ -30,7 +30,7 @@ const liveSessionSchema = new mongoose.Schema({
     },
     platform: {
         type: String,
-        enum: ["Zoom", "Google Meet", "Microsoft Teams", "Preplings Platform", "Other"],
+        enum: ["Zoom", "Zoho", "Google Meet", "Microsoft Teams", "Preplings Platform", "Other"],
         default: "Zoom"
     },
     meetingLink: String,

@@ -165,7 +165,15 @@ export const scheduleLiveSession = async (req, res) => {
                 message: "You are not authorized to schedule sessions for this course"
             });
         }
+    
 
+        let materialPaths = [];
+        if (req.files && req.files.length > 0) {
+            materialPaths = req.files.map(file => {
+                // Create full URL for the file
+                return `${req.protocol}://${req.get('host')}/uploads/${file.filename}`;
+            });
+        }
         // Create live session
         const liveSession = await LiveSession.create({
             course: courseId,
@@ -175,11 +183,11 @@ export const scheduleLiveSession = async (req, res) => {
             instructor: req.id,
             scheduledTime: new Date(scheduledTime),
             duration: duration || 60,
-            platform: platform || "Zoom",
+            platform: platform || "Zoho",
             meetingLink,
             meetingId,
             meetingPassword,
-            materials: materials || [],
+            materials: materialPaths || [],
             status: "scheduled"
         });
 
@@ -224,7 +232,6 @@ export const updateLiveSession = async (req, res) => {
             meetingLink,
             meetingId,
             meetingPassword,
-            materials,
             status
         } = req.body;
 
@@ -254,6 +261,18 @@ export const updateLiveSession = async (req, res) => {
             });
         }
 
+        // Process uploaded files
+        let materialPaths = liveSession.materials || [];
+        if (req.files && req.files.length > 0) {
+            const newMaterialPaths = req.files.map(file => {
+                // Create full URL for the file
+                return `${req.protocol}://${req.get('host')}/uploads/${file.filename}`;
+            });
+            
+            // Combine existing materials with new ones
+            materialPaths = [...materialPaths, ...newMaterialPaths];
+        }
+
         // Create update object
         const updateData = {
             ...(title && { title }),
@@ -264,8 +283,8 @@ export const updateLiveSession = async (req, res) => {
             ...(meetingLink && { meetingLink }),
             ...(meetingId && { meetingId }),
             ...(meetingPassword && { meetingPassword }),
-            ...(materials && { materials }),
-            ...(status && { status })
+            ...(status && { status }),
+            materials: materialPaths
         };
 
         // Update session
@@ -304,7 +323,6 @@ export const updateLiveSession = async (req, res) => {
         });
     }
 };
-
 // Cancel a live session
 export const cancelLiveSession = async (req, res) => {
     try {

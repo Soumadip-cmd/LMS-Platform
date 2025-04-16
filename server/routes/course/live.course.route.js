@@ -25,7 +25,7 @@ LiveCourserouter.patch("/courses/:courseId/batches/:batchId", isAuthenticated, u
 LiveCourserouter.post("/courses/:courseId/batches/:batchId/enroll", isAuthenticated, enrollInCourseBatch);
 
 // Live session routes
-LiveCourserouter.post("/sessions", isAuthenticated, scheduleLiveSession);
+LiveCourserouter.post("/sessions", isAuthenticated,upload.array('materials'), scheduleLiveSession);
 LiveCourserouter.patch("/sessions/:sessionId", isAuthenticated, updateLiveSession);
 LiveCourserouter.patch("/sessions/:sessionId/cancel", isAuthenticated, cancelLiveSession);
 LiveCourserouter.post("/sessions/:sessionId/recording", isAuthenticated, addSessionRecording);
