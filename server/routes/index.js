@@ -11,6 +11,7 @@ import courseProgressRouter from "./progress/course-progress.route.js";
 import Mockrouter from "./mock-exam/mock-exam.route.js";
 import studySessionRouter from "./progress/studySession.routes.js";
 import LiveCourserouter from "./course/live.course.route.js";
+import contactRouter from "./contact-us/contact.routes.js";
 const mainRouter = express.Router();
 
 mainRouter.use('/auth', authRouter);
@@ -24,4 +25,5 @@ mainRouter.use('/lectures',Lecturerouter)
 mainRouter.use('/progress',courseProgressRouter)
 mainRouter.use('/mock',Mockrouter)
 mainRouter.use('/study-session', studySessionRouter);
+mainRouter.use("/contact",contactRouter);
 export default mainRouter;
