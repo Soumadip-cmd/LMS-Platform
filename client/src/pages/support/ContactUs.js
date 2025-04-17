@@ -7,7 +7,9 @@ import {
   Facebook,
   Instagram,
 } from "lucide-react";
-
+import axios from "axios";
+import { SERVER_URI } from "../../utlils/ServerUri";
+import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 // Custom styles for the fade-in animation
 const styles = `
 @keyframes fadeIn {
@@ -28,21 +30,87 @@ const styles = `
 const ContactUs = () => {
   const [selectedSubject, setSelectedSubject] = useState(null);
   const [showAirplane, setShowAirplane] = useState(false);
+  const [formdata,setFormdata]=useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phoneNumber: "",
+    subject: "General Inquiry",
+    message: ""
+  })
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState("");
+
 
   // Show airplane animation when radio button is selected
-  useEffect(() => {
-    if (selectedSubject !== null) {
-      setShowAirplane(true);
+  // useEffect(() => {
+  //   if (selectedSubject !== null) {
+  //     setShowAirplane(true);
 
-      // Hide airplane after animation completes
-      const timer = setTimeout(() => {
-        setShowAirplane(false);
-      }, 3000);
+  //     // Hide airplane after animation completes
+  //     const timer = setTimeout(() => {
+  //       setShowAirplane(false);
+  //     }, 3000);
 
-      return () => clearTimeout(timer);
+  //     return () => clearTimeout(timer);
+  //   }
+  // }, [selectedSubject]);
+
+
+  const handleChnage=(e)=>{
+   setFormdata({
+    ...formdata,
+    [e.target.name]:e.target.value
+   })
+  }
+
+
+ 
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    try {
+      if (!formdata.firstName || !formdata.lastName || !formdata.email || 
+        !formdata.phoneNumber || !formdata.subject || !formdata.message) {
+        setError("All fields are required");
+        setLoading(false);
+        return;
+      }
+  
+      const response = await axios.post(`${SERVER_URI}/contact/create`, formdata);
+      
+      if (response.data.success) {
+        setSuccess(true);
+        // Reset form
+        setFormdata({
+          firstName: "",
+          lastName: "",
+          email: "",
+          phoneNumber: "",
+          subject: "General Inquiry",
+          message: ""
+        });
+        setSelectedSubject(0);
+        
+        // Show airplane animation after successful submission
+        setShowAirplane(true);
+        // Hide airplane after animation completes
+        setTimeout(() => {
+          setShowAirplane(false);
+        }, 3000);
+      } else {
+        setError(response.data.message || "Something went wrong");
+      }
+    } catch (error) {
+      setError(error.response?.data?.message || "Failed to submit form");
+      console.error("Contact submission error:", error);
+    } finally {
+      setLoading(false);
     }
-  }, [selectedSubject]);
-
+  }
   return (
     <div className="m-2 lg:mx-4 xl:mx-12 p-4 bg-white">
       {/* Add the custom styles */}
@@ -146,6 +214,7 @@ const ContactUs = () => {
 
         {/* Right Side - Form */}
         <div className="bg-white p-8 md:w-3/5 md:min-h-[600px]">
+        <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm text-gray-600 mb-1">
@@ -154,6 +223,9 @@ const ContactUs = () => {
               <input
                 type="text"
                 placeholder="John"
+                name="firstName"
+              value={formdata.firstName}
+              onChange={handleChnage}
                 className="w-full p-2 border-b border-gray-300 focus:outline-none focus:border-blue-500"
               />
             </div>
@@ -165,6 +237,9 @@ const ContactUs = () => {
               <input
                 type="text"
                 placeholder="Doe"
+                name="lastName"
+              value={formdata.lastName}
+              onChange={handleChnage}
                 className="w-full p-2 border-b border-gray-300 focus:outline-none focus:border-blue-500"
               />
             </div>
@@ -174,6 +249,9 @@ const ContactUs = () => {
               <input
                 type="email"
                 placeholder="johndoe@email.com"
+                name="email"
+              value={formdata.email}
+              onChange={handleChnage}
                 className="w-full p-2 border-b border-gray-300 focus:outline-none focus:border-blue-500"
               />
             </div>
@@ -184,6 +262,9 @@ const ContactUs = () => {
               </label>
               <input
                 type="tel"
+                name="phoneNumber"
+              value={formdata.phoneNumber}
+              onChange={handleChnage}
                 placeholder="+1 012 3456 789"
                 className="w-full p-2 border-b border-gray-300 focus:outline-none focus:border-blue-500"
               />
@@ -222,24 +303,63 @@ const ContactUs = () => {
             <textarea
               placeholder="Write your message.."
               rows="3"
+              name="message"
+              value={formdata.message}
+              onChange={handleChnage}
               className="w-full p-2 border-b border-gray-300 resize-none focus:outline-none focus:border-blue-500"
             ></textarea>
           </div>
 
+           {/* Error message */}
+        {error && (
+          <div className="mt-4 text-red-500 text-sm">{error}</div>
+        )}
+        
+        {/* Success message */}
+        {success && (
+          <div className="mt-4 text-green-500 text-sm">
+            Thank you for contacting us! We'll get back to you soon.
+          </div>
+        )}
+
+
           {/* Send Button with paper airplane */}
           <div className="mt-8 flex justify-end relative z-30">
-            <button className="bg-[#FFB71C] hover:bg-yellow-500 hover:text-sky-950 text-white py-3 px-8 rounded font-medium cursor-pointer">
-              Send Message
+            <button 
+            type="submit"
+            disabled={loading}
+            className="bg-[#FFB71C] hover:bg-yellow-500 hover:text-sky-950 text-white py-3 px-8 rounded font-medium cursor-pointer"
+            >
+              {loading ? (
+    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+    </svg>
+  ) : 'Send Message'}
             </button>
           </div>
-          <div className=" absolute hidden md:block md:-bottom-[85px] lg:right-[94px]  xl:right-24 xl:-bottom-12  z-10">
+          {/* <div className=" absolute hidden md:block md:-bottom-[85px] lg:right-[94px]  xl:right-24 xl:-bottom-12  z-10">
             <img
               src={`${process.env.PUBLIC_URL}/assets/ContactUs/letter_send.png`}
               alt="Aeroplane IMg"
             />
-          </div>
+
+
+          </div> */}
+
+<div className="fixed inset-0 flex items-center justify-center z-50 bg-white bg-opacity-80" style={{display: showAirplane ? 'flex' : 'none'}}>
+  <DotLottieReact
+    src="https://lottie.host/dd0b4e5d-ca0e-4cfc-98f4-498d5826677d/viJAnKlRss.lottie"
+    loop
+    autoplay
+    style={{ width: '80vw', height: '80vh', maxWidth: '500px', maxHeight: '500px' }}
+  />
+</div>
+          </form>
         </div>
+       
       </div>
+      
     </div>
   );
 };
