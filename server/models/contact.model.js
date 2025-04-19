@@ -2,62 +2,7 @@
 import mongoose from "mongoose";
 
 
-/**
- * @swagger
- * components:
- *   schemas:
- *     Contact:
- *       type: object
- *       required:
- *         - firstName
- *         - lastName
- *         - email
- *         - phoneNumber
- *         - subject
- *         - message
- *       properties:
- *         _id:
- *           type: string
- *           description: Auto-generated ID of the contact
- *         firstName:
- *           type: string
- *           description: First name of the person
- *         lastName:
- *           type: string
- *           description: Last name of the person
- *         email:
- *           type: string
- *           format: email
- *           description: Email address of the person
- *         phoneNumber:
- *           type: string
- *           description: Phone number of the person
- *         subject:
- *           type: string
- *           description: Subject of the contact request
- *         message:
- *           type: string
- *           description: Message content
- *         status:
- *           type: string
- *           enum: [pending, in-progress, resolved]
- *           default: pending
- *           description: Status of the contact request
- *         assignedTo:
- *           type: string
- *           description: ID of the admin assigned to this request
- *         response:
- *           type: string
- *           description: Admin's response to the contact request
- *         createdAt:
- *           type: string
- *           format: date-time
- *           description: Creation timestamp
- *         updatedAt:
- *           type: string
- *           format: date-time
- *           description: Last update timestamp
- */
+
 const contactSchema = new mongoose.Schema({
     firstName: {
         type: String,

@@ -139,7 +139,51 @@ const userSchema = new mongoose.Schema({
         type: String,
         enum: ["local", "google", "facebook"],
         default: "local"
-    }
+    },
+    // New fields for blog notification system
+    preferredCategories: {
+        type: [String],
+        default: []
+    },
+    notificationPreferences: {
+        email: {
+            type: Boolean,
+            default: true
+        },
+        push: {
+            type: Boolean,
+            default: true
+        },
+        categories: {
+            type: Boolean,
+            default: true
+        },
+        courseUpdates: {
+            type: Boolean,
+            default: true
+        }
+    },
+    isActive: {
+        type: Boolean,
+        default: true
+    },
+    // For content recommendation system
+    readHistory: [
+        {
+            blog: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'Blog'
+            },
+            readAt: {
+                type: Date,
+                default: Date.now
+            },
+            completionPercentage: {
+                type: Number,
+                default: 100
+            }
+        }
+    ]
 }, { timestamps: true });
 
 export const User = mongoose.model("User", userSchema);

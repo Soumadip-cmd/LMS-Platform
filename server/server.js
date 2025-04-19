@@ -9,7 +9,7 @@ import mainRouter from "./routes/index.js";
 import { initializeSocket } from "./socket/socket.js"; 
 import path from 'path';
 import { fileURLToPath } from 'url';
-import setupSwagger from "./swagger.js"; 
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -53,7 +53,7 @@ app.use('/lecture-videos', express.static(path.join(__dirname, 'uploads')));
 app.use('/lecture-videos', express.static(path.join(__dirname, 'public/lecture-videos')));
 app.use('/lecture-attachments', express.static(path.join(__dirname, 'public/lecture-attachments')));
 
-setupSwagger(app);
+
 // Routes
 app.use('/api/v1', mainRouter);
 
