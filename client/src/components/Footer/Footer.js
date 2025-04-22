@@ -5,14 +5,13 @@ const Footer = () => {
     <footer className="bg-white">
       {/* Horizontal rule at the top of footer */}
       <hr className="border-gray-200 mx-4 sm:mx-8 lg:mx-16" />
-
-      <div className="py-6 sm:py-8 md:py-10 px-4 sm:px-8 lg:px-16 md:mr-10 lg:mr-0">
+      {/* md-mr-10 */}
+      <div className="py-6 sm:py-8 md:py-10 px-4 sm:px-8 lg:px-16 lg:mr-0">
         <div className="mx-auto md:mx-6 lg:mx-1 2xl:mx-1">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-x-6 sm:gap-x-8 md:gap-x-12 gap-y-6 sm:gap-y-8">
             {/* Logo and Open Time Section */}
             <div className="sm:col-span-2 md:col-span-3 space-y-4 sm:space-y-6">
               <div className="flex items-center justify-center sm:justify-start -ml-3">
-              
                 <img
                   src={`${process.env.PUBLIC_URL}/assets/logo/logo.png`}
                   alt="logo.png"
@@ -42,7 +41,9 @@ const Footer = () => {
 
             {/* First About Section */}
             <div className="sm:col-span-1 md:col-span-2 md:ml-6">
-              <h3 className="font-medium mb-3 md:mb-5 text-gray-800 text-center sm:text-left">About</h3>
+              <h3 className="font-medium mb-3 md:mb-5 text-gray-800 text-center sm:text-left">
+                About
+              </h3>
               <ul className="grid grid-cols-3 sm:grid-cols-1 gap-2 md:block md:space-y-3 text-sm text-gray-600 text-center sm:text-left">
                 <li>
                   <a href="#" className="hover:text-blue-700">
@@ -127,7 +128,11 @@ const Footer = () => {
 
               {/* Social Media Icons - Centered on mobile with wrap support */}
               <div className="flex justify-center flex-wrap gap-3 mt-6">
-                <a href="#" aria-label="Facebook" className="flex items-center justify-center">
+                <a
+                  href="#"
+                  aria-label="Facebook"
+                  className="flex items-center justify-center"
+                >
                   <div className="w-8 h-8 flex items-center justify-center text-blue-700">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -139,7 +144,11 @@ const Footer = () => {
                     </svg>
                   </div>
                 </a>
-                <a href="#" aria-label="Instagram" className="flex items-center justify-center">
+                <a
+                  href="#"
+                  aria-label="Instagram"
+                  className="flex items-center justify-center"
+                >
                   <div className="w-8 h-8 flex items-center justify-center text-pink-600">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -151,7 +160,11 @@ const Footer = () => {
                     </svg>
                   </div>
                 </a>
-                <a href="#" aria-label="Twitter" className="flex items-center justify-center">
+                <a
+                  href="#"
+                  aria-label="Twitter"
+                  className="flex items-center justify-center"
+                >
                   <div className="w-8 h-8 flex items-center justify-center text-black">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -163,7 +176,11 @@ const Footer = () => {
                     </svg>
                   </div>
                 </a>
-                <a href="#" aria-label="LinkedIn" className="flex items-center justify-center">
+                <a
+                  href="#"
+                  aria-label="LinkedIn"
+                  className="flex items-center justify-center"
+                >
                   <div className="w-8 h-8 flex items-center justify-center text-blue-600">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -175,7 +192,11 @@ const Footer = () => {
                     </svg>
                   </div>
                 </a>
-                <a href="#" aria-label="YouTube" className="flex items-center justify-center">
+                <a
+                  href="#"
+                  aria-label="YouTube"
+                  className="flex items-center justify-center"
+                >
                   <div className="w-8 h-8 flex items-center justify-center text-red-600">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"

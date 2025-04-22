@@ -57,7 +57,7 @@ const GeneralPractice = () => {
             
             <div className="flex-grow"></div>
             
-            <Link to="/practice-reading" className="w-full block">
+            <Link to="/general-practice-reading" className="w-full block">
               <button className="w-full bg-[#FFB71C] hover:bg-[#efa912] text-center py-2 rounded-md font-medium transition-colors text-white hover:text-[#0D47A1] mt-4">
                 Practice Reading
               </button>
