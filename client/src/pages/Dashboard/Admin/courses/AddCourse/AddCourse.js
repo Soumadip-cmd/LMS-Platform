@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
 import AdminSidebar from '../../AdminSidebar';
+import {  useEffect, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useRef } from 'react';
+import courseContext from '../../../../../context/course/courseContext';
 
 const AddCourse = () => {
   const [courseTitle, setCourseTitle] = useState('New Course');
@@ -13,7 +17,103 @@ const AddCourse = () => {
   const [isScheduled, setIsScheduled] = useState(false);
   const [activeTab, setActiveTab] = useState('Visual');
   const [activeOption, setActiveOption] = useState('General');
+  const [isLiveCourse, setIsLiveCourse] = useState(false);
+  const [liveCourseSettings, setLiveCourseSettings] = useState({
+    platform: 'Zoom',
+    sessionsPerWeek: 2,
+    sessionDuration: 60,
+    maxStudentsPerSession: 20,
+    timeZone: 'UTC'
+  });
+  const navigate = useNavigate();
+  const [thumbnail, setThumbnail] = useState(null);
+  const [introVideo, setIntroVideo] = useState(null);
+ 
+  const CourseContext = useContext(courseContext);
+  const { createCourse, updateLiveCourseSettings, error, clearErrors } = CourseContext;
 
+
+  useEffect(() => {
+    if (error) {
+    
+      console.error(error);
+      clearErrors();
+    }
+  }, [error, clearErrors]);
+  
+  // handle file uploads
+  const handleThumbnailChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setThumbnail(e.target.files[0]);
+    }
+  };
+  
+  const handleVideoChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setIntroVideo(e.target.files[0]);
+    }
+  };
+  
+  //handleSubmit function
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    // Create form data for file uploads
+    const formData = new FormData();
+    
+    // Add main course details
+    formData.append('title', courseTitle);
+    formData.append('description', description);
+    formData.append('level', difficulty);
+    formData.append('language', 'en'); 
+    formData.append('duration[weeks]', 4); 
+    
+    // Set price based on pricing model
+    if (pricingModel === 'Free') {
+      formData.append('price', 0);
+      formData.append('discountPrice', 0);
+    } else {
+      formData.append('price', 49.99); 
+      formData.append('discountPrice', 0); 
+    }
+    
+    // Append files if they exist
+    if (thumbnail) {
+      formData.append('thumbnail', thumbnail);
+    }
+    
+    try {
+      // First create the course
+      const course = await createCourse(formData);
+      
+      // If it's a live course, update the live settings
+      if (isLiveCourse && course && course._id) {
+        await updateLiveCourseSettings(course._id, {
+          isLive: true,
+          platform: liveCourseSettings.platform,
+          sessionsPerWeek: liveCourseSettings.sessionsPerWeek,
+          sessionDuration: liveCourseSettings.sessionDuration,
+          maxStudentsPerSession: liveCourseSettings.maxStudentsPerSession,
+          timeZone: liveCourseSettings.timeZone
+        });
+      }
+      
+      // Generate shareable URL
+      const courseShareableUrl = `${window.location.origin}/courses/${course._id}/${encodeURIComponent(courseTitle.replace(/\s+/g, '-').toLowerCase())}`;
+      
+      // Navigate to course management or curriculum editor
+      navigate(`/admin/courses/${course._id}/curriculum`, { 
+        state: { 
+          courseId: course._id,
+          courseTitle,
+          shareableUrl: courseShareableUrl
+        } 
+      });
+    } catch (error) {
+      console.error("Error creating course:", error);
+    }
+  };
+  
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-gray-50">
       <AdminSidebar active="Courses" />
@@ -77,7 +177,7 @@ const AddCourse = () => {
                     </div>
                   </div>
                   
-                  <div className="mb-6">
+                  {/* <div className="mb-6">
                     <div className="flex items-center mb-1">
                       <label className="block text-sm font-medium text-gray-700">Course URL</label>
                     </div>
@@ -94,7 +194,19 @@ const AddCourse = () => {
                         </svg>
                       </button>
                     </div>
-                  </div>
+                  </div> */}
+
+<div className="mb-6">
+  <div className="flex items-center mb-1">
+    <label className="block text-sm font-medium text-gray-700">Course URL</label>
+  </div>
+  <p className="text-sm text-gray-600 mb-2">
+    Course URL : <span className="text-blue-600">www.preplings.com/exam/goethea1/{courseTitle.toLowerCase().replace(/\s+/g, '')}{Math.floor(Math.random()*10000)}</span>
+    <svg className="w-4 h-4 inline-block ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+    </svg>
+  </p>
+</div>
                   
                   <div className="mb-6">
                     <div className="flex items-center justify-between mb-1">
@@ -147,9 +259,11 @@ const AddCourse = () => {
                         ></textarea>
                       </div>
                     </div>
-                  </div>
+
+         </div>
                   
-                  <div className="mb-6">
+
+       <div className="mb-6">
                     <h3 className="text-lg font-medium mb-4">Options</h3>
                     
                     <div className="flex">
@@ -183,6 +297,18 @@ const AddCourse = () => {
                           </svg>
                           <span className={`${activeOption === 'Enrollment' ? 'text-blue-700' : 'text-gray-500'}`}>Enrollment</span>
                         </div>
+
+
+
+                        <div 
+  className={`flex items-center p-3 cursor-pointer ${activeOption === 'LiveSettings' ? 'bg-blue-50 border-l-4 border-blue-500' : 'hover:bg-gray-50'}`}
+  onClick={() => setActiveOption('LiveSettings')}
+>
+  <svg className={`w-5 h-5 mr-2 ${activeOption === 'LiveSettings' ? 'text-blue-500' : 'text-gray-400'}`} fill="currentColor" viewBox="0 0 20 20">
+    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd"></path>
+  </svg>
+  <span className={`${activeOption === 'LiveSettings' ? 'text-blue-700' : 'text-gray-500'}`}>Live Course</span>
+</div>
                       </div>
                       
                       <div className="w-2/3 p-4">
@@ -250,6 +376,80 @@ const AddCourse = () => {
                             </div>
                           </>
                         )}
+
+
+{activeOption === 'LiveSettings' && (
+  <>
+    <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center">
+        <label className="block text-sm font-medium text-gray-700">Live Course</label>
+        <button className="ml-1 text-gray-400">
+          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd"></path>
+          </svg>
+        </button>
+      </div>
+      <div className="relative">
+        <div className={`w-12 h-6 flex items-center ${isLiveCourse ? 'bg-blue-500' : 'bg-gray-200'} rounded-full p-1 cursor-pointer`}
+          onClick={() => setIsLiveCourse(!isLiveCourse)}>
+          <div className={`bg-white w-4 h-4 rounded-full shadow-md transform ${isLiveCourse ? 'translate-x-6' : 'translate-x-0'}`}></div>
+        </div>
+      </div>
+    </div>
+    
+    {isLiveCourse && (
+      <>
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Platform</label>
+          <select 
+            value={liveCourseSettings.platform} 
+            onChange={(e) => setLiveCourseSettings({...liveCourseSettings, platform: e.target.value})}
+            className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="Zoom">Zoom</option>
+            <option value="Google Meet">Google Meet</option>
+            <option value="Microsoft Teams">Microsoft Teams</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Sessions Per Week</label>
+          <input 
+            type="number" 
+            min="1" 
+            value={liveCourseSettings.sessionsPerWeek} 
+            onChange={(e) => setLiveCourseSettings({...liveCourseSettings, sessionsPerWeek: parseInt(e.target.value)})}
+            className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" 
+          />
+        </div>
+        
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Session Duration (minutes)</label>
+          <input 
+            type="number" 
+            min="15" 
+            step="15" 
+            value={liveCourseSettings.sessionDuration} 
+            onChange={(e) => setLiveCourseSettings({...liveCourseSettings, sessionDuration: parseInt(e.target.value)})}
+            className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" 
+          />
+        </div>
+        
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Max Students Per Session</label>
+          <input 
+            type="number" 
+            min="1" 
+            value={liveCourseSettings.maxStudentsPerSession} 
+            onChange={(e) => setLiveCourseSettings({...liveCourseSettings, maxStudentsPerSession: parseInt(e.target.value)})}
+            className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" 
+          />
+        </div>
+      </>
+    )}
+  </>
+)}
                       </div>
                     </div>
                   </div>
@@ -259,7 +459,7 @@ const AddCourse = () => {
                 <div className="w-full md:w-1/3 mt-6 md:mt-0">
                   <div className="mb-6">
                     <div className="flex items-center justify-between mb-2">
-                      <button className="text-white bg-blue-600 px-4 py-2 rounded-md hover:bg-blue-700 transition flex items-center">
+                      <button onClick={() => handleSubmit('draft')}  className="text-white bg-blue-600 px-4 py-2 rounded-md hover:bg-blue-700 transition flex items-center">
                         <svg className="w-5 h-5 mr-1" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd"></path>
                         </svg>
@@ -267,7 +467,7 @@ const AddCourse = () => {
                       </button>
                       
                       <div className="relative inline-block">
-                        <button className="text-white bg-blue-600 px-4 py-2 rounded-md hover:bg-blue-700 transition">
+                        <button onClick={() => handleSubmit('published')}  className="text-white bg-blue-600 px-4 py-2 rounded-md hover:bg-blue-700 transition">
                           Publish
                         </button>
                       </div>
@@ -319,7 +519,8 @@ const AddCourse = () => {
                             <svg className="w-10 h-10 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                             </svg>
-                            <button className="text-blue-600 font-medium text-sm">Upload Thumbnail</button>
+                            <button onClick={() => document.getElementById('thumbnailInput').click()} className="text-blue-600 font-medium text-sm">Upload Thumbnail</button>
+                            <input id="thumbnailInput" type="file" accept="image/*" onChange={handleThumbnailChange} className="hidden" />
                             <p className="text-xs text-gray-500 mt-2">JPEG, PNG, GIF and WEBP formats, up to 512 MB</p>
                           </div>
                         </div>
@@ -334,14 +535,15 @@ const AddCourse = () => {
                                 <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"></path>
                               </svg>
                             </button>
-                            <button className="text-blue-600 font-medium text-sm">Upload Video</button>
+                            <button onClick={() => document.getElementById('videoInput').click()} className="text-blue-600 font-medium text-sm">Upload Video</button>
+                            <input id="videoInput" type="file" accept="video/*" onChange={handleVideoChange} className="hidden" />
                             <button className="text-blue-600 text-sm mt-1">Add from URL</button>
                             <p className="text-xs text-gray-500 mt-2">MP4 and WebM formats, up to 512 MB</p>
                           </div>
                         </div>
                       </div>
                       
-                      <div className="border-t border-gray-200 p-4">
+                      {/* <div className="border-t border-gray-200 p-4">
                         <h3 className="font-medium mb-2">Pricing Model</h3>
                         <div className="flex space-x-6 mb-4">
                           <div className="flex items-center">
@@ -367,8 +569,90 @@ const AddCourse = () => {
                             <label htmlFor="paid" className="ml-2 text-sm text-gray-700">Paid</label>
                           </div>
                         </div>
-                      </div>
-                      
+                      </div> */}
+                      <div className="border-t border-gray-200 p-4">
+  <h3 className="font-medium mb-4">Pricing Model</h3>
+  <div className="mb-4">
+    <div className="flex space-x-8">
+      <div className="flex items-center">
+        <input 
+          type="radio" 
+          id="free" 
+          name="pricing" 
+          checked={pricingModel === 'Free'} 
+          onChange={() => setPricingModel('Free')}
+          className="w-5 h-5 text-blue-600 border-gray-300 focus:ring-blue-500" 
+        />
+        <label htmlFor="free" className="ml-2 text-sm text-gray-700">Free</label>
+      </div>
+      <div className="flex items-center">
+        <input 
+          type="radio" 
+          id="paid" 
+          name="pricing" 
+          checked={pricingModel === 'Paid'} 
+          onChange={() => setPricingModel('Paid')}
+          className="w-5 h-5 text-blue-600 border-gray-300 focus:ring-blue-500" 
+        />
+        <label htmlFor="paid" className="ml-2 text-sm text-gray-700">Paid</label>
+      </div>
+    </div>
+  </div>
+  
+  {pricingModel === 'Paid' && (
+    <div>
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 mb-1">Regular Price</label>
+        <div className="flex">
+          <div className="relative">
+            <select className="appearance-none h-full rounded-l-md border border-r-0 bg-white border-gray-300 text-gray-700 py-2 px-3 pr-8">
+              <option>€</option>
+              <option>$</option>
+              <option>£</option>
+            </select>
+            <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </div>
+          <input 
+            type="number" 
+            min="0" 
+            step="0.01"
+            className="flex-1 rounded-r-md border border-gray-300 py-2 px-3 focus:ring-blue-500 focus:border-blue-500" 
+            placeholder="49.99"
+          />
+        </div>
+      </div>
+      
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 mb-1">Discounted Price</label>
+        <div className="flex">
+          <div className="relative">
+            <select className="appearance-none h-full rounded-l-md border border-r-0 bg-white border-gray-300 text-gray-700 py-2 px-3 pr-8">
+              <option>€</option>
+              <option>$</option>
+              <option>£</option>
+            </select>
+            <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </div>
+          <input 
+            type="number"
+            min="0" 
+            step="0.01" 
+            className="flex-1 rounded-r-md border border-gray-300 py-2 px-3 focus:ring-blue-500 focus:border-blue-500" 
+            placeholder="0"
+          />
+        </div>
+      </div>
+    </div>
+  )}
+</div>
                       <div className="border-t border-gray-200 p-4">
                         <h3 className="font-medium mb-2">Categories</h3>
                         <div className="border border-gray-300 rounded-md p-3">
@@ -416,7 +700,7 @@ const AddCourse = () => {
               </div>
               
               <div className="flex justify-end mt-6">
-                <button className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 mr-2">
+                <button  onClick={handleSubmit} className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 mr-2">
                   Next
                 </button>
               </div>
