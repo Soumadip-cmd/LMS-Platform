@@ -17,6 +17,8 @@ import {
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
+import { useContext } from "react";
+import authContext from "../../context/auth/authContext";
 const AdminNavbar = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -27,7 +29,10 @@ const AdminNavbar = () => {
   const sidebarRef = useRef(null);
   const location = useLocation();
   const currentPath = location.pathname;
+  const auth = useContext(authContext);
 
+  const { user } = auth;
+ 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
@@ -229,7 +234,7 @@ const AdminNavbar = () => {
                       />
                     </div>
                     <span className="ml-2 font-medium text-gray-800">
-                      Hasan U.
+                      {user ? user.name || "User" : "Guest"}
                     </span>
                     <ChevronDown size={16} className="ml-1 text-gray-600" />
                   </button>
@@ -245,10 +250,10 @@ const AdminNavbar = () => {
                   >
                     <div className="px-4 py-3 border-b border-gray-100">
                       <p className="text-sm font-medium text-gray-900">
-                        Hasan Uddin
+                      {user ? user.name || "User" : "Guest"}
                       </p>
                       <p className="text-xs text-gray-500">
-                        hasan.uddin@example.com
+                       {user ? user.email || "" : ""}
                       </p>
                     </div>
                     <Link
@@ -326,8 +331,8 @@ const AdminNavbar = () => {
               />
             </div>
             <div className="ml-3">
-              <p className="font-medium text-gray-800">Sarah Uddin</p>
-              <p className="text-xs text-gray-500">sarah.uddin@example.com</p>
+              <p className="font-medium text-gray-800">{user ? user.name || "User" : "Guest"}</p>
+              <p className="text-xs text-gray-500">{user ? user.email || "" : ""}</p>
             </div>
           </div>
           <button
