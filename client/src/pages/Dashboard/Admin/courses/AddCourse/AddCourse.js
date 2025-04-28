@@ -4,7 +4,8 @@ import {  useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useRef } from 'react';
 import courseContext from '../../../../../context/course/courseContext';
-
+import 'quill/dist/quill.snow.css';
+import Quill from 'quill';
 const AddCourse = () => {
   const [courseTitle, setCourseTitle] = useState('New Course');
   const [courseUrl, setCourseUrl] = useState('https://www.freementor.in/courses/new-course');
@@ -31,8 +32,43 @@ const AddCourse = () => {
  
   const CourseContext = useContext(courseContext);
   const { createCourse, updateLiveCourseSettings, error, clearErrors } = CourseContext;
+  const quillRef = useRef(null);
 
 
+  useEffect(() => {
+    if (!quillRef.current) {
+      quillRef.current = new Quill('#quill-editor', {
+        modules: {
+          toolbar: [
+            ['bold', 'italic', 'underline', 'strike'],
+            ['blockquote', 'code-block'],
+            [{ 'header': 1 }, { 'header': 2 }],
+            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+            [{ 'indent': '-1'}, { 'indent': '+1' }],
+            [{ 'size': ['small', false, 'large', 'huge'] }],
+            [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+            [{ 'color': [] }, { 'background': [] }],
+            [{ 'font': [] }],
+            [{ 'align': [] }],
+            ['clean'],
+            ['link', 'image']
+          ]
+        },
+        placeholder: 'Enter course description...',
+        theme: 'snow'
+      });
+      
+      // Set initial content if any
+      if (description) {
+        quillRef.current.root.innerHTML = description;
+      }
+      
+      // Handle content changes
+      quillRef.current.on('text-change', function() {
+        setDescription(quillRef.current.root.innerHTML);
+      });
+    }
+  }, []);
   useEffect(() => {
     if (error) {
     
@@ -208,60 +244,28 @@ const AddCourse = () => {
   </p>
 </div>
                   
-                  <div className="mb-6">
-                    <div className="flex items-center justify-between mb-1">
-                      <div className="flex items-center">
-                        <label className="block text-sm font-medium text-gray-700">Description</label>
-                        <span className="text-pink-500 ml-1">*</span>
-                      </div>
-                      <div className="flex items-center">
-                        <span className="text-sm text-gray-700 mr-2">Edit with:</span>
-                        <button className="bg-gray-900 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs">
-                          B
-                        </button>
-                      </div>
-                    </div>
-                    
-                    <div className="border border-gray-300 rounded-md overflow-hidden">
-                      <div className="flex space-x-2 p-2 bg-gray-50 border-b border-gray-300">
-                        <button className="px-2 py-1 text-sm bg-white border border-gray-300 rounded-md flex items-center">
-                          <span>Paragraph</span>
-                          <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                          </svg>
-                        </button>
-                        
-                        <button className="text-blue-600 px-2 py-1 text-sm flex items-center">
-                          <svg className="w-5 h-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                            <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" />
-                          </svg>
-                          Add media
-                        </button>
-                        
-                        <div className="flex ml-auto space-x-1">
-                          <button className={`px-2 py-1 text-xs ${activeTab === 'Visual' ? 'bg-white border border-gray-300' : 'text-gray-500'} rounded-md`} 
-                            onClick={() => setActiveTab('Visual')}>
-                            Visual
-                          </button>
-                          <button className={`px-2 py-1 text-xs ${activeTab === 'Text' ? 'bg-white border border-gray-300' : 'text-gray-500'} rounded-md`}
-                            onClick={() => setActiveTab('Text')}>
-                            Text
-                          </button>
-                        </div>
-                      </div>
-                      
-                      <div className="p-4 min-h-40">
-                        <textarea 
-                          value={description} 
-                          onChange={(e) => setDescription(e.target.value)}
-                          className="w-full h-32 border-0 focus:ring-0 resize-none" 
-                          placeholder="Enter course description..."
-                        ></textarea>
-                      </div>
-                    </div>
-
-         </div>
+             
                   
+
+ <div className="mb-6">
+  <div className="flex items-center justify-between mb-1">
+    <div className="flex items-center">
+      <label className="block text-sm font-medium text-gray-700">Description</label>
+      <span className="text-pink-500 ml-1">*</span>
+    </div>
+    <div className="flex items-center">
+      <span className="text-sm text-gray-700 mr-2">Edit with:</span>
+      <button className="bg-gray-900 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs">
+        B
+      </button>
+    </div>
+  </div>
+  
+  <div className="border border-gray-300 rounded-md overflow-hidden">
+    <div id="quill-editor" className="min-h-40"></div>
+  </div>
+</div>
+
 
        <div className="mb-6">
                     <h3 className="text-lg font-medium mb-4">Options</h3>
