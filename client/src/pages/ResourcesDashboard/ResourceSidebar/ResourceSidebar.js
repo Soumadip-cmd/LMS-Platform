@@ -40,11 +40,6 @@ const ResourcesSidebar = () => {
       }
     };
 
-    // Close sidebar when route changes
-    const handleRouteChange = () => {
-      setSidebarOpen(false);
-    };
-
     // Prevent background scrolling when sidebar is open
     if (sidebarOpen) {
       document.body.style.overflow = "hidden";
@@ -59,7 +54,15 @@ const ResourcesSidebar = () => {
       document.removeEventListener("click", handleOutsideClick);
       document.body.style.overflow = ""; // Reset on unmount
     };
-  }, [sidebarOpen, location]);
+  }, [sidebarOpen]);
+  
+  // Separate useEffect to close sidebar only when route changes
+  // This ensures hamburger clicks don't close the sidebar
+  useEffect(() => {
+    if (location.pathname) {
+      setSidebarOpen(false);
+    }
+  }, [location]);
 
   // Sidebar sections configuration
   const sections = [
@@ -215,11 +218,13 @@ const ResourcesSidebar = () => {
     <div className="w-full bg-white border-b border-gray-200 flex justify-between items-center px-4 py-2">
       {/* Logo */}
       <div className="flex md:hidden items-center">
-        <img
-          src={`${process.env.PUBLIC_URL}/assets/logo/logo.png`}
-          alt="logo.png"
-          className="h-12"
-        />
+        <Link to="/">
+          <img
+            src={`${process.env.PUBLIC_URL}/assets/logo/logo.png`}
+            alt="logo.png"
+            className="h-12"
+          />
+        </Link>
       </div>
 
       {/* Hamburger for mobile only */}
@@ -242,10 +247,9 @@ const ResourcesSidebar = () => {
         {/* Header with logo and hamburger */}
         <Header />
       </div>
-
       {/* Add padding to account for fixed header on mobile */}
-      <div className="md:hidden h-28"></div> {/* Adjust height based on your header + banner height */}
-
+      <div className="md:hidden h-28"></div>{" "}
+      {/* Adjust height based on your header + banner height */}
       <div className="flex  flex-1">
         {/* Desktop Sidebar - hidden on mobile */}
         <div className="hidden md:block w-60  bg-white border-gray-200 h-full overflow-y-auto z-10 shadow-lg">
@@ -253,9 +257,8 @@ const ResourcesSidebar = () => {
         </div>
 
         {/* Main content area */}
-        <div className="flex-1">{/* Your main content goes here */}</div>
+        <div className="flex-1  ">{/* Your main content goes here */}</div>
       </div>
-
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
         <div
@@ -263,7 +266,6 @@ const ResourcesSidebar = () => {
           onClick={() => setSidebarOpen(false)}
         />
       )}
-
       {/* Mobile Sidebar from right side */}
       <div
         className={`mobile-sidebar-container fixed top-0 right-0 w-64 h-full bg-white shadow-xl z-50 md:hidden transform transition-transform duration-300 ease-in-out ${
