@@ -45,6 +45,7 @@ import GeneralPracticeReading from "./pages/courses/Practice/Reading/GeneralPrac
 import ResourcesHomePage from "./pages/ResourcesDashboard/Home/ResourcesHomePage";
 import ResourceSidebar from "./pages/ResourcesDashboard/ResourceSidebar/ResourceSidebar";
 import ResourceFeed from "./pages/ResourcesDashboard/Feed/ResourceFeed";
+import GetStarted from "./pages/ResourcesDashboard/GetStarted/GetStarted";
 
 // ScrollToTop component to handle scrolling on route changes
 const ScrollToTop = () => {
@@ -195,7 +196,7 @@ const AppContent = () => {
             <Route path="/resources/home" element={<ResourcesHomePage />} />
             {/* Add all other resource routes here */}
             <Route path="/resources/feed" element={<ResourceFeed/>} />
-            <Route path="/resources/get-started" element={<div>Get Started Page</div>} />
+            <Route path="/resources/get-started" element={<GetStarted/>} />
             <Route path="/resources/blog" element={<div>Blog Page</div>} />
             <Route path="/resources/help" element={<div>Help Center Page</div>} />
             <Route path="/resources/updates" element={<div>Product Updates Page</div>} />
