@@ -18,6 +18,8 @@ export const UPDATE_ONLINE_USERS = "UPDATE_ONLINE_USERS";
 
 
 // Course Types
+export const CREATE_COURSE = "CREATE_COURSE";
+export const UPDATE_COURSE = "UPDATE_COURSE";
 export const GET_COURSES = "GET_COURSES";
 export const GET_COURSE = "GET_COURSE";
 export const COURSE_ERROR = "COURSE_ERROR";

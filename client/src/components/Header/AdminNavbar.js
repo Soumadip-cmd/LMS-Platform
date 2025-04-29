@@ -17,16 +17,21 @@ import {
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
+import { useContext } from "react";
+import authContext from "../../context/auth/authContext";
 const AdminNavbar = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [hasNewMessage, setHasNewMessage] = useState(true);
   const [hasNewNotification, setHasNewNotification] = useState(true);
-  const [screenHeightType, setScreenHeightType] = useState('normal');
+  const [screenHeightType, setScreenHeightType] = useState("normal");
   const dropdownRef = useRef(null);
   const sidebarRef = useRef(null);
   const location = useLocation();
   const currentPath = location.pathname;
+  const auth = useContext(authContext);
+
+  const { user } = auth;
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -43,10 +48,10 @@ const AdminNavbar = () => {
 
   // Function to check if a route is active
   const isActive = (path) => {
-    if (path === '/dashboard/admin' && currentPath === '/dashboard/admin') {
+    if (path === "/dashboard/admin" && currentPath === "/dashboard/admin") {
       return true;
     }
-    if (path !== '/dashboard/admin' && currentPath.startsWith(path)) {
+    if (path !== "/dashboard/admin" && currentPath.startsWith(path)) {
       return true;
     }
     return false;
@@ -57,19 +62,19 @@ const AdminNavbar = () => {
     const checkScreenHeight = () => {
       const height = window.innerHeight;
       if (height > 740) {
-        setScreenHeightType('large');
+        setScreenHeightType("large");
       } else if (height > 642) {
-        setScreenHeightType('medium');
+        setScreenHeightType("medium");
       } else {
-        setScreenHeightType('small');
+        setScreenHeightType("small");
       }
     };
-    
+
     checkScreenHeight();
-    window.addEventListener('resize', checkScreenHeight);
-    
+    window.addEventListener("resize", checkScreenHeight);
+
     return () => {
-      window.removeEventListener('resize', checkScreenHeight);
+      window.removeEventListener("resize", checkScreenHeight);
     };
   }, []);
 
@@ -91,31 +96,32 @@ const AdminNavbar = () => {
 
     // Toggle body scroll when sidebar opens/closes
     if (isSidebarOpen) {
-      document.body.style.overflow = 'hidden';
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = 'auto';
+      document.body.style.overflow = "auto";
     }
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
       // Reset overflow when component unmounts
-      document.body.style.overflow = 'auto';
+      document.body.style.overflow = "auto";
     };
   }, [isSidebarOpen]);
 
   // Sign out positioning logic - Only fixed for medium height screens (between 642px and 740px)
-  const signOutClass = screenHeightType === 'medium' 
-    ? 'fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-1'
-    : 'border-t border-gray-200 py-4';
-  
+  const signOutClass =
+    screenHeightType === "medium"
+      ? "fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-1"
+      : "border-t border-gray-200 py-4";
+
   // Only show bottom spacing when sign out is fixed
-  const showBottomSpace = screenHeightType === 'medium';
+  const showBottomSpace = screenHeightType === "medium";
 
   // Active link classes
   const getActiveClass = (path) => {
-    return isActive(path) 
-      ? "bg-blue-50 text-black font-semibold" 
+    return isActive(path)
+      ? "bg-blue-50 text-black font-semibold"
       : "text-gray-700 hover:bg-blue-50";
   };
 
@@ -189,7 +195,10 @@ const AdminNavbar = () => {
                 {/* Desktop Icons Only */}
                 <div className="hidden md:flex items-center space-x-4">
                   {/* Message Icon */}
-                  <Link to="/dashboard/admin/messages" className="relative cursor-pointer">
+                  <Link
+                    to="/dashboard/admin/messages"
+                    className="relative cursor-pointer"
+                  >
                     <div className="flex items-center justify-center w-10 h-10 bg-yellow-400 rounded-full cursor-pointer">
                       <img
                         src={`${process.env.PUBLIC_URL}/assets/Navbar_icons/Chaticon.png`}
@@ -223,13 +232,17 @@ const AdminNavbar = () => {
                   >
                     <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-gray-200">
                       <img
-                        src="https://placehold.co/40x40"
+                        src={
+                          user && user.photoUrl
+                            ? user.photoUrl
+                            : "https://placehold.co/40x40"
+                        }
                         alt="User Avatar"
                         className="w-full h-full object-cover"
                       />
                     </div>
                     <span className="ml-2 font-medium text-gray-800">
-                      Hasan U.
+                      {user ? user.name || "User" : "Guest"}
                     </span>
                     <ChevronDown size={16} className="ml-1 text-gray-600" />
                   </button>
@@ -245,10 +258,10 @@ const AdminNavbar = () => {
                   >
                     <div className="px-4 py-3 border-b border-gray-100">
                       <p className="text-sm font-medium text-gray-900">
-                        Hasan Uddin
+                        {user ? user.name || "User" : "Guest"}
                       </p>
                       <p className="text-xs text-gray-500">
-                        hasan.uddin@example.com
+                        {user ? user.email || "" : ""}
                       </p>
                     </div>
                     <Link
@@ -283,7 +296,11 @@ const AdminNavbar = () => {
                   >
                     <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-gray-200">
                       <img
-                        src="https://placehold.co/40x40"
+                        src={
+                          user && user.photoUrl
+                            ? user.photoUrl
+                            : "https://placehold.co/40x40"
+                        }
                         alt="User Avatar"
                         className="w-full h-full object-cover"
                       />
@@ -304,7 +321,9 @@ const AdminNavbar = () => {
       {/* Mobile-only Right Sidebar Overlay */}
       <div
         className={`fixed inset-0 bg-black bg-opacity-50 z-50 transition-opacity duration-300 md:hidden ${
-          isSidebarOpen ? "opacity-100 overflow-hidden" : "opacity-0 pointer-events-none"
+          isSidebarOpen
+            ? "opacity-100 overflow-hidden"
+            : "opacity-0 pointer-events-none"
         }`}
         onClick={() => setIsSidebarOpen(false)}
       ></div>
@@ -320,14 +339,22 @@ const AdminNavbar = () => {
           <div className="flex items-center">
             <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-gray-200">
               <img
-                src="https://placehold.co/40x40"
+                src={
+                  user && user.photoUrl
+                    ? user.photoUrl
+                    : "https://placehold.co/40x40"
+                }
                 alt="User Avatar"
                 className="w-full h-full object-cover"
               />
             </div>
             <div className="ml-3">
-              <p className="font-medium text-gray-800">Sarah Uddin</p>
-              <p className="text-xs text-gray-500">sarah.uddin@example.com</p>
+              <p className="font-medium text-gray-800">
+                {user ? user.name || "User" : "Guest"}
+              </p>
+              <p className="text-xs text-gray-500">
+                {user ? user.email || "" : ""}
+              </p>
             </div>
           </div>
           <button
@@ -342,7 +369,10 @@ const AdminNavbar = () => {
         <div className="p-4 bg-gray-50 border-b border-gray-200">
           <div className="flex items-center justify-around">
             {/* Chat Icon in Sidebar */}
-            <NavLink to="/dashboard/admin/messages" className="flex flex-col items-center cursor-pointer">
+            <NavLink
+              to="/dashboard/admin/messages"
+              className="flex flex-col items-center cursor-pointer"
+            >
               <div className="relative">
                 <div className="flex items-center justify-center w-12 h-12 bg-yellow-400 rounded-full cursor-pointer">
                   <img
@@ -386,7 +416,9 @@ const AdminNavbar = () => {
           {/* Dashboard */}
           <NavLink
             to="/dashboard/admin"
-            className={`px-4 py-3 flex items-center ${getActiveClass('/dashboard/admin')}`}
+            className={`px-4 py-3 flex items-center ${getActiveClass(
+              "/dashboard/admin"
+            )}`}
           >
             <div className="flex items-center justify-center w-5 h-5 text-blue-600 mr-3">
               <svg
@@ -408,46 +440,56 @@ const AdminNavbar = () => {
             </div>
             <span className="font-medium">Dashboard</span>
           </NavLink>
-          
+
           {/* Courses */}
           <NavLink
             to="/dashboard/admin/courses"
-            className={`px-4 py-3 flex items-center ${getActiveClass('/dashboard/admin/courses')}`}
+            className={`px-4 py-3 flex items-center ${getActiveClass(
+              "/dashboard/admin/courses"
+            )}`}
           >
             <BookOpen size={20} className="text-blue-600 mr-3" />
             <span>Courses</span>
           </NavLink>
-          
+
           {/* students */}
           <NavLink
             to="/dashboard/admin/students"
-            className={`px-4 py-3 flex items-center ${getActiveClass('/dashboard/admin/students')}`}
+            className={`px-4 py-3 flex items-center ${getActiveClass(
+              "/dashboard/admin/students"
+            )}`}
           >
             <Users size={20} className="text-blue-600 mr-3" />
             <span>Students</span>
           </NavLink>
-          
+
           <NavLink
             to="/dashboard/admin/instructors"
-            className={`px-4 py-3 flex items-center ${getActiveClass('/dashboard/admin/instructors')}`}
+            className={`px-4 py-3 flex items-center ${getActiveClass(
+              "/dashboard/admin/instructors"
+            )}`}
           >
             <Users size={20} className="text-blue-600 mr-3" />
             <span>Instructors</span>
           </NavLink>
-          
+
           {/* Assignments */}
           <NavLink
             to="/dashboard/admin/assignments"
-            className={`px-4 py-3 flex items-center ${getActiveClass('/dashboard/admin/assignments')}`}
+            className={`px-4 py-3 flex items-center ${getActiveClass(
+              "/dashboard/admin/assignments"
+            )}`}
           >
             <FileText size={20} className="text-blue-600 mr-3" />
             <span>Assignments</span>
           </NavLink>
-          
+
           {/* Mock Tests */}
           <NavLink
             to="/dashboard/admin/mock-tests"
-            className={`px-4 py-3 flex items-center ${getActiveClass('/dashboard/admin/mock-tests')}`}
+            className={`px-4 py-3 flex items-center ${getActiveClass(
+              "/dashboard/admin/mock-tests"
+            )}`}
           >
             <div className="flex items-center justify-center w-5 h-5 text-blue-600 mr-3">
               <svg
@@ -469,35 +511,41 @@ const AdminNavbar = () => {
             </div>
             <span>Mock Tests</span>
           </NavLink>
-          
+
           {/* Analytics */}
           <NavLink
             to="/dashboard/admin/analytics"
-            className={`px-4 py-3 flex items-center ${getActiveClass('/dashboard/admin/analytics')}`}
+            className={`px-4 py-3 flex items-center ${getActiveClass(
+              "/dashboard/admin/analytics"
+            )}`}
           >
             <BarChart size={20} className="text-blue-600 mr-3" />
             <span>Analytics</span>
           </NavLink>
-          
+
           {/* Messages */}
           <NavLink
             to="/dashboard/admin/messages"
-            className={`px-4 py-3 flex items-center ${getActiveClass('/dashboard/admin/messages')}`}
+            className={`px-4 py-3 flex items-center ${getActiveClass(
+              "/dashboard/admin/messages"
+            )}`}
           >
             <MessageSquare size={20} className="text-blue-600 mr-3" />
             <span>Messages</span>
           </NavLink>
-          
+
           {/* Settings */}
           <NavLink
             to="/dashboard/admin/settings"
-            className={`px-4 py-3 flex items-center ${getActiveClass('/dashboard/admin/settings')}`}
+            className={`px-4 py-3 flex items-center ${getActiveClass(
+              "/dashboard/admin/settings"
+            )}`}
           >
             <Settings size={20} className="text-blue-600 mr-3" />
             <span>Settings</span>
           </NavLink>
         </div>
-        
+
         {/* Sign Out - With conditional positioning */}
         <div className={signOutClass}>
           <NavLink
@@ -508,7 +556,7 @@ const AdminNavbar = () => {
             <span>Sign out</span>
           </NavLink>
         </div>
-        
+
         {/* Space at bottom for medium screens to prevent content hiding behind fixed sign out */}
         {showBottomSpace && <div className="h-16"></div>}
       </div>

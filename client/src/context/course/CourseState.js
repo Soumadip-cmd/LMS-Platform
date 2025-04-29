@@ -8,7 +8,9 @@ import {
   COURSE_ERROR,
   CLEAR_COURSE_ERROR,
   GET_COURSE_PROGRESS,
-  GET_DASHBOARD_STATS
+  GET_DASHBOARD_STATS,
+  UPDATE_COURSE,
+  CREATE_COURSE
 } from '../types';
 
 const CourseState = (props) => {
@@ -23,6 +25,10 @@ const CourseState = (props) => {
 
   const [state, dispatch] = useReducer(courseReducer, initialState);
   axios.defaults.baseURL = 'http://localhost:8000/api/v1';
+
+
+
+  
   // Get published courses
   const getPublishedCourses = async () => {
     try {
@@ -40,6 +46,56 @@ const CourseState = (props) => {
     }
   };
 
+
+
+  const createCourse = async (courseData, formData) => {
+    try {
+      const config = {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      };
+      
+      const res = await axios.post('/courses/create', formData, config);
+          
+      dispatch({
+        type: CREATE_COURSE,
+        payload: res.data.course
+      });
+      
+      return res.data.course;
+    } catch (err) {
+      dispatch({
+        type: COURSE_ERROR,
+        payload: err.response?.data?.message || "Error creating course"
+      });
+    }
+  };
+  
+  // Update live course settings
+  const updateLiveCourseSettings = async (courseId, liveCourseSettings) => {
+    try {
+      const config = {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      };
+      
+      const res = await axios.patch(`/live/courses/${courseId}/live-settings`, liveCourseSettings, config);
+      
+      dispatch({
+        type: UPDATE_COURSE,
+        payload: res.data.course
+      });
+      
+      return res.data.course;
+    } catch (err) {
+      dispatch({
+        type: COURSE_ERROR,
+        payload: err.response?.data?.message || "Error updating live course settings"
+      });
+    }
+  };
   // Search courses with filters
   const searchCourses = async (params) => {
     try {
@@ -127,7 +183,9 @@ const CourseState = (props) => {
         getCourseById,
         getDashboardStats,
         getCoursesProgress,
-        clearErrors
+        clearErrors,
+        createCourse,
+        updateLiveCourseSettings
       }}
     >
       {props.children}
