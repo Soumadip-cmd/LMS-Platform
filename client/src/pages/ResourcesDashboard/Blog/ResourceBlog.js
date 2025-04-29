@@ -270,9 +270,9 @@ const ResourceBlog = () => {
               alt="Blog header decoration" 
               className="size-10"
             />
-              <h1 className="text-2xl font-bold">Our Little Blog</h1>
+              <h1 className="text-xl md:text-2xl xl:text-3xl font-semibold">Our Little Blog</h1>
             </div>
-            <p className="text-gray-600 text-sm">
+            <p className="text-gray-600 mt-4 md:text-lg text-sm">
               Uncover the latest in community support news and discoveries.
             </p>
           </div>
@@ -304,7 +304,7 @@ const ResourceBlog = () => {
         {/* Featured Articles */}
         <div className="mb-10">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold">Featured Articles</h2>
+            <h2 className="text-xl xl:text-2xl font-semibold">Featured Articles</h2>
             <div className="flex items-center">
               <NavigationButton 
                 onClick={goToPrevFeatured}
@@ -329,7 +329,7 @@ const ResourceBlog = () => {
         {/* All Blog Posts */}
         <div>
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold">All Blog Posts</h2>
+            <h2 className="text-xl xl:text-2xl font-semibold">All Blog Posts</h2>
             <div className="flex items-center">
               <NavigationButton 
                 onClick={goToPrevBlog}
