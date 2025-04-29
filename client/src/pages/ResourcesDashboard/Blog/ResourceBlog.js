@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Search, ChevronRight, ChevronLeft, ArrowRight } from 'lucide-react';
+import { Calendar, Search, ArrowRight, ArrowLeft, ArrowRight as ArrowRightIcon } from 'lucide-react';
 
 const ResourceBlog = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -177,39 +177,39 @@ const ResourceBlog = () => {
     setCurrentBlogPage(prev => (prev === totalBlogPages - 1 ? 0 : prev + 1));
   };
 
-  // Enhanced NavigationButton component
+  // Enhanced NavigationButton component with updated responsiveness for mobile
   const NavigationButton = ({ onClick, disabled, direction, label }) => (
     <button 
-      className={`relative group overflow-hidden w-12 h-12 rounded-xl shadow-md hover:shadow-xl flex items-center justify-center 
+      className={`relative group flex items-center justify-center 
+        w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12
         ${disabled 
           ? 'bg-gray-100 cursor-not-allowed' 
-          : 'bg-gradient-to-tr from-blue-50 to-white hover:from-blue-100 hover:to-blue-50 transition-all duration-300 transform hover:scale-105 active:scale-95'
-        } border border-blue-100`}
+          : 'border border-[#1976D2] text-[#1976D2] rounded-full hover:bg-blue-50 transition-all duration-300 transform active:scale-95'
+        }`}
       onClick={onClick}
       aria-label={label}
       disabled={disabled}
     >
       {direction === 'prev' ? (
-        <ChevronLeft 
-          size={22} 
-          className={`${disabled ? 'text-gray-300' : 'text-blue-500 group-hover:text-blue-600'} transition-colors duration-300`} 
+        <ArrowLeft 
+          size={windowWidth < 640 ? 16 : windowWidth < 768 ? 18 : 22} 
+          className={`${disabled ? 'text-gray-300' : 'text-[#1976D2]'} transition-colors duration-300`} 
         />
       ) : (
-        <ChevronRight 
-          size={22} 
-          className={`${disabled ? 'text-gray-300' : 'text-blue-500 group-hover:text-blue-600'} transition-colors duration-300`} 
+        <ArrowRight 
+          size={windowWidth < 640 ? 16 : windowWidth < 768 ? 18 : 22} 
+          className={`${disabled ? 'text-gray-300' : 'text-[#1976D2]'} transition-colors duration-300`} 
         />
       )}
-      <span className={`absolute inset-0 bg-white opacity-0 ${disabled ? '' : 'group-hover:opacity-10 group-active:opacity-20'} transition-opacity duration-300 rounded-xl`}></span>
     </button>
   );
 
-  // Pagination Display component
+  // Pagination Display component with responsive adjustments
   const PaginationDisplay = ({ current, total }) => (
-    <div className="flex items-center px-4 py-2 mx-2 bg-white rounded-lg shadow-sm border border-blue-50">
-      <span className="text-sm font-medium text-blue-600">{current + 1}</span>
+    <div className="flex items-center px-2 py-1 sm:px-3 sm:py-2 md:px-4 md:py-2 mx-1 sm:mx-2 bg-white rounded-lg shadow-sm border border-blue-50">
+      <span className="text-xs sm:text-sm font-medium text-blue-600">{current + 1}</span>
       <span className="text-gray-400 mx-1">/</span>
-      <span className="text-sm text-gray-500">{total}</span>
+      <span className="text-xs sm:text-sm text-gray-500">{total}</span>
     </div>
   );
 
@@ -232,7 +232,7 @@ const ResourceBlog = () => {
         <p className="text-gray-600 text-sm mb-4">{article.content}</p>
         <button className="text-blue-600 text-sm font-medium hover:underline flex items-center group">
           See More
-          <ArrowRight size={16} className="ml-1 group-hover:translate-x-1 transition-transform duration-300" />
+          <ArrowRightIcon size={16} className="ml-1 group-hover:translate-x-1 transition-transform duration-300" />
         </button>
       </div>
     </div>
@@ -259,8 +259,8 @@ const ResourceBlog = () => {
   );
 
   return (
-    <div className="p-4 md:p-6 bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto">
+    <div className="p-4 md:p-6 mx-2 lg:mx-4 bg-gray-50 min-h-screen">
+      <div className="max-w-7xl 2xl:mx-auto">
         {/* Blog Header */}
         <div className="bg-white rounded-lg shadow-lg flex flex-col md:flex-row md:items-center justify-between mb-8">
           <div className="mb-4 p-6 md:mb-0">
@@ -292,7 +292,7 @@ const ResourceBlog = () => {
               <input
                 type="text"
                 placeholder="Search articles..."
-                className="w-full pl-10 pr-4 py-3 bg-gray-100 rounded-lg focus:outline-none focus:ring-2 border border-gray-200 focus:ring-blue-300"
+                className="w-full pl-10 pr-4 py-3 bg-gray-100 rounded-lg focus:outline-none focus:ring-2 border border-gray-300 focus:ring-blue-300"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
