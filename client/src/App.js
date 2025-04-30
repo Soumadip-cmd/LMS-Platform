@@ -48,6 +48,7 @@ import ResourceFeed from "./pages/ResourcesDashboard/Feed/ResourceFeed";
 import GetStarted from "./pages/ResourcesDashboard/GetStarted/GetStarted";
 import ResourceBlog from "./pages/ResourcesDashboard/Blog/ResourceBlog";
 import HelpCenter from "./pages/ResourcesDashboard/Help/HelpCenter";
+import ProductUpdate from "./pages/ResourcesDashboard/ProductUpdate/ProductUpdate";
 
 // ScrollToTop component to handle scrolling on route changes
 const ScrollToTop = () => {
@@ -201,7 +202,7 @@ const AppContent = () => {
             <Route path="/resources/get-started" element={<GetStarted/>} />
             <Route path="/resources/blog" element={<ResourceBlog/>} />
             <Route path="/resources/help" element={<HelpCenter/>} />
-            <Route path="/resources/updates" element={<div>Product Updates Page</div>} />
+            <Route path="/resources/updates" element={<ProductUpdate/>} />
             <Route path="/resources/roadmap" element={<div>Roadmap Page</div>} />
             <Route path="/resources/changelog" element={<div>Changelog Page</div>} />
             <Route path="/resources/introduce" element={<div>Introduce Yourself Page</div>} />
