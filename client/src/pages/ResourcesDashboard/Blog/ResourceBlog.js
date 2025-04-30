@@ -268,7 +268,7 @@ const ResourceBlog = () => {
             <img 
               src={`${process.env.PUBLIC_URL}/assets/Resources/pencil-blog.png`} 
               alt="Blog header decoration" 
-              className="size-10"
+              className="size-10 mr-1"
             />
               <h1 className="text-xl md:text-2xl xl:text-3xl font-semibold">Our Little Blog</h1>
             </div>
