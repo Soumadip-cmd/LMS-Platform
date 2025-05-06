@@ -11,6 +11,10 @@ export const AUTH_ERROR = "AUTH_ERROR";
 export const CLEAR_ERRORS = "CLEAR_ERRORS";
 
 
+// Resource subscription types
+export const RESOURCE_SIGNUP_SUCCESS = "RESOURCE_SIGNUP_SUCCESS";
+export const RESOURCE_SIGNUP_FAIL = "RESOURCE_SIGNUP_FAIL";
+
 
 // Blog types
 export const GET_BLOGS = "GET_BLOGS";

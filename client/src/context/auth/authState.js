@@ -15,7 +15,9 @@ import {
   CLEAR_ERRORS,
   SOCKET_CONNECTED,
   SOCKET_DISCONNECTED,
-  UPDATE_ONLINE_USERS
+  UPDATE_ONLINE_USERS,
+  RESOURCE_SIGNUP_FAIL,
+  RESOURCE_SIGNUP_SUCCESS
 } from "../types.js";
 
 const AuthState = (props) => {
@@ -359,6 +361,34 @@ const AuthState = (props) => {
     }
   };
 
+
+  const getItNow = async (formData) => {
+    const config = {
+      headers: {
+        "Content-Type": "application/json"
+      }
+    };
+  
+    try {
+      const res = await axios.post(`/auth/get-it-now`, formData, config);
+      
+     
+      
+      dispatch({
+        type: RESOURCE_SIGNUP_SUCCESS,
+        payload: res.data
+      });
+      
+      return res.data;
+    } catch (err) {
+      dispatch({
+        type: RESOURCE_SIGNUP_FAIL,
+        payload: err.response?.data?.message || "Resource signup failed"
+      });
+      throw err;
+    }
+  };
+
   // Clean up socket connection when component unmounts
   useEffect(() => {
     return () => {
@@ -387,6 +417,7 @@ const AuthState = (props) => {
         loadUser,
         clearErrors: () => dispatch({ type: CLEAR_ERRORS }),
         forgotPassword,
+        getItNow, 
         
         // Additional methods can be added here
         sendPrivateMessage: (recipientId, message) => {

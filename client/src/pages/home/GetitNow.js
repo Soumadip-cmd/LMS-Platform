@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-
+import { useContext } from "react";
+import authContext from "../../context/auth/authContext";
 const GetitNow = () => {
   const [timeLeft, setTimeLeft] = useState({
     days: 25,
@@ -8,6 +9,38 @@ const GetitNow = () => {
     seconds: 14,
   });
 
+  const [formData, setFormData] = useState({
+    fullName: '',
+    email: '',
+    phone: ''
+  });
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState(null);
+  
+  const { fullName, email, phone } = formData;
+  const AuthContext = useContext(authContext);
+  const { getItNow } = AuthContext;
+
+  const onChange = e => setFormData({ ...formData, [e.target.name]: e.target.value });
+
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    
+    try {
+      await getItNow(formData);
+      setSuccess(true);
+      // Clear form
+      setFormData({ fullName: '', email: '', phone: '' });
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to submit. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeLeft((prevTime) => {
@@ -104,7 +137,7 @@ const GetitNow = () => {
         {/* Right Section - Form */}
         <div className="w-full md:w-1/2 xl:w-1/3 max-w-md md:ml-auto">
           <div className="bg-white rounded-lg shadow-lg p-8">
-            <div className="space-y-4">
+            <form onSubmit={handleSubmit}   className="space-y-4">
               <div className="relative">
                 <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
                   <svg
@@ -122,8 +155,12 @@ const GetitNow = () => {
                 </div>
                 <input
                   type="text"
+                  name="fullName"
+                  value={fullName}
+                  onChange={onChange}
                   className="w-full py-3 pl-10 pr-4 bg-gray-100 rounded-md focus:outline-none"
                   placeholder="Full Name"
+                  required
                 />
               </div>
 
@@ -141,8 +178,12 @@ const GetitNow = () => {
                 </div>
                 <input
                   type="email"
+                  name="email"
+                  value={email}
+                  onChange={onChange}
                   className="w-full py-3 pl-10 pr-4 bg-gray-100 rounded-md focus:outline-none"
                   placeholder="Email"
+                  required
                 />
               </div>
 
@@ -159,15 +200,34 @@ const GetitNow = () => {
                 </div>
                 <input
                   type="tel"
+                  name="phone"
+                  value={phone}
+                  onChange={onChange}
                   className="w-full py-3 pl-10 pr-4 bg-gray-100 rounded-md focus:outline-none"
                   placeholder="Phone"
                 />
               </div>
 
-              <button className="w-full py-3 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 transition-colors">
-                Get It Now
-              </button>
-            </div>
+              <button 
+  type="submit" 
+  disabled={loading}
+  className="w-full py-3 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 transition-colors"
+>
+  {loading ? 'Processing...' : 'Get It Now'}
+</button>
+
+{error && (
+  <div className="text-red-500 text-sm mt-2">
+    {error}
+  </div>
+)}
+
+{success && (
+  <div className="text-green-500 text-sm mt-2">
+    Thank you! Your German learning resources have been sent to your email.
+  </div>
+)}
+            </form>
           </div>
         </div>
         {/*  */}

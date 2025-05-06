@@ -9,7 +9,9 @@ import {
   CLEAR_ERRORS,
   SOCKET_CONNECTED,
   SOCKET_DISCONNECTED,
-  UPDATE_ONLINE_USERS
+  UPDATE_ONLINE_USERS,
+  RESOURCE_SIGNUP_SUCCESS,
+  RESOURCE_SIGNUP_FAIL
 } from "../types";
 
 const authReducer = (state, action) => {
@@ -50,6 +52,20 @@ const authReducer = (state, action) => {
         error: null
       };
     
+
+      case RESOURCE_SIGNUP_SUCCESS:
+  return {
+    ...state,
+    error: null,
+    loading: false
+  };
+
+case RESOURCE_SIGNUP_FAIL:
+  return {
+    ...state,
+    error: action.payload || null,
+    loading: false
+  };
     case SOCKET_CONNECTED:
       return {
         ...state,
