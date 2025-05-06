@@ -49,7 +49,7 @@ import GetStarted from "./pages/ResourcesDashboard/GetStarted/GetStarted";
 import ResourceBlog from "./pages/ResourcesDashboard/Blog/ResourceBlog";
 import HelpCenter from "./pages/ResourcesDashboard/Help/HelpCenter";
 import ProductUpdate from "./pages/ResourcesDashboard/ProductUpdate/ProductUpdate";
-
+import BlogState from './context/blog/blogState.js'
 // ScrollToTop component to handle scrolling on route changes
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -233,9 +233,11 @@ function App() {
   return (
     <AuthState>
       <CourseState>
+        <BlogState>
         <Router>
           <AppContent />
         </Router>
+        </BlogState>
       </CourseState>
     </AuthState>
   );

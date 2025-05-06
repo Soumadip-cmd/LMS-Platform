@@ -10,6 +10,27 @@ export const USER_LOADED = "USER_LOADED";
 export const AUTH_ERROR = "AUTH_ERROR";
 export const CLEAR_ERRORS = "CLEAR_ERRORS";
 
+
+
+// Blog types
+export const GET_BLOGS = "GET_BLOGS";
+export const GET_BLOG = "GET_BLOG";
+export const GET_POPULAR_BLOGS = "GET_POPULAR_BLOGS";
+export const GET_RELATED_BLOGS = "GET_RELATED_BLOGS";
+export const CREATE_BLOG = "CREATE_BLOG";
+export const UPDATE_BLOG = "UPDATE_BLOG";
+export const DELETE_BLOG = "DELETE_BLOG";
+export const BLOG_ERROR = "BLOG_ERROR";
+export const CLEAR_BLOG_ERROR = "CLEAR_BLOG_ERROR";
+export const SET_LOADING = "SET_LOADING";
+export const CLEAR_BLOG = "CLEAR_BLOG";
+export const ADD_COMMENT = "ADD_COMMENT";
+export const TOGGLE_LIKE = "TOGGLE_LIKE";
+export const GET_BLOG_ANALYTICS = "GET_BLOG_ANALYTICS";
+export const GET_TRENDING_TOPICS = "GET_TRENDING_TOPICS";
+export const GET_RECOMMENDATIONS = "GET_RECOMMENDATIONS";
+export const SET_SEARCH_RESULTS = "SET_SEARCH_RESULTS";
+export const CLEAR_SEARCH_RESULTS = "CLEAR_SEARCH_RESULTS";
 // Socket types
 export const SOCKET_CONNECTED = "SOCKET_CONNECTED";
 export const SOCKET_DISCONNECTED = "SOCKET_DISCONNECTED";
