@@ -25,7 +25,7 @@ import { Link, useNavigate } from "react-router-dom";
 const HomePage = () => {
   const [email, setEmail] = useState("");
   const navigate = useNavigate();
-
+ 
   return (
     <div className=" min-h-screen flex flex-col ">
       <section className="md:mx-10">

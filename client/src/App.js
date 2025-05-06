@@ -49,7 +49,7 @@ import GetStarted from "./pages/ResourcesDashboard/GetStarted/GetStarted";
 import ResourceBlog from "./pages/ResourcesDashboard/Blog/ResourceBlog";
 import HelpCenter from "./pages/ResourcesDashboard/Help/HelpCenter";
 import ProductUpdate from "./pages/ResourcesDashboard/ProductUpdate/ProductUpdate";
-import BlogState from './context/blog/blogState.js'
+import BlogState from "./context/blog/blogState.js";
 // ScrollToTop component to handle scrolling on route changes
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -67,7 +67,7 @@ const AppContent = () => {
   const { userType } = authContext; // Assuming your auth context tracks user type
 
   // Check if current path is a resources page
-  const isResourcesPage = location.pathname.startsWith('/resources');
+  const isResourcesPage = location.pathname.startsWith("/resources");
 
   // Function to determine which navbar to show based on route and user type
   const renderNavbar = () => {
@@ -88,7 +88,11 @@ const AppContent = () => {
 
     // For resources pages, add a special class to hide navbar on mobile only
     if (isResourcesPage) {
-      return <div className="hidden md:block"><Navbar /></div>; // Hidden on mobile, visible on md and larger screens
+      return (
+        <div className="hidden md:block">
+          <Navbar />
+        </div>
+      ); // Hidden on mobile, visible on md and larger screens
     }
 
     if (publicRoutes.includes(path)) {
@@ -118,7 +122,7 @@ const AppContent = () => {
       <ScrollToTop />
       {renderNavbar()}
       <Toaster position="top-center" reverseOrder={false} />
-      
+
       {/* Layout wrapper with conditional ResourcesSidebar */}
       <div className={isResourcesPage ? "md:flex" : ""}>
         {isResourcesPage && <ResourceSidebar />}
@@ -161,6 +165,15 @@ const AppContent = () => {
             />
 
             <Route
+              path="/become-an-instructor"
+              element={
+                // <ProtectedRoute allowedRoles={["instructor"]}>
+                <BecomeAnInstructor />
+                //</ProtectedRoute>
+              }
+            />
+
+            <Route
               path="/dashboard/admin"
               element={
                 // <ProtectedRoute allowedRoles={["admin"]}>
@@ -170,15 +183,24 @@ const AppContent = () => {
             />
             {/* dasboard -admin routes */}
             <Route path="/dashboard/admin/courses" element={<AdminCourse />} />
-            <Route path="/dashboard/admin/students" element={<ManageStudents />} />
+            <Route
+              path="/dashboard/admin/students"
+              element={<ManageStudents />}
+            />
             <Route
               path="/dashboard/admin/instructors"
               element={<ManageInstructors />}
             />
-            <Route path="/dashboard/admin/assignments" element={<Assignment />} />
+            <Route
+              path="/dashboard/admin/assignments"
+              element={<Assignment />}
+            />
             <Route path="/dashboard/admin/mock-tests" element={<Mocktest />} />
             <Route path="/dashboard/admin/messages" element={<Messages />} />
-            <Route path="/dashboard/admin/settings" element={<AdminSettings />} />
+            <Route
+              path="/dashboard/admin/settings"
+              element={<AdminSettings />}
+            />
 
             {/* dashboard admin -course */}
             <Route
@@ -187,7 +209,10 @@ const AppContent = () => {
             />
 
             {/* dashboard student routes */}
-            <Route path="/become-an-instructor" element={<BecomeAnInstructor />} />
+            <Route
+              path="/become-an-instructor"
+              element={<BecomeAnInstructor />}
+            />
 
             {/* general-practice */}
             <Route
@@ -198,17 +223,35 @@ const AppContent = () => {
             {/* Resource Dashboard */}
             <Route path="/resources/home" element={<ResourcesHomePage />} />
             {/* Add all other resource routes here */}
-            <Route path="/resources/feed" element={<ResourceFeed/>} />
-            <Route path="/resources/get-started" element={<GetStarted/>} />
-            <Route path="/resources/blog" element={<ResourceBlog/>} />
-            <Route path="/resources/help" element={<HelpCenter/>} />
-            <Route path="/resources/updates" element={<ProductUpdate/>} />
-            <Route path="/resources/roadmap" element={<div>Roadmap Page</div>} />
-            <Route path="/resources/changelog" element={<div>Changelog Page</div>} />
-            <Route path="/resources/introduce" element={<div>Introduce Yourself Page</div>} />
-            <Route path="/resources/discussions" element={<div>Discussions Page</div>} />
-            <Route path="/resources/ask" element={<div>Ask the Community Page</div>} />
-            <Route path="/resources/wishlist" element={<div>Wishlist Page</div>} />
+            <Route path="/resources/feed" element={<ResourceFeed />} />
+            <Route path="/resources/get-started" element={<GetStarted />} />
+            <Route path="/resources/blog" element={<ResourceBlog />} />
+            <Route path="/resources/help" element={<HelpCenter />} />
+            <Route path="/resources/updates" element={<ProductUpdate />} />
+            <Route
+              path="/resources/roadmap"
+              element={<div>Roadmap Page</div>}
+            />
+            <Route
+              path="/resources/changelog"
+              element={<div>Changelog Page</div>}
+            />
+            <Route
+              path="/resources/introduce"
+              element={<div>Introduce Yourself Page</div>}
+            />
+            <Route
+              path="/resources/discussions"
+              element={<div>Discussions Page</div>}
+            />
+            <Route
+              path="/resources/ask"
+              element={<div>Ask the Community Page</div>}
+            />
+            <Route
+              path="/resources/wishlist"
+              element={<div>Wishlist Page</div>}
+            />
             <Route path="/resources/events" element={<div>Events Page</div>} />
             <Route path="/resources/groups" element={<div>Groups Page</div>} />
 
@@ -234,9 +277,9 @@ function App() {
     <AuthState>
       <CourseState>
         <BlogState>
-        <Router>
-          <AppContent />
-        </Router>
+          <Router>
+            <AppContent />
+          </Router>
         </BlogState>
       </CourseState>
     </AuthState>

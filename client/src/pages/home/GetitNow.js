@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useContext } from "react";
 import authContext from "../../context/auth/authContext";
+import { useNavigate } from "react-router-dom";
 const GetitNow = () => {
   const [timeLeft, setTimeLeft] = useState({
     days: 25,
@@ -8,7 +9,14 @@ const GetitNow = () => {
     minutes: 34,
     seconds: 14,
   });
+  const navigate = useNavigate();
+  const handleButtonClick = () => {
+    navigate('/become-an-instructor');
+  };
 
+  const handleRegisterNow = () => {
+    navigate('/auth/login');
+  };
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -248,7 +256,7 @@ const GetitNow = () => {
                 Top instructors from around the world teach millions of students on Preplings
               </p>
               
-              <button className="bg-blue-600 text-white py-2 px-6 rounded font-medium hover:bg-blue-700 transition-colors">
+              <button  onClick={handleButtonClick}  className="bg-blue-600 text-white py-2 px-6 rounded font-medium hover:bg-blue-700 transition-colors">
                 Start teaching today
               </button>
             </div>
@@ -286,7 +294,7 @@ const GetitNow = () => {
                 Course recommendations and promotions.
               </p>
               
-              <button className="bg-blue-600 text-white py-2 px-6 rounded font-medium hover:bg-blue-700 transition-colors">
+              <button onClick={handleRegisterNow} className="bg-blue-600 text-white py-2 px-6 rounded font-medium hover:bg-blue-700 transition-colors">
                 Register for free
               </button>
             </div>

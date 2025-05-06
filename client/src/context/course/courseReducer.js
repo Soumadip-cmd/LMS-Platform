@@ -6,7 +6,8 @@ import {
     GET_COURSE_PROGRESS,
     GET_DASHBOARD_STATS,
     CREATE_COURSE,
-    UPDATE_COURSE
+    UPDATE_COURSE,
+    SET_LOADING
   } from '../types';
   
   const courseReducer = (state, action) => {
@@ -17,7 +18,11 @@ import {
     currentCourse: action.payload,
     loading: false
   };
-
+  case SET_LOADING:
+    return {
+      ...state,
+      loading: true
+    };
 case UPDATE_COURSE:
   return {
     ...state,
