@@ -3,7 +3,7 @@ import { Language } from "../../models/language.model.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-
+import { upload } from "../../middlewares/multer.js";
 import { updateUserStatus, getIO } from "../../socket/socket.js";
 import nodemailer from "nodemailer";
 import crypto from "crypto";
@@ -988,11 +988,45 @@ export const getPurchaseHistory = async (req, res) => {
  * @route POST /api/users/become-instructor
  * @access Private
  */
+
+export const uploadResume = upload.single('resume');
+
+// Update the becomeInstructor function to work with either a file or a resumeUrl
 export const becomeInstructor = async (req, res) => {
     try {
-        const userId = req.id;
-        const { qualifications, experience, teachingLanguages } = req.body;
+        const userId = req.id; 
+        const { 
+            teachLanguage, 
+            qualification, 
+            name, 
+            linkedin, 
+            dob, 
+            address, 
+            gender, 
+            country, 
+            email, 
+            contactNumber,
+            resumeUrl // Accept resumeUrl from the request body
+        } = req.body;
+
+        // Get resume URL (either from uploaded file or from the provided URL)
+        let finalResumeUrl;
         
+        if (req.file) {
+            // If a file was uploaded with this request
+            finalResumeUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+        } else if (resumeUrl) {
+            // If a resumeUrl was provided in the request body
+            finalResumeUrl = resumeUrl;
+        } else {
+            // No resume was provided
+            return res.status(400).json({
+                success: false,
+                message: "Resume file is required."
+            });
+        }
+
+        // Find the user
         const user = await User.findById(userId);
         if (!user) {
             return res.status(404).json({
@@ -1000,34 +1034,100 @@ export const becomeInstructor = async (req, res) => {
                 message: "User not found."
             });
         }
-        
+
+        // Check if user is already an instructor
         if (user.role === "instructor") {
             return res.status(400).json({
                 success: false,
                 message: "You are already an instructor."
             });
         }
-        
-        // In a real application, this would likely create an instructor application
-        // that would be reviewed by an admin rather than immediately changing the role
-        
-        // For MVP, directly update user role to "instructor" pending admin approval
-        user.role = "instructor";
-        
-        // Store additional instructor information if provided
-        if (qualifications || experience || teachingLanguages) {
-            user.instructorProfile = {
-                ...(qualifications && { qualifications }),
-                ...(experience && { experience }),
-                ...(teachingLanguages && { teachingLanguages })
-            };
+
+        // Validate required fields
+        const requiredFields = [
+            'teachLanguage', 'qualification', 'name', 'dob',
+            'address', 'gender', 'country', 'email', 'contactNumber'
+        ];
+
+        const missingFields = requiredFields.filter(field => !req.body[field]);
+
+        if (missingFields.length > 0) {
+            return res.status(400).json({
+                success: false,
+                message: `Missing required fields: ${missingFields.join(', ')}`
+            });
         }
-        
+
+        // Fetch language name if a language ID is provided
+        let languageName = "Unknown";
+        try {
+            if (teachLanguage) {
+                const language = await Language.findById(teachLanguage);
+                if (language) {
+                    languageName = language.name;
+                }
+            }
+        } catch (error) {
+            console.log("Error fetching language: ", error);
+        }
+
+        // Update user role to instructor
+        user.role = "instructor";
+
+        // Create instructor profile
+        user.instructorProfile = {
+            teachLanguage,
+            qualification,
+            linkedin: linkedin || "", // Optional field
+            dob,
+            address,
+            gender,
+            country,
+            contactNumber,
+            resumeUrl: finalResumeUrl,
+            applicationStatus: "pending",
+            applicationDate: new Date()
+        };
+
+        // Save the updated user
         await user.save();
-        
+
+        // Send email notification to the applicant
+        await sendEmail(
+            email,
+            "Instructor Application Received | Preplings",
+            "instructor-application-confirmation",
+            {
+                name,
+                applicationDate: new Date().toLocaleDateString(),
+                language: languageName,
+                qualification,
+                resumeUrl: finalResumeUrl,
+                websiteUrl: process.env.CLIENT_URL || "http://localhost:5173"
+            }
+        );
+
+        // Send email notification to admin
+        await sendEmail(
+            process.env.ADMIN_EMAIL || "admin@preplings.com",
+            "New Instructor Application | Preplings Admin",
+            "instructor-application-admin",
+            {
+                applicantName: name,
+                applicantEmail: email,
+                applicationDate: new Date().toLocaleDateString(),
+                language: languageName,
+                qualification,
+                resumeUrl: finalResumeUrl,
+                websiteUrl: process.env.CLIENT_URL || "http://localhost:5173",
+                adminDashboardUrl: `${process.env.CLIENT_URL || "http://localhost:5173"}/admin/applications`
+            }
+        );
+
         return res.status(200).json({
             success: true,
-            message: "Instructor application submitted successfully. Your account will be reviewed by an admin."
+            message: "Instructor application submitted successfully. Your application will be reviewed by an admin.",
+            resumeUrl: finalResumeUrl
         });
     } catch (error) {
         console.log(error);
@@ -1038,6 +1138,33 @@ export const becomeInstructor = async (req, res) => {
     }
 };
 
+// Separate route to handle resume upload only (for preview before form submission)
+export const handleResumeUpload = async (req, res) => {
+    try {
+        // Check if file was uploaded
+        if (!req.file) {
+            return res.status(400).json({
+                success: false,
+                message: "No file uploaded."
+            });
+        }
+
+        // Generate URL for the uploaded file
+        const fileUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+
+        return res.status(200).json({
+            success: true,
+            message: "File uploaded successfully.",
+            fileUrl: fileUrl
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            success: false,
+            message: "File upload failed."
+        });
+    }
+};
 /**
  * Get exam attempts history
  * @route GET /api/users/exam-history
@@ -1233,3 +1360,91 @@ export const updateLearningPreferences = async (req, res) => {
         });
     }
 };
+
+
+// Function to handle "Get It Now" signup for free German resources
+export const getItNow = async (req, res) => {
+    try {
+      const { fullName, email, phone } = req.body;
+      
+      // Validate required fields
+      if (!fullName || !email) {
+        return res.status(400).json({
+          success: false,
+          message: "Full name and email are required."
+        });
+      }
+  
+      // Check if user already exists
+      const existingUser = await User.findOne({ email });
+      
+      if (existingUser) {
+        // User exists, send them the resource directly
+        await sendEmail(
+          email,
+          "Your Free German Learning Resources | Preplings",
+          "free-resources",
+          {
+            name: existingUser.name,
+            websiteUrl: process.env.CLIENT_URL || "http://localhost:5173",
+            resourceLink: `${process.env.CLIENT_URL || "http://localhost:5173"}/resources/german-beginner-guide.pdf`
+          }
+        );
+  
+        return res.status(200).json({
+          success: true,
+          message: "Resource has been sent to your email!",
+          resourceLink: "/resources/german-beginner-guide.pdf"
+        });
+      }
+      
+      // Create new lightweight user entry
+      // Generate a random password they can reset later if they want to convert to full account
+      const tempPassword = crypto.randomBytes(16).toString('hex');
+      const hashedPassword = await bcrypt.hash(tempPassword, 10);
+      
+      const newUser = new User({
+        name: fullName,
+        email: email,
+        password: hashedPassword, // Required by your schema
+        isVerified: true, // Set as verified so they don't need OTP
+        role: "student",
+        preferredCategories: ["German", "Language Learning"],
+        ...(phone && { phoneNumber: phone }),
+        learningGoal: "Casual", // Default since it's required for students
+        notificationPreferences: {
+          email: true,
+          push: false,
+          categories: true,
+          courseUpdates: true
+        }
+      });
+      
+      await newUser.save();
+      
+      // Send the free resource
+      await sendEmail(
+        email,
+        "Your Free German Learning Resources | Preplings",
+        "free-resources",
+        {
+          name: fullName,
+          websiteUrl: process.env.CLIENT_URL || "http://localhost:5173",
+          resourceLink: `${process.env.CLIENT_URL || "http://localhost:5173"}/resources/german-beginner-guide.pdf`
+        }
+      );
+  
+      return res.status(201).json({
+        success: true,
+        message: "Thank you for signing up! Your free resources have been sent to your email.",
+        resourceLink: "/resources/german-beginner-guide.pdf"
+      });
+      
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to process your request. Please try again."
+      });
+    }
+  };

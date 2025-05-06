@@ -50,6 +50,70 @@ const userSchema = new mongoose.Schema({
         enum: ["Audio", "Visual", "Interactive"],
         default: "Visual"
     },
+    // Instructor specific fields from UI
+    instructorProfile: {
+        teachLanguage: {
+            type: String,
+            required: function() {
+                return this.role === 'instructor';
+            }
+        },
+        qualification: {
+            type: String,
+            required: function() {
+                return this.role === 'instructor';
+            }
+        },
+        linkedin: {
+            type: String
+        },
+        dob: {
+            type: String,
+            required: function() {
+                return this.role === 'instructor';
+            }
+        },
+        address: {
+            type: String,
+            required: function() {
+                return this.role === 'instructor';
+            }
+        },
+        gender: {
+            type: String,
+            enum: ["male", "female", "other"],
+            required: function() {
+                return this.role === 'instructor';
+            }
+        },
+        country: {
+            type: String,
+            required: function() {
+                return this.role === 'instructor';
+            }
+        },
+        contactNumber: {
+            type: String,
+            required: function() {
+                return this.role === 'instructor';
+            }
+        },
+        resumeUrl: {
+            type: String,
+            required: function() {
+                return this.role === 'instructor';
+            }
+        },
+        applicationStatus: {
+            type: String,
+            enum: ["pending", "approved", "rejected"],
+            default: "pending"
+        },
+        applicationDate: {
+            type: Date,
+            default: Date.now
+        }
+    },
     isVerified: {
         type: Boolean,
         default: false

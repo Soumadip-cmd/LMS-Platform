@@ -1,16 +1,18 @@
 import express from 'express';
 import {
-    createCourse,
-    searchCourses,
-    getPublishedCourses,
-    getInstructorCourses,
-    getCourseById,
-    updateCourse,
-    addCourseMaterial,
-    removeCourseMaterial,
-    updateCourseStatus,
-    deleteCourse,
-    getAllCoursesAdmin
+  createCourse,
+  searchCourses,
+  getPublishedCourses,
+  getInstructorCourses,
+  getCourseById,
+  updateCourse,
+  addCourseMaterial,
+  removeCourseMaterial,
+  updateCourseStatus,
+  deleteCourse,
+  getAllCoursesAdmin,
+  getTopCourses,
+  getFeaturedCourses
 } from '../../controller/course/course.controller.js';
 import { isAuthenticated, isAdmin, isInstructorOrAdmin } from "../../middlewares/isAuthenticated.js";
 import { upload } from '../../middlewares/multer.js';
@@ -20,7 +22,9 @@ const courseRouter = express.Router();
 // Public routes
 courseRouter.get('/search', searchCourses);
 courseRouter.get('/published', getPublishedCourses);
-courseRouter.get('/:courseId', getCourseById);
+courseRouter.get('/top', getTopCourses);          
+courseRouter.get('/featured', getFeaturedCourses);
+courseRouter.get('/:courseId', getCourseById);    
 
 // Protected routes (require authentication)
 courseRouter.use(isAuthenticated);
@@ -32,7 +36,7 @@ courseRouter.post('/:courseId/material', isInstructorOrAdmin, upload.single('fil
 courseRouter.delete('/:courseId/material/:materialId', isInstructorOrAdmin, removeCourseMaterial);
 courseRouter.patch('/:courseId/status', isInstructorOrAdmin, updateCourseStatus);
 
-// Get routes for courses
+// Get routes for courses - this needs to come after the authentication middleware
 courseRouter.get('/instructor/courses', isInstructorOrAdmin, getInstructorCourses);
 
 // Admin-only routes

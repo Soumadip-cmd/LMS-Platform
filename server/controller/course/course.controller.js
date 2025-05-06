@@ -594,3 +594,121 @@ export const deleteCourse = async (req, res) => {
         });
     }
 };
+
+
+export const getTopCourses = async (req, res) => {
+    try {
+      const { limit = 4, language, level } = req.query;
+      
+      // Build query object
+      const query = { status: "published" };
+      
+      // Add optional filters if provided
+      if (language) query.language = language;
+      if (level) query.level = level;
+      
+      // Find top courses based on rating and enrollment count
+      const topCourses = await Course.find(query)
+        .sort({ "rating.average": -1, "enrolledStudents.length": -1 })
+        .limit(parseInt(limit))
+        .populate({ path: "instructor", select: "name photoUrl" })
+        .populate({ path: "language", select: "name code" });
+      
+      return res.status(200).json({
+        success: true,
+        topCourses
+      });
+    } catch (error) {
+      console.error('Get Top Courses Error:', error);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to fetch top courses"
+      });
+    }
+  };
+  
+  export const getFeaturedCourses = async (req, res) => {
+    try {
+      const { 
+        limit = 8, 
+        page = 1, 
+        language = [], 
+        level = [], 
+        sortBy = "popularity", 
+        price = ""
+      } = req.query;
+      
+      // Parse page and limit to integers
+      const pageInt = parseInt(page);
+      const limitInt = parseInt(limit);
+      const skip = (pageInt - 1) * limitInt;
+      
+      // Build query object
+      const query = { status: "published" };
+      
+      // Add language filter if provided
+      if (language.length > 0) {
+        const languageArr = Array.isArray(language) ? language : [language];
+        query.language = { $in: languageArr };
+      }
+      
+      // Add level filter if provided
+      if (level.length > 0) {
+        const levelArr = Array.isArray(level) ? level : [level];
+        query.level = { $in: levelArr };
+      }
+      
+      // Add price filter if provided
+      if (price === "free") {
+        query.price = 0;
+      } else if (price === "paid") {
+        query.price = { $gt: 0 };
+      }
+      
+      // Determine sort options
+      let sortOptions = {};
+      switch(sortBy) {
+        case "price-low":
+          sortOptions = { price: 1 };
+          break;
+        case "price-high":
+          sortOptions = { price: -1 };
+          break;
+        case "newest":
+          sortOptions = { createdAt: -1 };
+          break;
+        case "popularity":
+        default:
+          sortOptions = { "enrolledStudents.length": -1, "rating.average": -1 };
+          break;
+      }
+      
+      // Get total count for pagination
+      const totalCourses = await Course.countDocuments(query);
+      
+      // Find featured courses
+      const featuredCourses = await Course.find(query)
+        .sort(sortOptions)
+        .skip(skip)
+        .limit(limitInt)
+        .populate({ path: "instructor", select: "name photoUrl" })
+        .populate({ path: "language", select: "name code" });
+      
+      return res.status(200).json({
+        success: true,
+        featuredCourses,
+        pagination: {
+          total: totalCourses,
+          page: pageInt,
+          totalPages: Math.ceil(totalCourses / limitInt),
+          limit: limitInt
+        }
+      });
+    } catch (error) {
+      console.error('Get Featured Courses Error:', error);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to fetch featured courses"
+      });
+    }
+  };
