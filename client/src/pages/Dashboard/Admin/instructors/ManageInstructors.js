@@ -1,10 +1,12 @@
 import React, { useState, useRef, useEffect, useContext } from "react";
+import { useNavigate } from "react-router-dom";
 import AdminSidebar from "../AdminSidebar";
 import { Search, Eye, Edit, ChevronDown, Download, Plus } from "lucide-react";
 import InstructorContext from "../../../../context/instructor/instructorContext";
 import { toast } from "react-hot-toast";
 
 const ManageInstructors = () => {
+  const navigate = useNavigate();
   // Get instructor context
   const instructorContext = useContext(InstructorContext);
   const {
@@ -28,8 +30,6 @@ const ManageInstructors = () => {
   const [selectedEndDate, setSelectedEndDate] = useState(25);
   const [selectedFilter, setSelectedFilter] = useState("All");
   const [searchTerm, setSearchTerm] = useState("");
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [instructorToDelete, setInstructorToDelete] = useState(null);
 
   // Calculate total pages
   const totalPages = Math.ceil(totalInstructors / coursesPerPage);
@@ -259,8 +259,6 @@ const ManageInstructors = () => {
     try {
       await updateInstructorStatus(instructorId, newStatus);
       toast.success(`Instructor status updated to ${newStatus}`);
-      // Refresh the instructors list after status change
-      getAllInstructors(currentPage, coursesPerPage, selectedFilter);
     } catch (err) {
       toast.error('Failed to update instructor status');
     }
@@ -269,42 +267,6 @@ const ManageInstructors = () => {
   // Handle search
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
-  };
-
-  // Handle view instructor
-  const handleViewInstructor = (instructorId) => {
-    // Navigate to instructor details page
-    window.location.href = `/admin/instructors/${instructorId}`;
-  };
-
-  // Handle edit instructor
-  const handleEditInstructor = (instructorId) => {
-    // Navigate to instructor edit page
-    window.location.href = `/admin/instructors/edit/${instructorId}`;
-  };
-
-  // Handle delete instructor
-  const handleDeleteClick = (instructor) => {
-    setInstructorToDelete(instructor);
-    setShowDeleteModal(true);
-  };
-
-  // Confirm delete instructor
-  const confirmDeleteInstructor = async () => {
-    try {
-      // Call API to delete instructor
-      // This is a placeholder - you would need to implement the actual API call
-      // await deleteInstructor(instructorToDelete.id);
-
-      toast.success(`Instructor ${instructorToDelete.name} deleted successfully`);
-      setShowDeleteModal(false);
-      setInstructorToDelete(null);
-
-      // Refresh the instructors list
-      getAllInstructors(currentPage, coursesPerPage, selectedFilter);
-    } catch (err) {
-      toast.error('Failed to delete instructor');
-    }
   };
 
   const getStatusClass = (status) => {
@@ -574,43 +536,35 @@ const ManageInstructors = () => {
                           {instructor.balance}
                         </td>
                         <td className="py-3 px-4 whitespace-nowrap">
-                          <div className="relative">
-                            <span
-                              className={`inline-block w-24 text-center px-4 py-1 rounded-md text-sm font-medium cursor-pointer ${getStatusClass(
-                                instructor.status
-                              )}`}
-                              onClick={() => {
-                                const statusOptions = ["Active", "Suspended", "Pending"];
-                                const currentIndex = statusOptions.indexOf(instructor.status);
-                                const newStatus = statusOptions[(currentIndex + 1) % statusOptions.length];
-                                handleStatusChange(instructor.id, newStatus);
-                              }}
-                            >
-                              {instructor.status}
-                            </span>
-                          </div>
+                          <span
+                            className={`inline-block w-24 text-center px-4 py-1 rounded-md text-sm font-medium cursor-pointer ${getStatusClass(
+                              instructor.status
+                            )}`}
+                            onClick={() => {
+                              const newStatus =
+                                instructor.status === "Active" ? "Suspended" :
+                                instructor.status === "Suspended" ? "Pending" : "Active";
+                              handleStatusChange(instructor.id, newStatus);
+                            }}
+                          >
+                            {instructor.status}
+                          </span>
                         </td>
                         <td className="py-3 px-4 whitespace-nowrap">
                           <div className="flex space-x-2">
                             <button
+                              onClick={() => navigate(`/admin/instructors/${instructor.id}`)}
                               className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white"
-                              onClick={() => handleViewInstructor(instructor.id)}
-                              title="View instructor details"
                             >
                               <Eye size={16} />
                             </button>
                             <button
+                              onClick={() => navigate(`/admin/instructors/edit/${instructor.id}`)}
                               className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white"
-                              onClick={() => handleEditInstructor(instructor.id)}
-                              title="Edit instructor"
                             >
                               <Edit size={16} />
                             </button>
-                            <button
-                              className="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-white"
-                              onClick={() => handleDeleteClick(instructor)}
-                              title="Delete instructor"
-                            >
+                            <button className="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-white">
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 width="16"
@@ -692,34 +646,6 @@ const ManageInstructors = () => {
           </div>
         </div>
       </div>
-      {/* Delete Confirmation Modal */}
-      {showDeleteModal && instructorToDelete && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-96 max-w-full">
-            <h3 className="text-xl font-semibold mb-4">Confirm Delete</h3>
-            <p className="mb-6">
-              Are you sure you want to delete instructor <span className="font-semibold">{instructorToDelete.name}</span>? This action cannot be undone.
-            </p>
-            <div className="flex justify-end space-x-3">
-              <button
-                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100"
-                onClick={() => {
-                  setShowDeleteModal(false);
-                  setInstructorToDelete(null);
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
-                onClick={confirmDeleteInstructor}
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

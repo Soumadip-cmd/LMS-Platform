@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import AdminSidebar from "../AdminSidebar";
 import InstructorContext from "../../../../context/instructor/instructorContext";
 import { toast } from "react-hot-toast";
-import { ArrowLeft, Mail, Phone, Calendar, Award, BookOpen, DollarSign, Edit, User, MapPin, Briefcase, Clock } from "lucide-react";
+import { ArrowLeft, Mail, Phone, Calendar, Award, BookOpen, DollarSign, Edit, User, MapPin, Briefcase, Clock, Download } from "lucide-react";
 
 const InstructorDetails = () => {
   const { id } = useParams();
@@ -83,12 +83,9 @@ const InstructorDetails = () => {
               <ArrowLeft size={20} />
             </button>
             <div>
-              <h1 className="text-2xl font-medium text-gray-600">
+              <h1 className="text-2xl font-medium text-blue-500">
                 Instructor Details
               </h1>
-              <p className="text-gray-400 text-base">
-                View and manage instructor information
-              </p>
             </div>
           </div>
 
@@ -103,96 +100,130 @@ const InstructorDetails = () => {
               <p className="mt-2">{error}</p>
             </div>
           ) : currentInstructor ? (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Left column - Instructor profile */}
-              <div className="col-span-1">
-                <div className="bg-white rounded-lg shadow-md p-6">
-                  <div className="flex flex-col items-center">
-                    <div className="w-32 h-32 rounded-full overflow-hidden mb-4">
-                      <img
-                        src={currentInstructor.photoUrl || "https://placehold.co/200x200"}
-                        alt={currentInstructor.name}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
+            <div className="bg-white rounded-lg p-6 max-w-7xl mx-auto">
+              {/* Profile header with photo and actions */}
+              <div className="flex flex-col md:flex-row md:justify-between mb-8">
+                <div className="flex items-center mb-6 md:mb-0">
+                  <div className="w-20 h-20 rounded-full overflow-hidden mr-4 bg-gray-200">
+                    <img
+                      src={currentInstructor.photoUrl || "https://placehold.co/200x200"}
+                      alt={currentInstructor.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div>
                     <h2 className="text-xl font-semibold">{currentInstructor.name}</h2>
-                    <p className="text-gray-500 mb-2">{currentInstructor.email}</p>
+                    <p className="text-gray-500">{currentInstructor.email}</p>
                     <span
-                      className={`inline-block px-4 py-1 rounded-full text-sm font-medium ${getStatusClass(
+                      className={`inline-block px-4 py-1 rounded-full text-sm font-medium mt-2 ${getStatusClass(
                         currentInstructor.instructorProfile?.applicationStatus
                       )}`}
                     >
                       {formatStatus(currentInstructor.instructorProfile?.applicationStatus)}
                     </span>
-                    <div className="mt-6 w-full">
-                      <button
-                        onClick={() => navigate(`/dashboard/admin/instructors/edit/${id}`)}
-                        className="w-full flex items-center justify-center gap-2 bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors"
-                      >
-                        <Edit size={16} />
-                        Edit Profile
-                      </button>
-                    </div>
                   </div>
-
-                  <div className="mt-6 border-t pt-6">
-                    <h3 className="text-lg font-medium mb-4">Contact Information</h3>
-                    <div className="space-y-3">
-                      <div className="flex items-center">
-                        <Mail size={18} className="text-gray-500 mr-3" />
-                        <span>{currentInstructor.email}</span>
-                      </div>
-                      <div className="flex items-center">
-                        <Phone size={18} className="text-gray-500 mr-3" />
-                        <span>{currentInstructor.phoneNumber || "Not provided"}</span>
-                      </div>
-                      <div className="flex items-center">
-                        <Calendar size={18} className="text-gray-500 mr-3" />
-                        <span>Joined on {formattedDate}</span>
-                      </div>
-                      <div className="flex items-center">
-                        <MapPin size={18} className="text-gray-500 mr-3" />
-                        <span>{currentInstructor.instructorProfile?.location || "Not provided"}</span>
-                      </div>
-                    </div>
-                  </div>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <button 
+                    onClick={() => navigate(`/admin/instructors/edit/${id}`)}
+                    className="flex items-center justify-center gap-2 border border-blue-500 text-blue-500 py-2 px-4 rounded-md"
+                  >
+                    <Edit size={20} />
+                    Edit Profile
+                  </button>
+                  <button className="flex items-center justify-center gap-2 bg-yellow-400 text-white py-2 px-4 rounded-md">
+                    <Download size={20} />
+                    Download Resume
+                  </button>
                 </div>
               </div>
 
-              {/* Right column - Instructor details */}
-              <div className="col-span-1 lg:col-span-2">
-                {/* Professional Info */}
-                <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-                  <h3 className="text-lg font-medium mb-4">Professional Information</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Information sections */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Basic Information */}
+                <div className="bg-white border rounded-lg p-6">
+                  <h3 className="text-lg font-medium mb-4 border-b pb-2">Basic Information</h3>
+                  <div className="space-y-4">
                     <div>
-                      <p className="text-gray-500 text-sm mb-1">Specialization</p>
-                      <p className="font-medium">{currentInstructor.instructorProfile?.specialization || "Not specified"}</p>
+                      <p className="text-gray-500 text-sm mb-1">Full Name</p>
+                      <p className="font-medium">{currentInstructor.name}</p>
                     </div>
                     <div>
-                      <p className="text-gray-500 text-sm mb-1">Experience</p>
-                      <p className="font-medium">{currentInstructor.instructorProfile?.yearsOfExperience || "0"} years</p>
+                      <p className="text-gray-500 text-sm mb-1">Email</p>
+                      <p className="font-medium">{currentInstructor.email}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500 text-sm mb-1">Phone</p>
+                      <p className="font-medium">{currentInstructor.phoneNumber || "Not provided"}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500 text-sm mb-1">Gender</p>
+                      <p className="font-medium">{currentInstructor.gender || "Not specified"}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500 text-sm mb-1">Date of Birth</p>
+                      <p className="font-medium">{currentInstructor.dateOfBirth || "Not provided"}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500 text-sm mb-1">Address</p>
+                      <p className="font-medium">{currentInstructor.address || "Not provided"}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500 text-sm mb-1">Country</p>
+                      <p className="font-medium">{currentInstructor.country || "Not specified"}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500 text-sm mb-1">Joined On</p>
+                      <p className="font-medium">{formattedDate}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Professional Information */}
+                <div className="bg-white border rounded-lg p-6">
+                  <h3 className="text-lg font-medium mb-4 border-b pb-2">Professional Information</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-gray-500 text-sm mb-1">Role</p>
+                      <p className="font-medium">{currentInstructor.role || "Instructor"}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500 text-sm mb-1">Qualification</p>
+                      <p className="font-medium">{currentInstructor.instructorProfile?.qualification || "Not specified"}</p>
                     </div>
                     <div>
                       <p className="text-gray-500 text-sm mb-1">Teaching Language</p>
                       <p className="font-medium">{currentInstructor.instructorProfile?.teachLanguage?.name || "Not specified"}</p>
                     </div>
                     <div>
-                      <p className="text-gray-500 text-sm mb-1">Qualification</p>
-                      <p className="font-medium">{currentInstructor.instructorProfile?.qualification || "Not specified"}</p>
+                      <p className="text-gray-500 text-sm mb-1">Proficiency Level</p>
+                      <p className="font-medium">{currentInstructor.instructorProfile?.proficiencyLevel || "Not specified"}</p>
                     </div>
-                  </div>
-                  
-                  <div className="mt-6">
-                    <p className="text-gray-500 text-sm mb-1">Bio</p>
-                    <p className="text-gray-700">{currentInstructor.instructorProfile?.bio || "No bio provided."}</p>
+                    <div>
+                      <p className="text-gray-500 text-sm mb-1">Experience</p>
+                      <p className="font-medium">{currentInstructor.instructorProfile?.yearsOfExperience || "0"} years</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500 text-sm mb-1">Commission Rate</p>
+                      <p className="font-medium">{currentInstructor.instructorProfile?.commissionRate || "0"}%</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500 text-sm mb-1">Social Profile</p>
+                      <p className="font-medium">{currentInstructor.socialProfile || "Not provided"}</p>
+                    </div>
                   </div>
                 </div>
 
+                {/* Bio */}
+                <div className="bg-white border rounded-lg p-6 md:col-span-2">
+                  <h3 className="text-lg font-medium mb-4 border-b pb-2">Bio</h3>
+                  <p className="text-gray-700">{currentInstructor.instructorProfile?.bio || "No bio provided."}</p>
+                </div>
+
                 {/* Statistics */}
-                <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-                  <h3 className="text-lg font-medium mb-4">Statistics</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="bg-white border rounded-lg p-6 md:col-span-2">
+                  <h3 className="text-lg font-medium mb-4 border-b pb-2">Statistics</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div className="bg-blue-50 p-4 rounded-lg">
                       <div className="flex items-center mb-2">
                         <BookOpen size={20} className="text-blue-500 mr-2" />
@@ -218,8 +249,8 @@ const InstructorDetails = () => {
                 </div>
 
                 {/* Courses */}
-                <div className="bg-white rounded-lg shadow-md p-6">
-                  <div className="flex justify-between items-center mb-4">
+                <div className="bg-white border rounded-lg p-6 md:col-span-2">
+                  <div className="flex justify-between items-center mb-4 border-b pb-2">
                     <h3 className="text-lg font-medium">Courses</h3>
                     <button className="text-blue-500 text-sm font-medium">View All</button>
                   </div>

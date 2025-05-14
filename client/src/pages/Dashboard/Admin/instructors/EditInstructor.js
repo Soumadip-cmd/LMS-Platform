@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import AdminSidebar from "../AdminSidebar";
 import InstructorContext from "../../../../context/instructor/instructorContext";
 import { toast } from "react-hot-toast";
-import { ArrowLeft, Save, X } from "lucide-react";
+import { ArrowLeft, Upload } from "lucide-react";
 
 const EditInstructor = () => {
   const { id } = useParams();
@@ -13,16 +13,27 @@ const EditInstructor = () => {
 
   // Form state
   const [formData, setFormData] = useState({
+    role: "",
     name: "",
     email: "",
-    phoneNumber: "",
-    status: "",
-    specialization: "",
-    yearsOfExperience: "",
+    dateOfBirth: "",
+    gender: "",
     qualification: "",
-    location: "",
-    bio: ""
+    language: "",
+    currentLevel: "",
+    fullAddress: "",
+    country: "",
+    socialProfile: "",
+    phoneNumber: "",
+    bio: "",
+    commissionRate: "",
+    resume: null,
+    password: ""
   });
+
+  // Photo upload state
+  const [photo, setPhoto] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState(null);
 
   // Load instructor data
   useEffect(() => {
@@ -42,16 +53,26 @@ const EditInstructor = () => {
   useEffect(() => {
     if (currentInstructor) {
       setFormData({
+        role: currentInstructor.role || "instructor",
         name: currentInstructor.name || "",
         email: currentInstructor.email || "",
-        phoneNumber: currentInstructor.phoneNumber || "",
-        status: currentInstructor.instructorProfile?.applicationStatus || "pending",
-        specialization: currentInstructor.instructorProfile?.specialization || "",
-        yearsOfExperience: currentInstructor.instructorProfile?.yearsOfExperience || "",
+        dateOfBirth: currentInstructor.dateOfBirth || "",
+        gender: currentInstructor.gender || "",
         qualification: currentInstructor.instructorProfile?.qualification || "",
-        location: currentInstructor.instructorProfile?.location || "",
-        bio: currentInstructor.instructorProfile?.bio || ""
+        language: currentInstructor.instructorProfile?.teachLanguage?._id || "",
+        currentLevel: currentInstructor.instructorProfile?.proficiencyLevel || "",
+        fullAddress: currentInstructor.address || "",
+        country: currentInstructor.country || "",
+        socialProfile: currentInstructor.socialProfile || "",
+        phoneNumber: currentInstructor.phoneNumber || "",
+        bio: currentInstructor.instructorProfile?.bio || "",
+        commissionRate: currentInstructor.instructorProfile?.commissionRate || "",
+        password: ""
       });
+
+      if (currentInstructor.photoUrl) {
+        setPhotoPreview(currentInstructor.photoUrl);
+      }
     }
   }, [currentInstructor]);
 
@@ -64,34 +85,53 @@ const EditInstructor = () => {
     });
   };
 
+  // Handle photo upload
+  const handlePhotoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setPhoto(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Handle resume upload
+  const handleResumeChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setFormData({
+        ...formData,
+        resume: file
+      });
+    }
+  };
+
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     
     try {
+      // In a real implementation, you would update all the instructor details
+      // For now, we're only updating the status since that's the only API we have
+      
       // Map frontend status to API status format
       const statusMap = {
-        "pending": "Pending",
-        "approved": "Active",
-        "suspended": "Suspended"
+        "instructor": "Active",
+        "suspended": "Suspended",
+        "pending": "Pending"
       };
       
       // Update instructor status
-      await updateInstructorStatus(id, statusMap[formData.status]);
-      
-      // For now, we're only updating the status since that's the only API we have
-      // In a real implementation, you would update all the instructor details
+      await updateInstructorStatus(id, statusMap[formData.role]);
       
       toast.success("Instructor updated successfully");
       navigate(`/admin/instructors/${id}`);
     } catch (err) {
       toast.error("Failed to update instructor");
     }
-  };
-
-  // Handle cancel
-  const handleCancel = () => {
-    navigate(`/admin/instructors/${id}`);
   };
 
   return (
@@ -110,12 +150,9 @@ const EditInstructor = () => {
               <ArrowLeft size={20} />
             </button>
             <div>
-              <h1 className="text-2xl font-medium text-gray-600">
-                Edit Instructor
+              <h1 className="text-2xl font-medium text-blue-500">
+                Add / Edit User
               </h1>
-              <p className="text-gray-400 text-base">
-                Update instructor information
-              </p>
             </div>
           </div>
 
@@ -130,143 +167,283 @@ const EditInstructor = () => {
               <p className="mt-2">{error}</p>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-md p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                {/* Basic Information */}
-                <div className="col-span-2">
-                  <h3 className="text-lg font-medium mb-4 border-b pb-2">Basic Information</h3>
+            <form onSubmit={handleSubmit} className="bg-white rounded-lg p-6 max-w-7xl mx-auto">
+              <div className="flex flex-col md:flex-row md:justify-between mb-8">
+                <div className="w-full md:w-3/4">
+                  {/* Photo upload section */}
+                  <div className="flex items-center mb-6">
+                    <div className="w-16 h-16 rounded-full overflow-hidden mr-4 bg-gray-200">
+                      {photoPreview ? (
+                        <img src={photoPreview} alt="Profile" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                          <span className="text-gray-400">Photo</span>
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 mb-2">We only support JPG, JPEG, PNG file</p>
+                      <div className="flex space-x-2">
+                        <label className="cursor-pointer">
+                          <span className="px-4 py-2 bg-white border border-gray-300 rounded-md text-sm">Upload Photo</span>
+                          <input 
+                            type="file" 
+                            accept="image/jpeg,image/png,image/jpg" 
+                            className="hidden" 
+                            onChange={handlePhotoChange}
+                          />
+                        </label>
+                        <button type="button" className="px-4 py-2 bg-yellow-400 text-white rounded-md text-sm">
+                          Delete Photo
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">Full Name</label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">Email</label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                    disabled
-                  />
-                  <p className="text-xs text-gray-500">Email cannot be changed</p>
-                </div>
-                
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">Phone Number</label>
-                  <input
-                    type="text"
-                    name="phoneNumber"
-                    value={formData.phoneNumber}
-                    onChange={handleChange}
-                    className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">Status</label>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Role */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
                   <select
-                    name="status"
-                    value={formData.status}
+                    name="role"
+                    value={formData.role}
                     onChange={handleChange}
-                    className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
+                    className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
                   >
-                    <option value="pending">Pending</option>
-                    <option value="approved">Active</option>
-                    <option value="suspended">Suspended</option>
+                    <option value="">Select the Role</option>
+                    <option value="instructor">Instructor</option>
+                    <option value="student">Student</option>
+                    <option value="admin">Admin</option>
                   </select>
                 </div>
-                
-                {/* Professional Information */}
-                <div className="col-span-2 mt-4">
-                  <h3 className="text-lg font-medium mb-4 border-b pb-2">Professional Information</h3>
-                </div>
-                
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">Specialization</label>
-                  <input
-                    type="text"
-                    name="specialization"
-                    value={formData.specialization}
-                    onChange={handleChange}
-                    className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">Years of Experience</label>
-                  <input
-                    type="number"
-                    name="yearsOfExperience"
-                    value={formData.yearsOfExperience}
-                    onChange={handleChange}
-                    className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    min="0"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">Qualification</label>
-                  <input
-                    type="text"
+
+                {/* Highest qualification */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Highest qualification</label>
+                  <select
                     name="qualification"
                     value={formData.qualification}
                     onChange={handleChange}
-                    className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+                    className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  >
+                    <option value="">Select the language you want to learn</option>
+                    <option value="bachelor">Bachelor's Degree</option>
+                    <option value="master">Master's Degree</option>
+                    <option value="phd">PhD</option>
+                    <option value="other">Other</option>
+                  </select>
                 </div>
-                
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">Location</label>
+
+                {/* Name */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
                   <input
                     type="text"
-                    name="location"
-                    value={formData.location}
+                    name="name"
+                    placeholder="Enter your email"
+                    value={formData.name}
                     onChange={handleChange}
-                    className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
                 </div>
-                
-                <div className="col-span-2 space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">Bio</label>
+
+                {/* Language and Level */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Select Language</label>
+                    <select
+                      name="language"
+                      value={formData.language}
+                      onChange={handleChange}
+                      className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    >
+                      <option value="">Select</option>
+                      <option value="english">English</option>
+                      <option value="german">German</option>
+                      <option value="french">French</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Current Level</label>
+                    <select
+                      name="currentLevel"
+                      value={formData.currentLevel}
+                      onChange={handleChange}
+                      className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    >
+                      <option value="">Select</option>
+                      <option value="beginner">Beginner</option>
+                      <option value="intermediate">Intermediate</option>
+                      <option value="advanced">Advanced</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Date of Birth */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Date of Birth</label>
+                  <input
+                    type="date"
+                    name="dateOfBirth"
+                    value={formData.dateOfBirth}
+                    onChange={handleChange}
+                    className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+
+                {/* Full Address */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Full Address</label>
+                  <input
+                    type="text"
+                    name="fullAddress"
+                    value={formData.fullAddress}
+                    onChange={handleChange}
+                    className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+
+                {/* Gender */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Gender</label>
+                  <select
+                    name="gender"
+                    value={formData.gender}
+                    onChange={handleChange}
+                    className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  >
+                    <option value="">Select your Gender</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+
+                {/* Country and Social Profile */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Country</label>
+                    <select
+                      name="country"
+                      value={formData.country}
+                      onChange={handleChange}
+                      className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    >
+                      <option value="">Select</option>
+                      <option value="us">United States</option>
+                      <option value="uk">United Kingdom</option>
+                      <option value="ca">Canada</option>
+                      <option value="au">Australia</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Add Social Profile (Optional)</label>
+                    <select
+                      name="socialProfile"
+                      value={formData.socialProfile}
+                      onChange={handleChange}
+                      className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    >
+                      <option value="">Select</option>
+                      <option value="linkedin">LinkedIn</option>
+                      <option value="twitter">Twitter</option>
+                      <option value="facebook">Facebook</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Email address */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Email address</label>
+                  <input
+                    type="email"
+                    name="email"
+                    placeholder="Enter your email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+
+                {/* Contact Number */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Contact Number</label>
+                  <input
+                    type="tel"
+                    name="phoneNumber"
+                    value={formData.phoneNumber}
+                    onChange={handleChange}
+                    className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+
+                {/* Password */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                  <input
+                    type="password"
+                    name="password"
+                    placeholder="Enter your password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+
+                {/* Bio text */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Add Bio text (30 words max)</label>
                   <textarea
                     name="bio"
                     value={formData.bio}
                     onChange={handleChange}
                     rows="4"
-                    className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
                   ></textarea>
                 </div>
+
+                {/* Commission Rate and Resume */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Commission Rate</label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        name="commissionRate"
+                        value={formData.commissionRate}
+                        onChange={handleChange}
+                        className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      />
+                      <span className="absolute right-3 top-1/2 transform -translate-y-1/2">%</span>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Upload your Resume</label>
+                    <label className="flex items-center justify-center w-full p-3 border border-gray-300 rounded-md cursor-pointer">
+                      <Upload size={20} className="mr-2" />
+                      <input 
+                        type="file" 
+                        accept=".pdf,.doc,.docx" 
+                        className="hidden" 
+                        onChange={handleResumeChange}
+                      />
+                    </label>
+                  </div>
+                </div>
               </div>
-              
-              {/* Form Actions */}
-              <div className="flex justify-end space-x-4 mt-6">
-                <button
-                  type="button"
-                  onClick={handleCancel}
-                  className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100"
-                >
-                  <X size={16} />
-                  Cancel
-                </button>
+
+              {/* Terms and Submit */}
+              <div className="mt-8">
+                <div className="mb-4 text-sm text-gray-600">
+                  By continuing, you agree to our <a href="#" className="text-blue-500">Terms of Service</a> and <a href="#" className="text-blue-500">Privacy Policy</a>
+                </div>
                 <button
                   type="submit"
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                  className="w-full py-3 bg-yellow-400 text-white rounded-md hover:bg-yellow-500 transition-colors"
                 >
-                  <Save size={16} />
-                  Save Changes
+                  Submit
                 </button>
               </div>
             </form>
