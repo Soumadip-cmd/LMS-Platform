@@ -28,6 +28,8 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import AdminCourse from "./pages/Dashboard/Admin/courses/AdminCourse";
 import ManageStudents from "./pages/Dashboard/Admin/Students/ManageStudents";
 import ManageInstructors from "./pages/Dashboard/Admin/instructors/ManageInstructors";
+import InstructorDetails from "./pages/Dashboard/Admin/instructors/InstructorDetails";
+import EditInstructor from "./pages/Dashboard/Admin/instructors/EditInstructor";
 import Assignment from "./pages/Dashboard/Admin/assignment/Assignment";
 import Mocktest from "./pages/Dashboard/Admin/mocktest/Mocktest";
 import Messages from "./pages/Dashboard/Admin/Messages/Messages";
@@ -194,6 +196,14 @@ const AppContent = () => {
             <Route
               path="/dashboard/admin/instructors"
               element={<ManageInstructors />}
+            />
+            <Route
+              path="/admin/instructors/:id"
+              element={<InstructorDetails />}
+            />
+            <Route
+              path="/admin/instructors/edit/:id"
+              element={<EditInstructor />}
             />
             <Route
               path="/dashboard/admin/assignments"
