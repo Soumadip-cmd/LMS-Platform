@@ -259,6 +259,9 @@ const ManageInstructors = () => {
     try {
       await updateInstructorStatus(instructorId, newStatus);
       toast.success(`Instructor status updated to ${newStatus}`);
+
+      // Refresh the instructors list to show updated status
+      await getAllInstructors(currentPage, coursesPerPage, selectedFilter);
     } catch (err) {
       toast.error('Failed to update instructor status');
     }

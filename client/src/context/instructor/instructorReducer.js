@@ -18,61 +18,65 @@ const instructorReducer = (state, action) => {
         totalInstructors: action.payload.total || action.payload.instructors.length,
         loading: false
       };
-    
+
     case GET_INSTRUCTOR:
       return {
         ...state,
         currentInstructor: action.payload,
         loading: false
       };
-    
+
     case UPDATE_INSTRUCTOR_STATUS:
       return {
         ...state,
-        instructors: state.instructors.map(instructor => 
-          instructor._id === action.payload._id ? action.payload : instructor
+        instructors: state.instructors.map(instructor =>
+          instructor.id === action.payload._id ? action.payload : instructor
         ),
+        // Also update currentInstructor if it's the same instructor
+        currentInstructor: state.currentInstructor &&
+          state.currentInstructor._id === action.payload._id ?
+          action.payload : state.currentInstructor,
         loading: false
       };
-    
+
     case FILTER_INSTRUCTORS:
       return {
         ...state,
         filtered: state.instructors.filter(instructor => {
           const regex = new RegExp(`${action.payload}`, 'gi');
           return (
-            instructor.name.match(regex) || 
+            instructor.name.match(regex) ||
             instructor._id.match(regex) ||
             instructor.status.match(regex)
           );
         })
       };
-    
+
     case CLEAR_FILTER:
       return {
         ...state,
         filtered: null
       };
-    
+
     case INSTRUCTOR_ERROR:
       return {
         ...state,
         error: action.payload,
         loading: false
       };
-    
+
     case CLEAR_INSTRUCTOR_ERROR:
       return {
         ...state,
         error: null
       };
-    
+
     case SET_INSTRUCTOR_LOADING:
       return {
         ...state,
         loading: true
       };
-    
+
     default:
       return state;
   }

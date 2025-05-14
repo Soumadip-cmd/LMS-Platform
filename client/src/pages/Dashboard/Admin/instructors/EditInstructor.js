@@ -112,21 +112,26 @@ const EditInstructor = () => {
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     try {
       // In a real implementation, you would update all the instructor details
       // For now, we're only updating the status since that's the only API we have
-      
+
       // Map frontend status to API status format
       const statusMap = {
         "instructor": "Active",
         "suspended": "Suspended",
-        "pending": "Pending"
+        "pending": "Pending",
+        "student": "Pending",
+        "admin": "Active"
       };
-      
+
       // Update instructor status
-      await updateInstructorStatus(id, statusMap[formData.role]);
-      
+      await updateInstructorStatus(id, statusMap[formData.role] || "Pending");
+
+      // Refresh instructor data
+      await getInstructorById(id);
+
       toast.success("Instructor updated successfully");
       navigate(`/admin/instructors/${id}`);
     } catch (err) {
@@ -186,10 +191,10 @@ const EditInstructor = () => {
                       <div className="flex space-x-2">
                         <label className="cursor-pointer">
                           <span className="px-4 py-2 bg-white border border-gray-300 rounded-md text-sm">Upload Photo</span>
-                          <input 
-                            type="file" 
-                            accept="image/jpeg,image/png,image/jpg" 
-                            className="hidden" 
+                          <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/jpg"
+                            className="hidden"
                             onChange={handlePhotoChange}
                           />
                         </label>
@@ -423,10 +428,10 @@ const EditInstructor = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-2">Upload your Resume</label>
                     <label className="flex items-center justify-center w-full p-3 border border-gray-300 rounded-md cursor-pointer">
                       <Upload size={20} className="mr-2" />
-                      <input 
-                        type="file" 
-                        accept=".pdf,.doc,.docx" 
-                        className="hidden" 
+                      <input
+                        type="file"
+                        accept=".pdf,.doc,.docx"
+                        className="hidden"
                         onChange={handleResumeChange}
                       />
                     </label>

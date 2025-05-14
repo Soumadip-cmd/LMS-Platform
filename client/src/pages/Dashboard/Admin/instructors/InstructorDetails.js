@@ -9,10 +9,13 @@ const InstructorDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const instructorContext = useContext(InstructorContext);
-  const { currentInstructor, loading, error, getInstructorById } = instructorContext;
+  const { currentInstructor, loading, error, getInstructorById, updateInstructorStatus } = instructorContext;
 
   // Local state for formatted date
   const [formattedDate, setFormattedDate] = useState("");
+
+  // State to track if we need to refresh data
+  const [refreshData, setRefreshData] = useState(false);
 
   useEffect(() => {
     const fetchInstructorDetails = async () => {
@@ -25,7 +28,7 @@ const InstructorDetails = () => {
 
     fetchInstructorDetails();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+  }, [id, refreshData]);
 
   useEffect(() => {
     // Format the date when instructor data is loaded
@@ -44,11 +47,11 @@ const InstructorDetails = () => {
   // Function to get status class
   const getStatusClass = (status) => {
     if (!status) return "bg-gray-500 text-white";
-    
-    const applicationStatus = 
+
+    const applicationStatus =
       status === "approved" ? "Active" :
       status === "suspended" ? "Suspended" : "Pending";
-      
+
     switch (applicationStatus) {
       case "Active":
         return "bg-blue-500 text-white";
@@ -65,6 +68,44 @@ const InstructorDetails = () => {
   const formatStatus = (status) => {
     if (!status) return "Pending";
     return status === "approved" ? "Active" : status === "suspended" ? "Suspended" : "Pending";
+  };
+
+  // Handle resume download
+  const handleResumeDownload = () => {
+    if (currentInstructor?.instructorProfile?.resumeUrl) {
+      // If there's a resume URL, open it in a new tab
+      window.open(currentInstructor.instructorProfile.resumeUrl, '_blank');
+    } else {
+      toast.error("No resume available for download");
+    }
+  };
+
+  // Handle status change
+  const handleStatusChange = async () => {
+    if (!currentInstructor) return;
+
+    try {
+      const currentStatus = currentInstructor.instructorProfile?.applicationStatus;
+      let newStatus;
+
+      // Cycle through statuses: approved -> suspended -> pending -> approved
+      if (currentStatus === "approved") {
+        newStatus = "Suspended";
+      } else if (currentStatus === "suspended") {
+        newStatus = "Pending";
+      } else {
+        newStatus = "Active";
+      }
+
+      await updateInstructorStatus(id, newStatus);
+
+      // Refresh the data
+      setRefreshData(!refreshData);
+
+      toast.success(`Status updated to ${newStatus}`);
+    } catch (err) {
+      toast.error("Failed to update status");
+    }
   };
 
   return (
@@ -115,23 +156,28 @@ const InstructorDetails = () => {
                     <h2 className="text-xl font-semibold">{currentInstructor.name}</h2>
                     <p className="text-gray-500">{currentInstructor.email}</p>
                     <span
-                      className={`inline-block px-4 py-1 rounded-full text-sm font-medium mt-2 ${getStatusClass(
+                      onClick={handleStatusChange}
+                      className={`inline-block px-4 py-1 rounded-full text-sm font-medium mt-2 cursor-pointer ${getStatusClass(
                         currentInstructor.instructorProfile?.applicationStatus
                       )}`}
+                      title="Click to change status"
                     >
                       {formatStatus(currentInstructor.instructorProfile?.applicationStatus)}
                     </span>
                   </div>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-2">
-                  <button 
+                  <button
                     onClick={() => navigate(`/admin/instructors/edit/${id}`)}
                     className="flex items-center justify-center gap-2 border border-blue-500 text-blue-500 py-2 px-4 rounded-md"
                   >
                     <Edit size={20} />
                     Edit Profile
                   </button>
-                  <button className="flex items-center justify-center gap-2 bg-yellow-400 text-white py-2 px-4 rounded-md">
+                  <button
+                    onClick={handleResumeDownload}
+                    className="flex items-center justify-center gap-2 bg-yellow-400 text-white py-2 px-4 rounded-md"
+                  >
                     <Download size={20} />
                     Download Resume
                   </button>
@@ -254,7 +300,7 @@ const InstructorDetails = () => {
                     <h3 className="text-lg font-medium">Courses</h3>
                     <button className="text-blue-500 text-sm font-medium">View All</button>
                   </div>
-                  
+
                   {currentInstructor.instructorProfile?.courses?.length > 0 ? (
                     <div className="space-y-4">
                       {/* Course items would go here */}
