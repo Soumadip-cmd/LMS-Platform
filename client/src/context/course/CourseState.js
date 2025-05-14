@@ -8,10 +8,10 @@ import {
   COURSE_ERROR,
   CLEAR_COURSE_ERROR,
   GET_COURSE_PROGRESS,
-  GET_DASHBOARD_STATS,
+  GET_COURSE_DASHBOARD_STATS,
   UPDATE_COURSE,
   CREATE_COURSE,
-  SET_LOADING  
+  SET_LOADING
 } from '../types';
 
 const CourseState = (props) => {
@@ -29,12 +29,12 @@ const CourseState = (props) => {
 
 
 
-  
+
   // Get published courses
   const getPublishedCourses = async () => {
     try {
       const res = await axios.get('/courses/published');
-      
+
       dispatch({
         type: GET_COURSES,
         payload: res.data.courses
@@ -56,14 +56,14 @@ const CourseState = (props) => {
           'Content-Type': 'multipart/form-data'
         }
       };
-      
+
       const res = await axios.post('/courses/create', formData, config);
-          
+
       dispatch({
         type: CREATE_COURSE,
         payload: res.data.course
       });
-      
+
       return res.data.course;
     } catch (err) {
       dispatch({
@@ -72,7 +72,7 @@ const CourseState = (props) => {
       });
     }
   };
-  
+
   // Update live course settings
   const updateLiveCourseSettings = async (courseId, liveCourseSettings) => {
     try {
@@ -81,14 +81,14 @@ const CourseState = (props) => {
           'Content-Type': 'application/json'
         }
       };
-      
+
       const res = await axios.patch(`/live/courses/${courseId}/live-settings`, liveCourseSettings, config);
-      
+
       dispatch({
         type: UPDATE_COURSE,
         payload: res.data.course
       });
-      
+
       return res.data.course;
     } catch (err) {
       dispatch({
@@ -101,7 +101,7 @@ const CourseState = (props) => {
   const searchCourses = async (params) => {
     try {
       const res = await axios.get('/courses/search', { params });
-      
+
       dispatch({
         type: GET_COURSES,
         payload: res.data.courses
@@ -118,7 +118,7 @@ const CourseState = (props) => {
   const getCourseById = async (courseId) => {
     try {
       const res = await axios.get(`/courses/${courseId}`);
-      
+
       dispatch({
         type: GET_COURSE,
         payload: res.data.course
@@ -135,9 +135,9 @@ const CourseState = (props) => {
   const getDashboardStats = async () => {
     try {
       const res = await axios.get('/progress/dashboard-stats');
-      
+
       dispatch({
-        type: GET_DASHBOARD_STATS,
+        type: GET_COURSE_DASHBOARD_STATS,
         payload: res.data.stats
       });
     } catch (err) {
@@ -154,7 +154,7 @@ const CourseState = (props) => {
       const res = await axios.get('/progress/courses-progress', {
         params: { status }
       });
-      
+
       dispatch({
         type: GET_COURSE_PROGRESS,
         payload: res.data.progress
@@ -170,18 +170,18 @@ const CourseState = (props) => {
     try {
       const { limit, language, level } = params;
       const queryParams = new URLSearchParams();
-      
+
       if (limit) queryParams.append('limit', limit);
       if (language) queryParams.append('language', language);
       if (level) queryParams.append('level', level);
-      
+
       const res = await axios.get(`/courses/top?${queryParams.toString()}`);
-      
+
       dispatch({
         type: GET_COURSES,
         payload: res.data.topCourses
       });
-      
+
       return res.data.topCourses;
     } catch (err) {
       dispatch({
@@ -190,39 +190,39 @@ const CourseState = (props) => {
       });
     }
   };
-  
+
   // Get featured courses with filtering
   const getFeaturedCourses = async (params = {}) => {
     dispatch({ type: SET_LOADING });
     try {
       const { limit, page, language, level, sortBy, price } = params;
       const queryParams = new URLSearchParams();
-      
+
       if (limit) queryParams.append('limit', limit);
       if (page) queryParams.append('page', page);
       if (sortBy) queryParams.append('sortBy', sortBy);
       if (price) queryParams.append('price', price);
-      
+
       // Handle array parameters
       if (language && Array.isArray(language)) {
         language.forEach(lang => queryParams.append('language', lang));
       } else if (language) {
         queryParams.append('language', language);
       }
-      
+
       if (level && Array.isArray(level)) {
         level.forEach(lvl => queryParams.append('level', lvl));
       } else if (level) {
         queryParams.append('level', level);
       }
-      
+
       const res = await axios.get(`/courses/featured?${queryParams.toString()}`);
-      
+
       dispatch({
         type: GET_COURSES,
         payload: res.data.featuredCourses
       });
-      
+
       return {
         courses: res.data.featuredCourses,
         pagination: res.data.pagination
@@ -254,8 +254,8 @@ const CourseState = (props) => {
         clearErrors,
         createCourse,
         updateLiveCourseSettings,
-        getTopCourses,          
-        getFeaturedCourses      
+        getTopCourses,
+        getFeaturedCourses
       }}
     >
       {props.children}

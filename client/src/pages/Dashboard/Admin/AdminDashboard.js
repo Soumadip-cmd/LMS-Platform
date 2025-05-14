@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   BarChart2,
   Settings,
@@ -14,44 +14,112 @@ import {
   Award,
   Menu,
   X,
+  CheckCircle,
+  AlertTriangle,
+  XCircle,
 } from "lucide-react";
+import { toast } from "react-hot-toast";
+import AdminContext from "../../../context/admin/adminContext";
+import AuthContext from "../../../context/auth/authContext";
 import AdminSidebar from "./AdminSidebar";
 
 const AdminDashboard = () => {
-  // No sidebar state needed
+  // Get admin context
+  const adminContext = useContext(AdminContext);
+  const {
+    dashboardStats,
+    studentStats,
+    courseAnalytics,
+    supportInsights,
+    topCourses,
+    totalCourses,
+    loading,
+    getDashboardStats,
+    getStudentStats,
+    getCourseAnalytics,
+    getSupportInsights,
+    getTopCourses
+  } = adminContext;
 
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(2);
-  const coursesPerPage = 10;
-  const totalCourses = 97;
+  // Get auth context for user information
+  const authContext = useContext(AuthContext);
+  const { user } = authContext;
+
+  // Local state
+  const [courses, setCourses] = useState(topCourses || []);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [coursesPerPage, setCoursesPerPage] = useState(10);
+  const [loadingCourses, setLoadingCourses] = useState(false);
+
+  // Calculate total pages
   const totalPages = Math.ceil(totalCourses / coursesPerPage);
 
-  // Course data
-  const courses = [
-    {
-      id: 1,
-      title: "Advanced German",
-      enrolled: "1234 enrolled",
-      revenue: "43$",
-    },
-    {
-      id: 2,
-      title: "Business English",
-      enrolled: "1234 enrolled",
-      revenue: "56$",
-    },
-    {
-      id: 3,
-      title: "French C1 Advanced",
-      enrolled: "1234 enrolled",
-      revenue: "23$",
-    },
-  ];
+  // Update courses when topCourses changes
+  useEffect(() => {
+    if (topCourses && topCourses.length > 0) {
+      setCourses(topCourses);
+    }
+  }, [topCourses]);
+
+  // Current date for display
+  const currentDate = new Date();
+  const formattedDate = currentDate.toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    year: 'numeric'
+  });
+  const formattedTime = currentDate.toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+
+  // Fetch dashboard data
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        // Fetch all dashboard data from context
+        await getDashboardStats();
+        await getStudentStats();
+        await getCourseAnalytics();
+        await getSupportInsights();
+
+        // Fetch top courses
+        const topCoursesData = await getTopCourses(coursesPerPage, 1);
+        if (topCoursesData && topCoursesData.courses) {
+          setCourses(topCoursesData.courses);
+        }
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+        toast.error('Failed to load dashboard data');
+      }
+    };
+
+    fetchDashboardData();
+  }, [coursesPerPage]);
+
+  // Fetch top courses when page changes
+  useEffect(() => {
+    const fetchTopCourses = async () => {
+      try {
+        setLoadingCourses(true);
+        const topCoursesData = await getTopCourses(coursesPerPage, currentPage);
+        if (topCoursesData && topCoursesData.courses) {
+          setCourses(topCoursesData.courses);
+        }
+        setLoadingCourses(false);
+      } catch (error) {
+        console.error('Error fetching top courses:', error);
+        toast.error('Failed to load course data');
+        setLoadingCourses(false);
+      }
+    };
+
+    // Always fetch data when page changes
+    fetchTopCourses();
+  }, [currentPage, coursesPerPage]);
 
   // Date display component
-  const DateDisplay = ({ date, time }) => {
-    const formattedDate = date.replace("|", " | ");
-
+  const DateDisplay = () => {
     return (
       <div
         className="inline-flex items-center rounded-full px-4 py-1 text-sm"
@@ -67,7 +135,7 @@ const AdminDashboard = () => {
         }}
       >
         <span className="text-orange-400">{formattedDate}</span>{" "}
-        <span className="text-blue-500 pl-1">{time}</span>
+        <span className="text-blue-500 pl-1">{formattedTime}</span>
       </div>
     );
   };
@@ -176,6 +244,13 @@ const AdminDashboard = () => {
       {/* Sidebar - Only visible on desktop */}
       <AdminSidebar active="Dashboard" />
 
+      {/* Loading Indicator */}
+      {loading && (
+        <div className="fixed inset-0 bg-white bg-opacity-75 flex items-center justify-center z-50">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500"></div>
+        </div>
+      )}
+
       {/* Main Content */}
       <div className="flex-1 w-full md:ml-0">
         <div className="max-w-7xl mx-auto p-2 sm:p-4">
@@ -185,10 +260,10 @@ const AdminDashboard = () => {
               <div className="w-full">
                 <div className="flex flex-col xl:flex-row xl:justify-between">
                   <h1 className="text-2xl md:text-3xl lg:text-4xl font-semibold text-[#1976D2]">
-                    Welcome Back, Prof. Deepak!
+                    Welcome Back, {user && user.name ? user.name.split(' ')[0] : 'Admin'}!
                   </h1>
                   <div className="mt-4 xl:mt-0">
-                    <DateDisplay date="Tuesday, March 2025|" time="12:10 AM" />
+                    <DateDisplay />
                   </div>
                 </div>
                 <p className="text-gray-600 text-base md:text-lg mt-4">
@@ -210,26 +285,27 @@ const AdminDashboard = () => {
                   />
                 }
                 title="Total Revenue"
-                value="$23,423"
-                trend={12}
+                value={`$${dashboardStats.revenue.total.toLocaleString()}`}
+                trend={dashboardStats.revenue.trend}
                 trendText="last month"
+                trendDown={dashboardStats.revenue.trend < 0}
               />
               <StatCard
                 icon={
                   <Users size={24} className="sm:size-32" color="#FFC107" />
                 }
-                title="Daily Order"
-                value="12334"
-                trend={12}
+                title="Daily Active Users"
+                value={dashboardStats.users.dailyActiveUsers.toLocaleString()}
+                trend={dashboardStats.users.dailyUsersTrend}
                 trendText="Yesterday"
-                trendDown={true}
+                trendDown={dashboardStats.users.dailyUsersTrend < 0}
               />
               <StatCard
                 icon={
                   <Award size={24} className="sm:size-32" color="#FFC107" />
                 }
                 title="Course Completion"
-                value="89.3%"
+                value={`${dashboardStats.courses.completionRate}%`}
                 trend={4}
                 trendText="last month"
               />
@@ -238,9 +314,10 @@ const AdminDashboard = () => {
                   <Users size={24} className="sm:size-32" color="#FFC107" />
                 }
                 title="Active Students"
-                value="1123"
-                trend={12}
-                trendText="Yesterday"
+                value={dashboardStats.users.active.toLocaleString()}
+                trend={dashboardStats.users.userGrowthTrend}
+                trendText="last month"
+                trendDown={dashboardStats.users.userGrowthTrend < 0}
               />
             </div>
 
@@ -250,8 +327,8 @@ const AdminDashboard = () => {
                 icon={
                   <BookOpen size={24} className="sm:size-32" color="#FFC107" />
                 }
-                title="Active Course"
-                value="223"
+                title="Active Courses"
+                value={dashboardStats.courses.active.toLocaleString()}
                 trend={12}
                 trendText="last month"
               />
@@ -260,27 +337,27 @@ const AdminDashboard = () => {
                   <Users size={24} className="sm:size-32" color="#FFC107" />
                 }
                 title="Active Instructors"
-                value="12334"
+                value={dashboardStats.users.instructors.toLocaleString()}
                 trend={12}
-                trendText="Yesterday"
+                trendText="last month"
               />
               <StatCard
                 icon={
-                  <BookOpen size={24} className="sm:size-32" color="#FFC107" />
+                  <Clock size={24} className="sm:size-32" color="#FFC107" />
                 }
                 title="Average Session"
-                value="20 min"
-                trend={4}
+                value={`${dashboardStats.courses.averageSessionTime} min`}
+                trend={dashboardStats.courses.sessionTimeTrend}
                 trendText="last month"
-                trendDown={true}
+                trendDown={dashboardStats.courses.sessionTimeTrend < 0}
               />
               <StatCard
                 icon={
-                  <Users size={24} className="sm:size-32" color="#FFC107" />
+                  <MessageSquare size={24} className="sm:size-32" color="#FFC107" />
                 }
-                title="Active Students"
-                value="1123"
-                trend={12}
+                title="Support Tickets"
+                value={dashboardStats.support.totalTickets.toLocaleString()}
+                trend={10}
                 trendText="last month"
               />
             </div>
@@ -305,18 +382,18 @@ const AdminDashboard = () => {
                     <div className="grid grid-cols-2 gap-2">
                       <div className="col-span-1 bg-white rounded-md px-2 pt-4 sm:pt-6 flex flex-col justify-between">
                         <div className="text-2xl sm:text-4xl font-bold text-center">
-                          <span className="numbers">143</span>
+                          <span className="numbers">{studentStats.totalStudents.toLocaleString()}</span>
                         </div>
                         <div className="text-sm sm:text-base text-gray-500 text-center mt-1 px-2 sm:px-4 py-2 pb-3 sm:pb-5">
-                          Total Student
+                          Total Students
                         </div>
                       </div>
                       <div className="col-span-1 bg-white rounded-md px-2 pt-4 sm:pt-6 flex flex-col justify-between">
                         <div className="text-2xl sm:text-4xl font-bold text-center">
-                          <span className="numbers">123</span>
+                          <span className="numbers">{studentStats.activeStudentsPerDay.toLocaleString()}</span>
                         </div>
                         <div className="text-sm sm:text-base text-gray-500 text-center mt-1 px-2 sm:px-4 py-2">
-                          Active Student per Day
+                          Active Students per Day
                         </div>
                       </div>
                     </div>
@@ -326,7 +403,7 @@ const AdminDashboard = () => {
                           Average Rating
                         </div>
                         <div className="text-amber-500 font-bold text-lg sm:text-xl">
-                          <span className="numbers">4.7</span>
+                          <span className="numbers">{studentStats.averageRating.toFixed(1)}</span>
                           <span className="text-gray-500 text-xs sm:text-sm">
                             /<span className="numbers">5.0</span>
                           </span>
@@ -335,7 +412,7 @@ const AdminDashboard = () => {
                       <div className="mt-2 w-full bg-white rounded-full h-2">
                         <div
                           className="bg-amber-400 h-2 rounded-full"
-                          style={{ width: "85%" }}
+                          style={{ width: `${(studentStats.averageRating / 5) * 100}%` }}
                         ></div>
                       </div>
                     </div>
@@ -353,7 +430,7 @@ const AdminDashboard = () => {
                     <div className="grid grid-cols-2 gap-2">
                       <div className="col-span-1 bg-white rounded-md px-2 pt-4 sm:pt-6 flex flex-col justify-between">
                         <div className="text-2xl sm:text-4xl font-bold text-center">
-                          <span className="numbers">143</span>
+                          <span className="numbers">{courseAnalytics.totalCourses.toLocaleString()}</span>
                         </div>
                         <div className="text-sm sm:text-base text-gray-500 text-center mt-1 px-2 sm:px-4 py-2 pb-3 sm:pb-5">
                           Total Courses
@@ -361,7 +438,7 @@ const AdminDashboard = () => {
                       </div>
                       <div className="col-span-1 bg-white rounded-md px-2 pt-4 sm:pt-6 flex flex-col justify-between">
                         <div className="text-2xl sm:text-4xl font-bold text-center">
-                          <span className="numbers">13</span>
+                          <span className="numbers">{courseAnalytics.activeCoursesPerDay.toLocaleString()}</span>
                         </div>
                         <div className="text-sm sm:text-base text-gray-500 text-center mt-1 px-2 sm:px-4 py-2">
                           Active Courses per Day
@@ -374,7 +451,7 @@ const AdminDashboard = () => {
                           Average Rating
                         </div>
                         <div className="text-blue-500 font-bold text-lg sm:text-xl">
-                          <span className="numbers">4.7</span>
+                          <span className="numbers">{courseAnalytics.averageRating.toFixed(1)}</span>
                           <span className="text-gray-500 text-xs sm:text-sm">
                             /<span className="numbers">5.0</span>
                           </span>
@@ -383,7 +460,7 @@ const AdminDashboard = () => {
                       <div className="mt-2 w-full bg-white rounded-full h-2">
                         <div
                           className="bg-blue-500 h-2 rounded-full"
-                          style={{ width: "85%" }}
+                          style={{ width: `${(courseAnalytics.averageRating / 5) * 100}%` }}
                         ></div>
                       </div>
                     </div>
@@ -403,23 +480,23 @@ const AdminDashboard = () => {
                         Total Tickets
                       </span>
                       <span className="text-2xl sm:text-4xl font-bold">
-                        <span className="numbers">143</span>
+                        <span className="numbers">{supportInsights.totalTickets}</span>
                       </span>
                     </div>
                     <div className="flex items-center justify-between bg-white rounded-sm p-2 px-4 sm:px-8">
                       <span className="text-sm sm:text-md text-gray-600">
-                        Total Tickets
+                        Open Tickets
                       </span>
                       <span className="text-2xl sm:text-4xl font-bold text-green-500">
-                        <span className="numbers">44</span>
+                        <span className="numbers">{supportInsights.openTickets}</span>
                       </span>
                     </div>
                     <div className="flex items-center justify-between bg-white rounded-sm p-2 px-4 sm:px-8">
                       <span className="text-sm sm:text-md text-gray-600">
-                        Total Tickets
+                        Resolved Tickets
                       </span>
                       <span className="text-2xl sm:text-4xl font-bold text-red-500">
-                        <span className="numbers">32</span>
+                        <span className="numbers">{supportInsights.resolvedTickets}</span>
                       </span>
                     </div>
                   </div>
@@ -441,23 +518,23 @@ const AdminDashboard = () => {
                         Total Tickets
                       </span>
                       <span className="text-2xl sm:text-4xl font-bold">
-                        <span className="numbers">143</span>
+                        <span className="numbers">{supportInsights.totalTickets}</span>
                       </span>
                     </div>
                     <div className="flex items-center justify-between bg-white rounded-sm p-2 px-4 sm:px-8">
                       <span className="text-sm sm:text-md text-gray-600">
-                        Total Tickets
+                        Open Tickets
                       </span>
                       <span className="text-2xl sm:text-4xl font-bold text-green-500">
-                        <span className="numbers">44</span>
+                        <span className="numbers">{supportInsights.openTickets}</span>
                       </span>
                     </div>
                     <div className="flex items-center justify-between bg-white rounded-sm p-2 px-4 sm:px-8">
                       <span className="text-sm sm:text-md text-gray-600">
-                        Total Tickets
+                        Resolved Tickets
                       </span>
                       <span className="text-2xl sm:text-4xl font-bold text-red-500">
-                        <span className="numbers">32</span>
+                        <span className="numbers">{supportInsights.resolvedTickets}</span>
                       </span>
                     </div>
                   </div>
@@ -478,39 +555,58 @@ const AdminDashboard = () => {
                     className="ml-2 w-5 h-5 sm:w-auto sm:h-auto"
                   />
                 </div>
-                <button className="px-2 py-1 border border-[#FFBE33] text-gray-500 rounded-md text-sm sm:text-base font-medium hover:bg-yellow-600 hover:bg-opacity-15 flex items-center">
+                <button
+                  onClick={() => {
+                    // Set a larger page size to view more courses
+                    setCoursesPerPage(50);
+                    // Reset to first page
+                    setCurrentPage(1);
+                  }}
+                  className="px-2 py-1 border border-[#FFBE33] text-gray-500 rounded-md text-sm sm:text-base font-medium hover:bg-yellow-600 hover:bg-opacity-15 flex items-center"
+                >
                   View All <ChevronRight size={12} className="ml-1" />
                 </button>
               </div>
 
               <div className="overflow-x-auto">
-                <table className="min-w-full">
-                  <tbody>
-                    {courses.map((course) => (
-                      <tr key={course.id} className="border-b">
-                        <td className="py-3">
-                          <div className="font-normal text-sm sm:text-base">
-                            {course.title}
-                          </div>
-                          <div className="text-sm sm:text-base text-gray-500">
-                            <span className="numbers">1234</span> enrolled
-                          </div>
-                        </td>
-                        <td className="py-3 text-right">
-                          <div className="text-blue-500 font-medium text-sm sm:text-base">
-                            <span className="numbers">
-                              {course.revenue.replace("$", "")}
-                            </span>
-                            $
-                          </div>
-                          <div className="text-sm sm:text-base text-[#00562E]">
-                            Revenue
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                {loadingCourses ? (
+                  <div className="py-8 flex justify-center items-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+                    <span className="ml-2 text-gray-500">Loading courses...</span>
+                  </div>
+                ) : courses.length === 0 ? (
+                  <div className="py-8 text-center text-gray-500">
+                    No courses found
+                  </div>
+                ) : (
+                  <table className="min-w-full">
+                    <tbody>
+                      {courses.map((course) => (
+                        <tr key={course.id} className="border-b">
+                          <td className="py-3">
+                            <div className="font-normal text-sm sm:text-base">
+                              {course.title}
+                            </div>
+                            <div className="text-sm sm:text-base text-gray-500">
+                              {course.enrolled}
+                            </div>
+                          </td>
+                          <td className="py-3 text-right">
+                            <div className="text-blue-500 font-medium text-sm sm:text-base">
+                              <span className="numbers">
+                                {course.revenue.replace("$", "")}
+                              </span>
+                              $
+                            </div>
+                            <div className="text-sm sm:text-base text-[#00562E]">
+                              Revenue
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
               </div>
 
               {/* Modify this section in your AdminDashboard component */}
@@ -556,53 +652,77 @@ const AdminDashboard = () => {
                       </svg>
                     </button>
 
-                    {/* Fixed set of page buttons */}
+                    {/* Dynamic page buttons */}
                     <div className="inline-flex space-x-1">
-                      {[1, 2, 3, 4, 5, 6, 7].map((pageNum) => (
-                        <button
-                          key={pageNum}
-                          onClick={() => handlePageChange(pageNum)}
-                          className={`w-8 h-8 flex items-center justify-center rounded-full 
-              ${
-                pageNum === currentPage
-                  ? "text-white bg-blue-500"
-                  : "text-blue-500"
-              }
-              ${pageNum > 5 ? "hidden sm:flex" : "flex"}`}
-                        >
-                          <span className="numbers">{pageNum}</span>
-                        </button>
-                      ))}
-                    </div>
+                      {(() => {
+                        // Generate page numbers dynamically
+                        const pageNumbers = [];
+                        const maxVisiblePages = 5; // Maximum number of page buttons to show
 
-                    {/* Ellipsis - always visible on non-mobile */}
-                    <span className="mx-1 hidden sm:inline">...</span>
+                        if (totalPages <= maxVisiblePages) {
+                          // If we have 5 or fewer pages, show all of them
+                          for (let i = 1; i <= totalPages; i++) {
+                            pageNumbers.push(i);
+                          }
+                        } else {
+                          // Always show first page
+                          pageNumbers.push(1);
 
-                    {/* Last two pages - always visible on non-mobile */}
-                    <div className="hidden sm:inline-flex space-x-1">
-                      <button
-                        onClick={() => handlePageChange(totalPages - 1)}
-                        className={`w-8 h-8 flex items-center justify-center rounded-full 
-            ${
-              currentPage === totalPages - 1
-                ? "text-white bg-blue-500"
-                : "text-blue-500"
-            }`}
-                      >
-                        <span className="numbers">{totalPages - 1}</span>
-                      </button>
+                          // Calculate start and end of the middle section
+                          let startPage = Math.max(2, currentPage - 1);
+                          let endPage = Math.min(totalPages - 1, currentPage + 1);
 
-                      <button
-                        onClick={() => handlePageChange(totalPages)}
-                        className={`w-8 h-8 flex items-center justify-center rounded-full 
-            ${
-              currentPage === totalPages
-                ? "text-white bg-blue-500"
-                : "text-blue-500"
-            }`}
-                      >
-                        <span className="numbers">{totalPages}</span>
-                      </button>
+                          // Adjust if we're near the beginning
+                          if (currentPage <= 3) {
+                            endPage = Math.min(totalPages - 1, 4);
+                          }
+
+                          // Adjust if we're near the end
+                          if (currentPage >= totalPages - 2) {
+                            startPage = Math.max(2, totalPages - 3);
+                          }
+
+                          // Add ellipsis if needed before middle section
+                          if (startPage > 2) {
+                            pageNumbers.push('...');
+                          }
+
+                          // Add middle section
+                          for (let i = startPage; i <= endPage; i++) {
+                            pageNumbers.push(i);
+                          }
+
+                          // Add ellipsis if needed after middle section
+                          if (endPage < totalPages - 1) {
+                            pageNumbers.push('...');
+                          }
+
+                          // Always show last page
+                          pageNumbers.push(totalPages);
+                        }
+
+                        return pageNumbers.map((pageNum, index) => {
+                          if (pageNum === '...') {
+                            return (
+                              <span key={`ellipsis-${index}`} className="mx-1 flex items-center">
+                                ...
+                              </span>
+                            );
+                          }
+
+                          return (
+                            <button
+                              key={`page-${pageNum}`}
+                              onClick={() => handlePageChange(pageNum)}
+                              className={`w-8 h-8 flex items-center justify-center rounded-full
+                                ${pageNum === currentPage ? "text-white bg-blue-500" : "text-blue-500"}
+                              `}
+                            >
+                              <span className="numbers">{pageNum}</span>
+                            </button>
+                          );
+                        });
+                      })()}
                     </div>
 
                     <button

@@ -1,15 +1,15 @@
-import { 
+import {
     GET_COURSES,
     GET_COURSE,
     COURSE_ERROR,
     CLEAR_COURSE_ERROR,
     GET_COURSE_PROGRESS,
-    GET_DASHBOARD_STATS,
+    GET_COURSE_DASHBOARD_STATS,
     CREATE_COURSE,
     UPDATE_COURSE,
     SET_LOADING
   } from '../types';
-  
+
   const courseReducer = (state, action) => {
     switch (action.type) {
       case CREATE_COURSE:
@@ -27,7 +27,7 @@ case UPDATE_COURSE:
   return {
     ...state,
     currentCourse: action.payload,
-    courses: state.courses.map(course => 
+    courses: state.courses.map(course =>
       course._id === action.payload._id ? action.payload : course
     ),
     loading: false
@@ -50,7 +50,7 @@ case UPDATE_COURSE:
           coursesProgress: action.payload,
           loading: false
         };
-      case GET_DASHBOARD_STATS:
+      case GET_COURSE_DASHBOARD_STATS:
         return {
           ...state,
           dashboardStats: action.payload,
@@ -71,5 +71,5 @@ case UPDATE_COURSE:
         return state;
     }
   };
-  
+
   export default courseReducer;
