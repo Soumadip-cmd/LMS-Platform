@@ -1,5 +1,6 @@
 import React from 'react';
 import TagStyle from '../../components/TagStyle/TagStyle';
+import { Link, useNavigate } from 'react-router-dom';
 
 const ExamCard = ({ 
   title, 
@@ -71,6 +72,8 @@ const ExamCard = ({
 };
 
 const Exams = () => {
+  const navigate = useNavigate();
+  
   const examData = [
     {
       title: "TELC B1",
@@ -154,11 +157,14 @@ const Exams = () => {
           ))}
         </div>
         
-        <div className="mt-8 text-center">
-          <button className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-8 rounded-md transform hover:scale-110 transition-all duration-300 ease-in-out">
-            View All Exams
-          </button>
-        </div>
+        <div className="flex justify-center mt-10">
+        <button
+          className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-3 px-8 rounded-md transition duration-300 w-full md:w-auto md:min-w-64 transform hover:scale-105"
+          onClick={() => navigate('/exams')}
+        >
+          View All Exams
+        </button>
+      </div>
       </div>
     </div>
   );

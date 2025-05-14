@@ -96,7 +96,7 @@ const CourseSection = () => {
             <div className="flex items-center justify-between mb-4">
               <div className="text-blue-600 font-bold">₹ 499/course</div>
             </div>
-            <button className="w-full bg-yellow-400 hover:bg-yellow-500 text-white font-bold py-2 px-4 rounded transition duration-200">
+            <button className="w-full bg-[#FFB71C] hover:bg-yellow-500 text-white font-bold py-2 px-4 rounded transition duration-200">
               Select Course
             </button>
           </div>
@@ -135,7 +135,7 @@ const CourseSection = () => {
             <div className="flex items-center justify-between mb-4">
               <div className="text-green-700 font-bold">₹ 499/course</div>
             </div>
-            <button className="w-full bg-yellow-400 hover:bg-yellow-500 text-white font-bold py-2 px-4 rounded transition duration-200">
+            <button className="w-full bg-[#FFB71C] hover:bg-yellow-500 text-white font-bold py-2 px-4 rounded transition duration-200">
               Select Course
             </button>
           </div>
@@ -171,7 +171,7 @@ const CourseSection = () => {
             <div className="flex items-center justify-between mb-4">
               <div className="text-purple-600 font-bold">₹ 499/course</div>
             </div>
-            <button className="w-full bg-yellow-400 hover:bg-yellow-500 text-white font-bold py-2 px-4 rounded transition duration-200">
+            <button className="w-full bg-[#FFB71C] hover:bg-yellow-500 text-white font-bold py-2 px-4 rounded transition duration-200">
               Select Course
             </button>
           </div>
@@ -210,7 +210,7 @@ const CourseSection = () => {
             <div className="flex items-center justify-between mb-4">
               <div className="text-blue-600 font-bold">₹ 499/course</div>
             </div>
-            <button className="w-full bg-yellow-400 hover:bg-yellow-500 text-white font-bold py-2 px-4 rounded transition duration-200">
+            <button className="w-full bg-[#FFB71C] hover:bg-yellow-500 text-white font-bold py-2 px-4 rounded transition duration-200">
               Select Course
             </button>
           </div>

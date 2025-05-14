@@ -1,13 +1,27 @@
 
 
 import React, { useEffect, useContext, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import TagStyle from '../../components/TagStyle/TagStyle';
 import CourseContext from '../../context/course/courseContext';
 
 const Courses = () => {
+  const navigate = useNavigate();
   const courseContext = useContext(CourseContext);
   const { getTopCourses, loading } = courseContext;
   const [topCourses, setTopCourses] = useState([]);
+
+  // Handle course click - navigate to different routes based on course language
+  const handleCourseClick = (course) => {
+    // If it's a German-related course, navigate to /exams, otherwise navigate to /courses
+    if (course.flag === 'DE' ||
+        (course.title && course.title.toLowerCase().includes('german')) ||
+        (course.title && course.title.toLowerCase().includes('deutsch'))) {
+      navigate('/exams');
+    } else {
+      navigate('/courses');
+    }
+  };
 
   useEffect(() => {
     const fetchTopCourses = async () => {
@@ -65,7 +79,11 @@ const Courses = () => {
       ) : topCourses.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
           {topCourses.map((course) => (
-            <div key={course.id} className="relative overflow-hidden rounded-lg shadow-md group cursor-pointer">
+            <div
+              key={course.id}
+              className="relative overflow-hidden rounded-lg shadow-md group cursor-pointer"
+              onClick={() => handleCourseClick(course)}
+            >
               <div className="relative h-48 overflow-hidden">
                 <img
                   src={course.bgImage}
@@ -77,10 +95,10 @@ const Courses = () => {
                   <div className="flex items-center space-x-2">
                     <div className={`w-6 h-6 rounded-full flex items-center justify-center ${course.flagBg} overflow-hidden`}>
                       {course.flagImage ? (
-                        <img 
-                          src={course.flagImage} 
-                          alt={course.flag} 
-                          className="w-full h-full object-cover" 
+                        <img
+                          src={course.flagImage}
+                          alt={course.flag}
+                          className="w-full h-full object-cover"
                         />
                       ) : (
                         <span className="text-xs text-white font-bold">{course.flag}</span>
@@ -107,13 +125,16 @@ const Courses = () => {
       )}
 
       <div className="flex justify-center mt-10">
-        <button className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-3 px-8 rounded-md transition duration-300 w-full md:w-auto md:min-w-64 transform hover:scale-105">
+        <button
+          className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-3 px-8 rounded-md transition duration-300 w-full md:w-auto md:min-w-64 transform hover:scale-105"
+          onClick={() => navigate('/courses')}
+        >
           View All Courses
         </button>
       </div>
 
       <div className="fixed bottom-6 right-6 z-50">
-        <button 
+        <button
           className="bg-blue-700 hover:bg-blue-800 text-white rounded-full w-12 h-12 flex items-center justify-center shadow-lg transform hover:scale-105 transition duration-300"
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           aria-label="Scroll to top"

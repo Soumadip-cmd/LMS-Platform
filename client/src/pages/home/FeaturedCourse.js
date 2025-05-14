@@ -8,33 +8,33 @@ import CourseContext from '../../context/course/courseContext';
 
 const FeaturedCourses = () => {
   console.log("FeaturedCourses component rendering");
-  
+
   const [activeSlide, setActiveSlide] = useState(0);
   const [filterOption, setFilterOption] = useState("popularity");
   const [showFilterMenu, setShowFilterMenu] = useState(false);
   const navigate = useNavigate();
-  
+
   // Get context
   const courseContext = useContext(CourseContext);
   const { getFeaturedCourses, loading, courses, error } = courseContext;
-  
+
   // State for pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCourses, setTotalCourses] = useState(0);
-  
+
   // Refs to track previous values
   const prevPageRef = useRef(currentPage);
   const prevFilterRef = useRef(filterOption);
   const isFirstRenderRef = useRef(true);
   const apiCallCountRef = useRef(0);
-  
+
   // Controlled API call with detailed logging
   useEffect(() => {
     const fetchFeaturedCourses = async () => {
       // Track API call count
       apiCallCountRef.current += 1;
       const callNumber = apiCallCountRef.current;
-      
+
       console.log(`[API Call #${callNumber}] Starting API request with parameters:`, {
         page: currentPage,
         limit: 4,
@@ -44,7 +44,7 @@ const FeaturedCourses = () => {
         prevPage: prevPageRef.current,
         prevFilter: prevFilterRef.current
       });
-      
+
       try {
         // Call API with filter parameters
         console.log(`[API Call #${callNumber}] Calling getFeaturedCourses...`);
@@ -53,9 +53,9 @@ const FeaturedCourses = () => {
           limit: 4,
           sortBy: filterOption
         });
-        
+
         console.log(`[API Call #${callNumber}] API call successful:`, result);
-        
+
         if (result && result.pagination) {
           console.log(`[API Call #${callNumber}] Setting total courses to:`, result.pagination.total);
           setTotalCourses(result.pagination.total);
@@ -66,7 +66,7 @@ const FeaturedCourses = () => {
         console.log(`[API Call #${callNumber}] API call complete`);
       }
     };
-    
+
     // Log render reason
     if (isFirstRenderRef.current) {
       console.log("API call triggered by initial render");
@@ -78,7 +78,7 @@ const FeaturedCourses = () => {
     } else {
       console.log("API call triggered by other state change or context update");
     }
-    
+
     // Only fetch if not already loading
     if (!loading) {
       console.log("Loading state is false, proceeding with API call");
@@ -86,11 +86,11 @@ const FeaturedCourses = () => {
     } else {
       console.log("Loading state is true, skipping API call");
     }
-    
+
     // Update previous values after the effect runs
     prevPageRef.current = currentPage;
     prevFilterRef.current = filterOption;
-    
+
   }, [currentPage, filterOption, loading]); // Removed getFeaturedCourses from dependencies
 
   const handleDotClick = (index) => {
@@ -103,22 +103,31 @@ const FeaturedCourses = () => {
   const handleEnrollClick = (courseId, courseType) => {
     console.log(`Enroll clicked for course: ${courseId}, type: ${courseType}`);
     if (courseType === "Live Online") {
-      navigate(`/details/live-online/${courseId}`);
+      navigate(`/details/live-online`);
     } else if (courseType === "Recorded") {
-      navigate(`/details/recorded-class/${courseId}`);
+      navigate(`/details/recorded-class`);
     }
   };
-  
+
   const handleFilterChange = (option) => {
     console.log(`Filter changed to: ${option}`);
     setFilterOption(option);
     setShowFilterMenu(false);
   };
-  
+
   // Function to determine course type based on course data
+  // Modified to make a balanced mix of "Live Online" and "Recorded" courses
   const getCourseType = (course) => {
-    const courseType = course.isLive ? "Live Online" : "Recorded";
-    console.log(`Course ${course._id} type determined as: ${courseType}`);
+    // Use course ID to deterministically assign course type
+    // This ensures the same courses always show the same type on page refresh
+    const courseIdLastChar = course._id.charAt(course._id.length - 1);
+
+    // Make it more balanced - only 0-7 (half of hex chars) will be "Live Online"
+    const forceLiveOnline = "01234567".includes(courseIdLastChar); // ~50% chance
+
+    // If the course is already live in the database OR we're forcing it, show as "Live Online"
+    const courseType = course.isLive || forceLiveOnline ? "Live Online" : "Recorded";
+    console.log(`Course ${course._id} type determined as: ${courseType} (DB isLive: ${course.isLive}, Forced: ${forceLiveOnline})`);
     return courseType;
   };
 
@@ -149,7 +158,7 @@ const FeaturedCourses = () => {
             courses available for you
           </p>
           <div className="relative">
-            <button 
+            <button
               className="flex items-center px-4 py-2 bg-gray-100 rounded-md text-sm hover:bg-gray-200 transition-colors duration-200 shadow-md"
               onClick={() => setShowFilterMenu(!showFilterMenu)}
             >
@@ -157,7 +166,7 @@ const FeaturedCourses = () => {
               <span className="text-blue-500">Filters</span>
               <ChevronDown className="w-4 h-4 ml-2 text-blue-500" />
             </button>
-            
+
             {showFilterMenu && (
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg overflow-hidden z-10">
                 <div className="py-2">
@@ -202,7 +211,7 @@ const FeaturedCourses = () => {
               {courses.map((course, index) => {
                 const courseType = getCourseType(course);
                 const isFree = course.price === 0;
-                
+
                 return (
                   <div
                     key={course._id}
@@ -242,7 +251,7 @@ const FeaturedCourses = () => {
                       <p className="text-gray-600 text-sm">{course.description}</p>
                     </div>
                     <div className="absolute bottom-4 left-4">
-                      <button 
+                      <button
                         className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md transition w-32"
                         onClick={() => handleEnrollClick(course._id, courseType)}
                       >
