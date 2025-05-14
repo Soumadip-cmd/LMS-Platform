@@ -25,7 +25,7 @@ import { Link, useNavigate } from "react-router-dom";
 const HomePage = () => {
   const [email, setEmail] = useState("");
   const navigate = useNavigate();
- 
+
   return (
     <div className=" min-h-screen flex flex-col ">
       <section className="md:mx-10">
@@ -91,9 +91,15 @@ const HomePage = () => {
                         </div>
                       </div>
 
-                      <button className="text-blue-500 border border-blue-500 px-6 py-3 rounded-[20px] hover:bg-blue-50 transition-colors duration-300">
-                        WATCH DEMO
-                      </button>
+                      <a
+                        href="https://www.youtube.com"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <button className="text-blue-500 border border-blue-500 px-6 py-3 rounded-[20px] hover:bg-blue-50 transition-colors duration-300">
+                          WATCH DEMO
+                        </button>
+                      </a>
                     </div>
                   </div>
                 </div>

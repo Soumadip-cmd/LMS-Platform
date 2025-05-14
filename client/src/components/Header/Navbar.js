@@ -1,16 +1,21 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { ChevronDown, Globe, Image, BarChart, Users, Check } from "lucide-react";
 
 const Navbar = () => {
   // State to track if mobile menu is open
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   // Track which dropdown is open in the mobile menu
   const [openDropdown, setOpenDropdown] = useState(null);
+  // Track hover state for desktop dropdowns
+  const [hoverDropdown, setHoverDropdown] = useState(null);
+  // Track secondary dropdown (for the nested exam dropdowns)
+  const [secondaryDropdown, setSecondaryDropdown] = useState(null); // Don't show German exams by default
   // Use navigate for programmatic navigation if needed
   const navigate = useNavigate();
   
   // Clean up effect to ensure scroll is re-enabled when component unmounts
-  React.useEffect(() => {
+  useEffect(() => {
     return () => {
       document.body.style.overflow = 'auto';
     };
@@ -30,6 +35,7 @@ const Navbar = () => {
       document.body.style.overflow = 'auto';
       // Close any open dropdown when closing the menu
       setOpenDropdown(null);
+      setSecondaryDropdown(null);
     }
   };
 
@@ -37,9 +43,130 @@ const Navbar = () => {
   const toggleDropdown = (item) => {
     if (openDropdown === item) {
       setOpenDropdown(null);
+      setSecondaryDropdown(null);
     } else {
       setOpenDropdown(item);
+      setSecondaryDropdown(null);
     }
+  };
+
+  // Toggle secondary dropdown in mobile menu (for exam types)
+  const toggleSecondaryDropdown = (item, e) => {
+    e.stopPropagation();
+    if (secondaryDropdown === item) {
+      setSecondaryDropdown(null);
+    } else {
+      setSecondaryDropdown(item);
+    }
+  };
+
+  // Menu data structure with nested exams
+  const menuItems = [
+    { 
+      name: "Courses", 
+      hasDropdown: true, 
+      path: "/courses",
+      subItems: [
+        { name: "German", icon: "DE", available: true },
+        { name: "English", icon: "GB", available: false },
+        { name: "French", icon: "FR", available: false },
+        { name: "Chinese", icon: "CN", available: false },
+        { name: "Spanish", icon: "ES", available: false },
+      ]
+    },
+    { 
+      name: "Exams", 
+      hasDropdown: true, 
+      path: "/exams",
+      subItems: [
+        { 
+          name: "German", 
+          icon: "DE", 
+          available: true,
+          hasChildren: true,
+          children: [
+            { name: "Goethe", available: true },
+            { name: "TELC", available: true },
+            { name: "TestDaF", available: false },
+            { name: "DSH", available: false },
+          ]
+        },
+        { 
+          name: "English", 
+          icon: "GB", 
+          available: false,
+          hasChildren: true,
+          children: [
+            { name: "Cambridge", available: false },
+            { name: "IELTS", available: false },
+            { name: "TOEFL", available: false },
+          ]
+        },
+        { 
+          name: "French", 
+          icon: "FR", 
+          available: false,
+          hasChildren: true,
+          children: [
+            { name: "DELF", available: false },
+            { name: "DALF", available: false },
+            { name: "TCF", available: false },
+          ]
+        },
+        { 
+          name: "Chinese", 
+          icon: "CN", 
+          available: false,
+          hasChildren: true,
+          children: [
+            { name: "HSK", available: false },
+            { name: "BCT", available: false },
+          ]
+        },
+        { 
+          name: "Spanish", 
+          icon: "ES", 
+          available: false,
+          hasChildren: true,
+          children: [
+            { name: "DELE", available: false },
+            { name: "SIELE", available: false },
+          ]
+        },
+      ]
+    },
+    { 
+      name: "Dashboard", 
+      hasDropdown: false, 
+      path: "/dashboard/student" 
+    },
+    { 
+      name: "Support", 
+      hasDropdown: true, 
+      path: "/support/contact-us",
+      subItems: [
+        { name: "Contact Us", icon: "image" },
+        { name: "Resources", icon: "bar-chart" },
+        { name: "Community", icon: "users" },
+      ]
+    },
+  ];
+  
+  // Handle direct navigation from dropdown items
+  const handleDropdownItemNavigation = (e, path) => {
+    e.preventDefault(); // Prevent default Link behavior
+    
+    // First close all dropdowns and the mobile menu
+    setHoverDropdown(null);
+    setOpenDropdown(null);
+    setSecondaryDropdown(null);
+    setIsMobileMenuOpen(false);
+    document.body.style.overflow = 'auto';
+    
+    // Then navigate programmatically
+    setTimeout(() => {
+      navigate(path);
+    }, 10); // Small delay to ensure dropdowns close first
   };
 
   return (
@@ -59,7 +186,7 @@ const Navbar = () => {
         <nav className="bg-white shadow px-4 lg:px-6 xl:px-14 py-3 flex flex-wrap items-center justify-between relative z-10">
           <div className="flex items-center">
             <Link to="/" className="flex items-center mr-6 group">
-            <img src={`${process.env.PUBLIC_URL}/assets/logo/logo.png`} alt="logo.png" className="h-12" />
+              <img src={`${process.env.PUBLIC_URL}/assets/logo/logo.png`} alt="logo.png" className="h-12" />
             </Link>
 
             <div className="relative mx-4 hidden md:block">
@@ -120,15 +247,18 @@ const Navbar = () => {
 
           {/* Desktop navigation */}
           <div className="hidden xl:flex items-center space-x-6">
-            {/* Menu items - Simplified to match image */}
+            {/* Menu items */}
             <div className="flex space-x-6">
-              {[
-                { name: "Courses", hasDropdown: true, path: "/courses" },
-                { name: "Exams", hasDropdown: false, path: "/exams" },
-                { name: "Dashboard", hasDropdown: false, path: "/dashboard/student" },
-                { name: "Support", hasDropdown: false, path: "/support/contact-us" },
-              ].map((item) => (
-                <div key={item.name} className="group relative cursor-pointer">
+              {menuItems.map((item) => (
+                <div 
+                  key={item.name} 
+                  className="group relative cursor-pointer"
+                  onMouseEnter={() => setHoverDropdown(item.name)}
+                  onMouseLeave={() => {
+                    setHoverDropdown(null);
+                    setSecondaryDropdown(null);
+                  }}
+                >
                   <div className="flex items-center transition-transform duration-300 group-hover:scale-110">
                     {item.hasDropdown ? (
                       <span className="transition-colors duration-300 group-hover:text-blue-600 relative after:absolute after:w-0 after:h-0.5 after:bg-blue-600 after:left-0 after:bottom-0 after:transition-all after:duration-300 group-hover:after:w-full">
@@ -140,32 +270,142 @@ const Navbar = () => {
                       </Link>
                     )}
                     {item.hasDropdown && (
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-4 w-4 ml-1 transition-transform duration-300 group-hover:rotate-180 text-gray-700 group-hover:text-blue-600"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M19 9l-7 7-7-7"
-                        />
-                      </svg>
+                      <ChevronDown
+                        size={16}
+                        className="ml-1 transition-transform duration-300 group-hover:rotate-180 text-gray-700 group-hover:text-blue-600"
+                      />
                     )}
                   </div>
-                  {item.hasDropdown && (
-                    <div className="absolute left-0 top-full mt-1 w-48 bg-white shadow-lg rounded-md py-2 z-10 hidden group-hover:block transform origin-top scale-95 opacity-0 group-hover:scale-100 group-hover:opacity-100 transition duration-200">
-                      {[1, 2, 3].map((subItem) => (
-                        <a
-                          key={subItem}
-                          href="#"
-                          className="block px-4 py-2 hover:bg-blue-50 transition-colors duration-200 hover:text-blue-700"
-                        >
-                          {item.name} Item {subItem}
-                        </a>
+                  
+                  {/* Custom dropdown matching the image design */}
+                  {item.hasDropdown && item.subItems && (
+                    <div className={`absolute left-0 top-full mt-1 w-48 bg-white shadow-lg rounded-md overflow-hidden z-10 hidden group-hover:block transform origin-top scale-95 opacity-0 group-hover:scale-100 group-hover:opacity-100 transition duration-200`}>
+                      {item.subItems.map((subItem, index) => (
+                        <div key={index} className="relative">
+                          {/* First level dropdown item */}
+                          {item.name === "Exams" && subItem.hasChildren ? (
+                            <div 
+                              className={`flex items-center justify-between px-4 py-3 hover:bg-[#FFB71C] transition-colors duration-200 group/item ${!subItem.available && 'pointer-events-none opacity-70'}`}
+                              onMouseEnter={() => setSecondaryDropdown(subItem.name)}
+                              onClick={() => setSecondaryDropdown(subItem.name === secondaryDropdown ? null : subItem.name)}
+                            >
+                              <div className="flex items-center">
+                                {subItem.icon === "DE" ? (
+                                  <img src="https://placehold.co/20" alt="German flag" className="w-5 h-5 rounded-full mr-2" />
+                                ) : subItem.icon === "GB" ? (
+                                  <img src="https://placehold.co/20" alt="British flag" className="w-5 h-5 rounded-full mr-2" />
+                                ) : subItem.icon === "FR" ? (
+                                  <img src="https://placehold.co/20" alt="French flag" className="w-5 h-5 rounded-full mr-2" />
+                                ) : subItem.icon === "CN" ? (
+                                  <img src="https://placehold.co/20" alt="Chinese flag" className="w-5 h-5 rounded-full mr-2" />
+                                ) : subItem.icon === "ES" ? (
+                                  <img src="https://placehold.co/20" alt="Spanish flag" className="w-5 h-5 rounded-full mr-2" />
+                                ) : (
+                                  <Globe className="w-5 h-5 mr-2" />
+                                )}
+                                <span className="text-gray-700 group-hover/item:text-black">
+                                  {subItem.name}
+                                </span>
+                              </div>
+                              <ChevronDown
+                                size={16}
+                                className="ml-1 transition-transform duration-300 text-gray-700 -rotate-90"
+                              />
+                            </div>
+                          ) : (
+                            <Link
+                              to={`/${item.name.toLowerCase() === 'courses' ? subItem.name.toLowerCase() : item.name.toLowerCase() === 'exams' ? `german/${subItem.name.toLowerCase()}` : `${item.name.toLowerCase()}/${subItem.name.toLowerCase().replace(' ', '-')}`}`}
+                              className={`flex items-center px-4 py-3 hover:bg-[#FFB71C] transition-colors duration-200 group/item ${item.name !== "Support" && !subItem.available && 'pointer-events-none opacity-70'}`}
+                              onClick={(e) => {
+                                if (item.name === "Support" || subItem.available) {
+                                  // Calculate the path
+                                  const path = `/${item.name.toLowerCase() === 'courses' ? subItem.name.toLowerCase() : item.name.toLowerCase() === 'exams' ? `german/${subItem.name.toLowerCase()}` : `${item.name.toLowerCase()}/${subItem.name.toLowerCase().replace(' ', '-')}`}`;
+                                  // Use the handler for proper navigation
+                                  handleDropdownItemNavigation(e, path);
+                                } else {
+                                  e.preventDefault();
+                                }
+                              }}
+                            >
+                              {item.name === "Courses" || item.name === "Exams" ? (
+                                item.name === "Courses" ? (
+                                  subItem.icon === "DE" ? <img src="https://placehold.co/20" alt="German flag" className="w-5 h-5 rounded-full mr-2" /> :
+                                  subItem.icon === "GB" ? <img src="https://placehold.co/20" alt="British flag" className="w-5 h-5 rounded-full mr-2" /> :
+                                  subItem.icon === "FR" ? <img src="https://placehold.co/20" alt="French flag" className="w-5 h-5 rounded-full mr-2" /> :
+                                  subItem.icon === "CN" ? <img src="https://placehold.co/20" alt="Chinese flag" className="w-5 h-5 rounded-full mr-2" /> :
+                                  subItem.icon === "ES" ? <img src="https://placehold.co/20" alt="Spanish flag" className="w-5 h-5 rounded-full mr-2" /> :
+                                  <Globe className="w-5 h-5 mr-2" />
+                                ) : (
+                                  <img src="https://placehold.co/20" alt="German flag" className="w-5 h-5 rounded-full mr-2" />
+                                )
+                              ) : item.name === "Support" && subItem.icon === "image" ? (
+                                <Image className="w-5 h-5 mr-2 text-gray-700" />
+                              ) : item.name === "Support" && subItem.icon === "bar-chart" ? (
+                                <BarChart className="w-5 h-5 mr-2 text-gray-700" />
+                              ) : item.name === "Support" && subItem.icon === "users" ? (
+                                <Users className="w-5 h-5 mr-2 text-gray-700" />
+                              ) : (
+                                <span className="mr-2">{subItem.icon}</span>
+                              )}
+                              
+                              {/* Different text span styles for Support vs other items */}
+                              {item.name === "Support" ? (
+                                <span className="text-gray-700 group-hover/item:text-black flex-grow">
+                                  {subItem.name}
+                                </span>
+                              ) : (
+                                <span className="text-gray-700 group-hover/item:text-black">
+                                  {subItem.name}
+                                </span>
+                              )}
+                              
+                              {/* Only show correct icons for Courses and Exams, NOT for Support */}
+                              {(item.name === "Courses" || item.name === "Exams") && !subItem.hasChildren && (
+                                <img 
+                                  src={subItem.available ? 
+                                    `${process.env.PUBLIC_URL}/assets/Navbar_icons/green-Correct.png` : 
+                                    `${process.env.PUBLIC_URL}/assets/Navbar_icons/gray-Correct.png`
+                                  } 
+                                  alt={subItem.available ? "Available" : "Not available"} 
+                                  className="w-5 h-5 ml-auto"
+                                />
+                              )}
+                            </Link>
+                          )}
+                          
+                          {/* Secondary dropdown for exams */}
+                          {item.name === "Exams" && subItem.hasChildren && subItem.children && (
+                            <div 
+                              className={`absolute left-full top-0 w-48 bg-white shadow-lg rounded-md overflow-hidden z-20 
+                                ${(hoverDropdown === item.name && secondaryDropdown === subItem.name) ? 'block' : 'hidden'} 
+                                transform origin-top-left opacity-100 transition duration-200`}
+                            >
+                              {subItem.children.map((childItem, childIndex) => (
+                                <Link
+                                  key={childIndex}
+                                  to={`/${subItem.name.toLowerCase()}/${childItem.name.toLowerCase()}`}
+                                  className={`flex items-center px-4 py-3 hover:bg-[#FFB71C] transition-colors duration-200 group/child 
+                                    ${!childItem.available && 'pointer-events-none opacity-70'}`}
+                                  onClick={(e) => {
+                                    if (childItem.available) {
+                                      handleDropdownItemNavigation(e, `/${subItem.name.toLowerCase()}/${childItem.name.toLowerCase()}`);
+                                    } else {
+                                      e.preventDefault();
+                                    }
+                                  }}
+                                >
+                                  <img src="https://placehold.co/20" alt={`${subItem.name} flag`} className="w-5 h-5 rounded-full mr-2" />
+                                  <span className="text-gray-700 group-hover/child:text-black">
+                                    {childItem.name}
+                                  </span>
+                                  <Check 
+                                    className={`w-5 h-5 ml-auto ${childItem.available ? 'text-green-500' : 'text-gray-300'}`}
+                                  />
+                                </Link>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       ))}
                     </div>
                   )}
@@ -173,7 +413,7 @@ const Navbar = () => {
               ))}
             </div>
 
-            {/* Auth buttons for desktop - Keeping original styling */}
+            {/* Auth buttons for desktop */}
             <div className="flex space-x-3">
               <Link
                 to="/auth/login"
@@ -192,7 +432,7 @@ const Navbar = () => {
         </nav>
       </div>
 
-      {/* Overlay that darkens the main content when menu is open */}
+      {/* Overlay for mobile menu */}
       <div
         className={`fixed inset-0 bg-black transition-opacity duration-300 z-[90] ${
           isMobileMenuOpen ? "opacity-50 visible" : "opacity-0 invisible"
@@ -200,7 +440,7 @@ const Navbar = () => {
         onClick={toggleMobileMenu}
       ></div>
 
-      {/* Mobile sidebar menu - slides in from right */}
+      {/* Mobile sidebar menu */}
       <div
         className={`fixed top-0 right-0 w-72 h-full bg-white shadow-xl z-[100] transform transition-transform duration-300 ease-in-out ${
           isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
@@ -217,7 +457,7 @@ const Navbar = () => {
               <img
                 src={`${process.env.PUBLIC_URL}/assets/logo/logo.png`}
                 alt="logo.png"
-                className=" h-12"
+                className="h-12"
               />
             </Link>
             <button
@@ -240,7 +480,7 @@ const Navbar = () => {
             </button>
           </div>
 
-          {/* Mobile menu content - scrollable */}
+          {/* Mobile menu content */}
           <div className="flex-1 overflow-y-auto py-4" style={{ maxHeight: 'calc(100vh - 130px)' }}>
             {/* Mobile search bar */}
             <div className="px-4 mb-6">
@@ -269,14 +509,9 @@ const Navbar = () => {
               </div>
             </div>
 
-            {/* Menu items with dropdowns */}
+            {/* Mobile menu items */}
             <div className="px-4 py-2">
-              {[
-                { name: "Courses", hasDropdown: true, path: "/courses" },
-                { name: "Exams", hasDropdown: false, path: "/exams" },
-                { name: "Dashboard", hasDropdown: false, path: "/dashboard/student" },
-                { name: "Support", hasDropdown: false, path: "/support/contact-us" },
-              ].map((item) => (
+              {menuItems.map((item) => (
                 <div key={item.name} className="mb-2">
                   <div
                     className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-blue-50 transition-colors duration-200 cursor-pointer"
@@ -299,45 +534,159 @@ const Navbar = () => {
                       {item.name}
                     </span>
                     {item.hasDropdown && (
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className={`h-4 w-4 transition-transform duration-300 ${
+                      <ChevronDown
+                        size={16}
+                        className={`transition-transform duration-300 ${
                           openDropdown === item.name
                             ? "rotate-180 text-blue-600"
                             : "text-gray-500"
                         }`}
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M19 9l-7 7-7-7"
-                        />
-                      </svg>
+                      />
                     )}
                   </div>
 
-                  {/* Dropdown content */}
-                  {item.hasDropdown && (
+                  {/* First level dropdown content for mobile */}
+                  {item.hasDropdown && item.subItems && (
                     <div
                       className={`overflow-hidden transition-all duration-300 ${
                         openDropdown === item.name
-                          ? "max-h-40 opacity-100"
+                          ? "max-h-80 opacity-100"
                           : "max-h-0 opacity-0"
                       }`}
                     >
                       <div className="bg-gray-50 rounded-md mt-1 mb-2">
-                        {[1, 2, 3].map((subItem) => (
-                          <a
-                            key={subItem}
-                            href="#"
-                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors duration-200 border-l-2 border-transparent hover:border-blue-500"
-                          >
-                            {item.name} Item {subItem}
-                          </a>
+                        {item.subItems.map((subItem, index) => (
+                          <div key={index} className="relative">
+                            {/* First level item (language or category) */}
+                            {item.name === "Exams" && subItem.hasChildren ? (
+                              <div
+                                className={`flex items-center justify-between px-4 py-3 hover:bg-[#FFB71C] transition-colors duration-200 ${!subItem.available && 'opacity-70'}`}
+                                onClick={(e) => toggleSecondaryDropdown(subItem.name, e)}
+                              >
+                                <div className="flex items-center">
+                                  {subItem.icon === "DE" ? (
+                                    <img src="https://placehold.co/20" alt="German flag" className="w-5 h-5 rounded-full mr-2" />
+                                  ) : subItem.icon === "GB" ? (
+                                    <img src="https://placehold.co/20" alt="British flag" className="w-5 h-5 rounded-full mr-2" />
+                                  ) : subItem.icon === "FR" ? (
+                                    <img src="https://placehold.co/20" alt="French flag" className="w-5 h-5 rounded-full mr-2" />
+                                  ) : subItem.icon === "CN" ? (
+                                    <img src="https://placehold.co/20" alt="Chinese flag" className="w-5 h-5 rounded-full mr-2" />
+                                  ) : subItem.icon === "ES" ? (
+                                    <img src="https://placehold.co/20" alt="Spanish flag" className="w-5 h-5 rounded-full mr-2" />
+                                  ) : (
+                                    <Globe className="w-5 h-5 mr-2" />
+                                  )}
+                                  <span className="text-gray-700">
+                                    {subItem.name}
+                                  </span>
+                                </div>
+                                <ChevronDown
+                                  size={16}
+                                  className={`transition-transform duration-300 text-gray-500 ${
+                                    secondaryDropdown === subItem.name
+                                      ? "rotate-180"
+                                      : ""
+                                  }`}
+                                />
+                              </div>
+                            ) : (
+                              <Link
+                                to={`/${item.name.toLowerCase() === 'courses' ? subItem.name.toLowerCase() : item.name.toLowerCase() === 'exams' ? `german/${subItem.name.toLowerCase()}` : `${item.name.toLowerCase()}/${subItem.name.toLowerCase().replace(' ', '-')}`}`}
+                                className={`flex items-center px-4 py-3 hover:bg-[#FFB71C] transition-colors duration-200 group/item ${item.name !== "Support" && !subItem.available && 'pointer-events-none opacity-70'}`}
+                                onClick={(e) => {
+                                  if (!subItem.available && item.name !== "Support") {
+                                    e.preventDefault();
+                                  } else {
+                                    // Calculate the path
+                                    const path = `/${item.name.toLowerCase() === 'courses' ? subItem.name.toLowerCase() : item.name.toLowerCase() === 'exams' ? `german/${subItem.name.toLowerCase()}` : `${item.name.toLowerCase()}/${subItem.name.toLowerCase().replace(' ', '-')}`}`;
+                                    // Use the handler for proper navigation
+                                    handleDropdownItemNavigation(e, path);
+                                  }
+                                }}
+                              >
+                                {item.name === "Courses" || item.name === "Exams" ? (
+                                  item.name === "Courses" ? (
+                                    subItem.icon === "DE" ? <img src="https://placehold.co/20" alt="German flag" className="w-5 h-5 rounded-full mr-2" /> :
+                                    subItem.icon === "GB" ? <img src="https://placehold.co/20" alt="British flag" className="w-5 h-5 rounded-full mr-2" /> :
+                                    subItem.icon === "FR" ? <img src="https://placehold.co/20" alt="French flag" className="w-5 h-5 rounded-full mr-2" /> :
+                                    subItem.icon === "CN" ? <img src="https://placehold.co/20" alt="Chinese flag" className="w-5 h-5 rounded-full mr-2" /> :
+                                    subItem.icon === "ES" ? <img src="https://placehold.co/20" alt="Spanish flag" className="w-5 h-5 rounded-full mr-2" /> :
+                                    <Globe className="w-5 h-5 mr-2" />
+                                  ) : (
+                                    <img src="https://placehold.co/20" alt="German flag" className="w-5 h-5 rounded-full mr-2" />
+                                  )
+                                ) : item.name === "Support" && subItem.icon === "image" ? (
+                                  <Image className="w-5 h-5 mr-2" />
+                                ) : item.name === "Support" && subItem.icon === "bar-chart" ? (
+                                  <BarChart className="w-5 h-5 mr-2" />
+                                ) : item.name === "Support" && subItem.icon === "users" ? (
+                                  <Users className="w-5 h-5 mr-2" />
+                                ) : (
+                                  <span className="mr-2">{subItem.icon}</span>
+                                )}
+                                
+                                {/* Different text span styles for Support vs other items */}
+                                {item.name === "Support" ? (
+                                  <span className="text-gray-700 group-hover/item:text-black flex-grow">
+                                    {subItem.name}
+                                  </span>
+                                ) : (
+                                  <span className="text-gray-700 group-hover/item:text-black">
+                                    {subItem.name}
+                                  </span>
+                                )}
+                                
+                                {/* Only show correct icons for Courses and Exams, NOT for Support */}
+                                {(item.name === "Courses" || item.name === "Exams") && !subItem.hasChildren && (
+                                  <div className="ml-auto">
+                                    <img 
+                                      src={subItem.available ? 
+                                        `${process.env.PUBLIC_URL}/assets/Navbar_icons/green-Correct.png` : 
+                                        `${process.env.PUBLIC_URL}/assets/Navbar_icons/gray-Correct.png`
+                                      } 
+                                      alt={subItem.available ? "Available" : "Not available"} 
+                                      className="w-5 h-5"
+                                    />
+                                  </div>
+                                )}
+                              </Link>
+                            )}
+
+                            {/* Second level dropdown (exam types) */}
+                            {item.name === "Exams" && subItem.hasChildren && (
+                              <div
+                                className={`overflow-hidden bg-gray-100 transition-all duration-300 ${
+                                  secondaryDropdown === subItem.name
+                                    ? "max-h-80 opacity-100"
+                                    : "max-h-0 opacity-0"
+                                }`}
+                              >
+                                {subItem.children.map((childItem, childIndex) => (
+                                  <Link
+                                    key={childIndex}
+                                    to={`/${subItem.name.toLowerCase()}/${childItem.name.toLowerCase()}`}
+                                    className={`flex items-center px-4 py-3 ml-3 hover:bg-[#FFB71C] transition-colors duration-200 ${!childItem.available && 'pointer-events-none opacity-70'}`}
+                                    onClick={(e) => {
+                                      if (childItem.available) {
+                                        handleDropdownItemNavigation(e, `/${subItem.name.toLowerCase()}/${childItem.name.toLowerCase()}`);
+                                      } else {
+                                        e.preventDefault();
+                                      }
+                                    }}
+                                  >
+                                    <img src="https://placehold.co/20" alt={`${subItem.name} flag`} className="w-5 h-5 rounded-full mr-2" />
+                                    <span className="text-gray-700 group-hover:text-black">
+                                      {childItem.name}
+                                    </span>
+                                    <Check 
+                                      className={`w-5 h-5 ml-auto ${childItem.available ? 'text-green-500' : 'text-gray-300'}`} 
+                                    />
+                                  </Link>
+                                ))}
+                              </div>
+                            )}
+                          </div>
                         ))}
                       </div>
                     </div>
@@ -359,7 +708,7 @@ const Navbar = () => {
               </Link>
               <Link
                 to="/auth/signup"
-                className="bg-yellow-400 text-white py-2 px-4 rounded-md hover:bg-yellow-500 hover:text-[#0D47A1] font-medium transition-colors duration-300 text-center"
+                className="bg-[#FFB71C] text-white py-2 px-4 rounded-md hover:bg-yellow-500 hover:text-[#0D47A1] font-medium transition-colors duration-300 text-center"
                 onClick={toggleMobileMenu}
               >
                 Sign up
@@ -369,8 +718,8 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Add padding to the main content to prevent it from being hidden behind the fixed navbar */}
-      <div className=" h-[7.5rem] md:h-[109px]"></div> {/* Adjust this height based on your navbar's total height */}
+      {/* Add padding to the main content */}
+      <div className="h-[7.5rem] md:h-[109px]"></div>
     </>
   );
 };
