@@ -635,11 +635,15 @@ export const getSupportInsights = async (req, res) => {
  */
 export const getTopCourses = async (req, res) => {
     try {
-        const { limit = 10 } = req.query;
+        const { limit = 10, page = 1 } = req.query;
+
+        // Calculate pagination
+        const skip = (page - 1) * limit;
 
         // Get top courses by enrollment and revenue
         const topCourses = await Course.find()
             .sort({ "enrolledStudents.length": -1 })
+            .skip(skip)
             .limit(parseInt(limit))
             .select("title enrolledStudents price")
             .lean();
@@ -657,15 +661,196 @@ export const getTopCourses = async (req, res) => {
             };
         });
 
+        // Get total count for pagination
+        const totalCourses = await Course.countDocuments();
+
         return res.status(200).json({
             success: true,
-            courses: coursesWithRevenue
+            courses: coursesWithRevenue,
+            total: totalCourses
         });
     } catch (error) {
         console.log(error);
         return res.status(500).json({
             success: false,
             message: "Failed to fetch top courses."
+        });
+    }
+};
+
+/**
+ * Get all instructors with filters
+ * @route GET /api/admin/instructors
+ * @access Admin only
+ */
+export const getAllInstructors = async (req, res) => {
+    try {
+        const {
+            status,
+            searchTerm,
+            page = 1,
+            limit = 10,
+            sortBy = "createdAt",
+            sortOrder = "desc"
+        } = req.query;
+
+        // Build query
+        const query = { role: "instructor" };
+
+        if (status && status !== "All") {
+            if (status === "Active") {
+                query["instructorProfile.applicationStatus"] = "approved";
+            } else if (status === "Pending") {
+                query["instructorProfile.applicationStatus"] = "pending";
+            } else if (status === "Suspended") {
+                query["instructorProfile.applicationStatus"] = "suspended";
+            }
+        }
+
+        if (searchTerm) {
+            query.$or = [
+                { name: { $regex: searchTerm, $options: 'i' } },
+                { email: { $regex: searchTerm, $options: 'i' } }
+            ];
+        }
+
+        // Calculate pagination
+        const skip = (page - 1) * limit;
+
+        // Determine sort order
+        const sort = {};
+        sort[sortBy] = sortOrder === "asc" ? 1 : -1;
+
+        // Execute query
+        const instructors = await User.find(query)
+            .select("-password")
+            .skip(skip)
+            .limit(parseInt(limit))
+            .sort(sort);
+
+        // Format the data for the frontend
+        const formattedInstructors = instructors.map(instructor => {
+            // Calculate earnings and balance (placeholder logic)
+            const earnings = Math.floor(Math.random() * 1000) + 100; // Random value for demo
+            const balance = Math.floor(Math.random() * 500); // Random value for demo
+
+            return {
+                id: instructor._id,
+                name: instructor.name,
+                avatar: instructor.photoUrl || "https://placehold.co/40x40",
+                course: instructor.instructorProfile?.courses?.length || "0",
+                joinDate: new Date(instructor.createdAt).toLocaleDateString('en-US', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric'
+                }),
+                earning: `$${earnings.toFixed(2)}`,
+                balance: `$${balance.toFixed(2)}`,
+                status: instructor.instructorProfile?.applicationStatus === "approved" ? "Active" :
+                        instructor.instructorProfile?.applicationStatus === "suspended" ? "Suspended" : "Pending"
+            };
+        });
+
+        // Get total count for pagination
+        const totalInstructors = await User.countDocuments(query);
+
+        return res.status(200).json({
+            success: true,
+            instructors: formattedInstructors,
+            total: totalInstructors,
+            pagination: {
+                totalPages: Math.ceil(totalInstructors / limit),
+                currentPage: parseInt(page),
+                limit: parseInt(limit)
+            }
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to fetch instructors."
+        });
+    }
+};
+
+/**
+ * Get instructor by ID
+ * @route GET /api/admin/instructors/:id
+ * @access Admin only
+ */
+export const getInstructorById = async (req, res) => {
+    try {
+        const instructor = await User.findOne({
+            _id: req.params.id,
+            role: "instructor"
+        })
+        .select("-password")
+        .populate("instructorProfile.teachLanguage", "name");
+
+        if (!instructor) {
+            return res.status(404).json({
+                success: false,
+                message: "Instructor not found."
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            instructor
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to fetch instructor details."
+        });
+    }
+};
+
+/**
+ * Update instructor status
+ * @route PUT /api/admin/instructors/:id/status
+ * @access Admin only
+ */
+export const updateInstructorStatus = async (req, res) => {
+    try {
+        const { status } = req.body;
+
+        if (!status || !["Active", "Suspended", "Pending"].includes(status)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid status provided."
+            });
+        }
+
+        // Map frontend status to database status
+        const applicationStatus =
+            status === "Active" ? "approved" :
+            status === "Suspended" ? "suspended" : "pending";
+
+        const instructor = await User.findOneAndUpdate(
+            { _id: req.params.id, role: "instructor" },
+            { "instructorProfile.applicationStatus": applicationStatus },
+            { new: true }
+        ).select("-password");
+
+        if (!instructor) {
+            return res.status(404).json({
+                success: false,
+                message: "Instructor not found."
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            instructor,
+            message: `Instructor status updated to ${status}.`
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to update instructor status."
         });
     }
 };

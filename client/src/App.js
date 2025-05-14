@@ -35,6 +35,7 @@ import AdminSettings from "./pages/Dashboard/Admin/settings/AdminSettings";
 import ContactUs from "./pages/support/ContactUs";
 import CourseState from "./context/course/CourseState";
 import AdminState from "./context/admin/adminState";
+import InstructorState from "./context/instructor/instructorState";
 import CourseType from "./pages/ExamsNav/courseType/CourseType";
 import GeneralPractice from "./pages/ExamsNav/Practice/GeneralPractice";
 import LiveOnline from "./pages/Details/LiveOnline/LiveOnline";
@@ -280,11 +281,13 @@ function App() {
     <AuthState>
       <CourseState>
         <AdminState>
-          <BlogState>
-            <Router>
-              <AppContent />
-            </Router>
-          </BlogState>
+          <InstructorState>
+            <BlogState>
+              <Router>
+                <AppContent />
+              </Router>
+            </BlogState>
+          </InstructorState>
         </AdminState>
       </CourseState>
     </AuthState>

@@ -1,10 +1,24 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useContext } from "react";
 import AdminSidebar from "../AdminSidebar";
 import { Search, Eye, Edit, ChevronDown, Download, Plus } from "lucide-react";
+import InstructorContext from "../../../../context/instructor/instructorContext";
+import { toast } from "react-hot-toast";
 
 const ManageInstructors = () => {
-  const [currentPage, setCurrentPage] = useState(2);
-  const [totalPages] = useState(21);
+  // Get instructor context
+  const instructorContext = useContext(InstructorContext);
+  const {
+    instructors,
+    totalInstructors,
+    loading,
+    error,
+    getAllInstructors,
+    updateInstructorStatus
+  } = instructorContext;
+
+  // Local state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [coursesPerPage] = useState(10);
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
   const [dateRange, setDateRange] = useState("Jan 11–Jan 25");
@@ -13,6 +27,12 @@ const ManageInstructors = () => {
   const [selectedStartDate, setSelectedStartDate] = useState(11);
   const [selectedEndDate, setSelectedEndDate] = useState(25);
   const [selectedFilter, setSelectedFilter] = useState("All");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [instructorToDelete, setInstructorToDelete] = useState(null);
+
+  // Calculate total pages
+  const totalPages = Math.ceil(totalInstructors / coursesPerPage);
 
   const filterRef = useRef(null);
   const calendarRef = useRef(null);
@@ -59,7 +79,7 @@ const ManageInstructors = () => {
   const renderPaginationButtons = () => {
     const buttons = [];
     const maxVisibleButtons = 5; // Number of visible page buttons (excluding ellipsis and edge buttons)
-    
+
     // Always show first page
     buttons.push(
       <button
@@ -72,31 +92,31 @@ const ManageInstructors = () => {
         1
       </button>
     );
-    
+
     // Calculate the range of visible page numbers
     let startPage, endPage;
-    
+
     if (currentPage <= 3) {
       // Current page is near the beginning
       startPage = 2;
       endPage = Math.min(5, totalPages - 1);
-      
+
     } else if (currentPage >= totalPages - 2) {
       // Current page is near the end
       startPage = Math.max(totalPages - 4, 2);
       endPage = totalPages - 1;
-      
+
     } else {
       // Current page is in the middle
       startPage = currentPage - 1;
       endPage = currentPage + 1;
     }
-    
+
     // Add first ellipsis if needed
     if (startPage > 2) {
       buttons.push(<span key="ellipsis1" className="text-center w-6">...</span>);
     }
-    
+
     // Add visible page numbers
     for (let i = startPage; i <= endPage; i++) {
       buttons.push(
@@ -111,12 +131,12 @@ const ManageInstructors = () => {
         </button>
       );
     }
-    
+
     // Add last ellipsis if needed
     if (endPage < totalPages - 1) {
       buttons.push(<span key="ellipsis2" className="text-center w-6">...</span>);
     }
-    
+
     // Always show last page if we have more than 1 page
     if (totalPages > 1) {
       buttons.push(
@@ -131,7 +151,7 @@ const ManageInstructors = () => {
         </button>
       );
     }
-    
+
     return buttons;
   };
 
@@ -220,109 +240,72 @@ const ManageInstructors = () => {
     setSelectedYear(newYear);
   };
 
-  // Sample instructor data based on the image
-  const instructors = [
-    {
-      id: "86785765",
-      name: "Deepak",
-      course: "05",
-      joinDate: "05 Jan,2025",
-      earning: "$542.00",
-      balance: "$225.00",
-      status: "Active",
-      avatar: "https://placehold.co/40x40",
-    },
-    {
-      id: "86785765",
-      name: "Hasan",
-      course: "05",
-      joinDate: "05 Jan,2025",
-      earning: "$542.00",
-      balance: "$225.00",
-      status: "Suspended",
-      avatar: "https://placehold.co/40x40",
-    },
-    {
-      id: "86785765",
-      name: "Lisa",
-      course: "05",
-      joinDate: "05 Jan,2025",
-      earning: "$542.00",
-      balance: "$225.00",
-      status: "Pending",
-      avatar: "https://placehold.co/40x40",
-    },
-    {
-      id: "86785765",
-      name: "Hena",
-      course: "05",
-      joinDate: "05 Jan,2025",
-      earning: "$542.00",
-      balance: "$225.00",
-      status: "Active",
-      avatar: "https://placehold.co/40x40",
-    },
-    {
-      id: "86785765",
-      name: "Rahul",
-      course: "05",
-      joinDate: "05 Jan,2025",
-      earning: "$542.00",
-      balance: "$225.00",
-      status: "Suspended",
-      avatar: "https://placehold.co/40x40",
-    },
-    {
-      id: "86785765",
-      name: "Hasan",
-      course: "05",
-      joinDate: "05 Jan,2025",
-      earning: "$542.00",
-      balance: "$225.00",
-      status: "Active",
-      avatar: "https://placehold.co/40x40",
-    },
-    {
-      id: "86785765",
-      name: "Jamal",
-      course: "05",
-      joinDate: "05 Jan,2025",
-      earning: "$542.00",
-      balance: "$225.00",
-      status: "Pending",
-      avatar: "https://placehold.co/40x40",
-    },
-    {
-      id: "86785765",
-      name: "Arif",
-      course: "05",
-      joinDate: "05 Jan,2025",
-      earning: "$542.00",
-      balance: "$225.00",
-      status: "Active",
-      avatar: "https://placehold.co/40x40",
-    },
-    {
-      id: "86785765",
-      name: "Ashik",
-      course: "05",
-      joinDate: "05 Jan,2025",
-      earning: "$542.00",
-      balance: "$225.00",
-      status: "Active",
-      avatar: "https://placehold.co/40x40",
-    },
-    {
-      id: "86785765",
-      name: "Rohan",
-      course: "05",
-      joinDate: "05 Jan,2025",
-      earning: "$542.00",
-      balance: "$225.00",
-      status: "Active",
-      avatar: "https://placehold.co/40x40",
-    },
-  ];
+  // Fetch instructors when component mounts or when page/filter changes
+  useEffect(() => {
+    const fetchInstructors = async () => {
+      try {
+        await getAllInstructors(currentPage, coursesPerPage, selectedFilter);
+      } catch (err) {
+        toast.error('Failed to load instructors');
+      }
+    };
+
+    fetchInstructors();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, coursesPerPage, selectedFilter]);
+
+  // Handle instructor status change
+  const handleStatusChange = async (instructorId, newStatus) => {
+    try {
+      await updateInstructorStatus(instructorId, newStatus);
+      toast.success(`Instructor status updated to ${newStatus}`);
+      // Refresh the instructors list after status change
+      getAllInstructors(currentPage, coursesPerPage, selectedFilter);
+    } catch (err) {
+      toast.error('Failed to update instructor status');
+    }
+  };
+
+  // Handle search
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
+  };
+
+  // Handle view instructor
+  const handleViewInstructor = (instructorId) => {
+    // Navigate to instructor details page
+    window.location.href = `/admin/instructors/${instructorId}`;
+  };
+
+  // Handle edit instructor
+  const handleEditInstructor = (instructorId) => {
+    // Navigate to instructor edit page
+    window.location.href = `/admin/instructors/edit/${instructorId}`;
+  };
+
+  // Handle delete instructor
+  const handleDeleteClick = (instructor) => {
+    setInstructorToDelete(instructor);
+    setShowDeleteModal(true);
+  };
+
+  // Confirm delete instructor
+  const confirmDeleteInstructor = async () => {
+    try {
+      // Call API to delete instructor
+      // This is a placeholder - you would need to implement the actual API call
+      // await deleteInstructor(instructorToDelete.id);
+
+      toast.success(`Instructor ${instructorToDelete.name} deleted successfully`);
+      setShowDeleteModal(false);
+      setInstructorToDelete(null);
+
+      // Refresh the instructors list
+      getAllInstructors(currentPage, coursesPerPage, selectedFilter);
+    } catch (err) {
+      toast.error('Failed to delete instructor');
+    }
+  };
 
   const getStatusClass = (status) => {
     switch (status) {
@@ -337,10 +320,8 @@ const ManageInstructors = () => {
     }
   };
 
-  // Filter instructors based on selected filter
-  const filteredInstructors = selectedFilter === "All" 
-    ? instructors 
-    : instructors.filter(instructor => instructor.status === selectedFilter);
+  // Get filtered instructors
+  const filteredInstructors = instructors || [];
 
   return (
     <div className="flex">
@@ -382,14 +363,16 @@ const ManageInstructors = () => {
                 </div>
                 <input
                   type="text"
-                  placeholder="Search by ID, Product, or others..."
+                  placeholder="Search by ID, Name, or Status..."
                   className="w-full pl-12 pr-4 py-3 border-none rounded-full bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  onChange={handleSearch}
+                  value={searchTerm}
                 />
               </div>
 
               <div className="w-full flex justify-between lg:justify-start lg:w-auto gap-3">
                 <div className="relative" ref={filterRef}>
-                  <button 
+                  <button
                     className="flex items-center gap-2 border border-gray-300 bg-white px-4 py-2 rounded-lg"
                     onClick={toggleFilterDropdown}
                   >
@@ -417,13 +400,13 @@ const ManageInstructors = () => {
                     </svg>
                     Filter
                   </button>
-                  
+
                   {showFilterDropdown && (
                     <div className="absolute z-10 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200">
                       <ul className="py-2">
                         {["All", "Active", "Suspended", "Pending"].map((status) => (
-                          <li 
-                            key={status} 
+                          <li
+                            key={status}
                             className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
                             onClick={() => {
                               setSelectedFilter(status);
@@ -437,9 +420,9 @@ const ManageInstructors = () => {
                     </div>
                   )}
                 </div>
-                
+
                 <div className="relative" ref={calendarRef}>
-                  <button 
+                  <button
                     className="flex items-center gap-2 border border-gray-300 bg-white px-4 py-2 rounded-lg"
                     onClick={toggleCalendar}
                   >
@@ -462,7 +445,7 @@ const ManageInstructors = () => {
                     </svg>
                     {dateRange}
                   </button>
-                  
+
                   {showCalendar && (
                     <div className="absolute z-10 mt-2 right-0 bg-white rounded-lg shadow-lg border border-gray-200 p-4 w-72">
                       <div className="flex justify-between items-center mb-4">
@@ -478,25 +461,25 @@ const ManageInstructors = () => {
                           </svg>
                         </button>
                       </div>
-                      
+
                       <div className="grid grid-cols-7 gap-1 mb-2">
                         {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((day) => (
                           <div key={day} className="text-center text-xs text-gray-500 font-medium">{day}</div>
                         ))}
                       </div>
-                      
+
                       <div className="grid grid-cols-7 gap-1">
                         {generateCalendarDays(selectedMonth, selectedYear).map((day) => {
-                          const isSelected = 
-                            (day >= selectedStartDate && day <= selectedEndDate && selectedEndDate) || 
+                          const isSelected =
+                            (day >= selectedStartDate && day <= selectedEndDate && selectedEndDate) ||
                             day === selectedStartDate;
-                          
+
                           return (
-                            <div 
-                              key={day} 
+                            <div
+                              key={day}
                               className={`text-center py-1 cursor-pointer text-sm rounded ${
-                                isSelected 
-                                  ? "bg-blue-500 text-white" 
+                                isSelected
+                                  ? "bg-blue-500 text-white"
                                   : "hover:bg-gray-100"
                               }`}
                               onClick={() => handleDateSelection(day)}
@@ -506,9 +489,9 @@ const ManageInstructors = () => {
                           );
                         })}
                       </div>
-                      
+
                       <div className="mt-4 flex justify-end">
-                        <button 
+                        <button
                           className="bg-blue-500 text-white px-4 py-2 rounded-md text-sm"
                           onClick={applyDateRange}
                         >
@@ -529,104 +512,136 @@ const ManageInstructors = () => {
               boxShadow: `rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 2px 6px 2px`,
             }}
           >
-            <div className="w-full overflow-x-auto">
-              <table className="min-w-full">
-                <thead>
-                  <tr className="text-gray-500 text-sm">
-                    <th className="pb-3 px-4 font-medium text-left">Name</th>
-                    <th className="pb-3 px-4 font-medium text-left">Course</th>
-                    <th className="pb-3 px-4 font-medium text-left">
-                      Join Date
-                    </th>
-                    <th className="pb-3 px-4 font-medium text-left">Earning</th>
-                    <th className="pb-3 px-4 font-medium text-left">Balance</th>
-                    <th className="pb-3 px-4 font-medium text-left">Status</th>
-                    <th className="pb-3 px-4 font-medium text-left">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredInstructors.map((instructor, index) => (
-                    <tr
-                      key={index}
-                      className={index % 2 === 0 ? "bg-white" : "bg-white"}
-                    >
-                      <td className="py-3 px-4 whitespace-nowrap">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full overflow-hidden">
-                            <img
-                              src={instructor.avatar}
-                              alt={instructor.name}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                          <div>
-                            <p className="font-medium">{instructor.name}</p>
-                            <p className="text-sm text-gray-500">
-                              #{instructor.id}
-                            </p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="py-3 px-4 whitespace-nowrap">
-                        {instructor.course}
-                      </td>
-                      <td className="py-3 px-4 whitespace-nowrap">
-                        {instructor.joinDate}
-                      </td>
-                      <td className="py-3 px-4 whitespace-nowrap">
-                        {instructor.earning}
-                      </td>
-                      <td className="py-3 px-4 whitespace-nowrap">
-                        {instructor.balance}
-                      </td>
-                      <td className="py-3 px-4 whitespace-nowrap">
-                        <span
-                          className={`inline-block w-24 text-center px-4 py-1 rounded-md text-sm font-medium cursor-pointer ${getStatusClass(
-                            instructor.status
-                          )}`}
-                        >
-                          {instructor.status}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 whitespace-nowrap">
-                        <div className="flex space-x-2">
-                          <button className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white">
-                            <Eye size={16} />
-                          </button>
-                          <button className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white">
-                            <Edit size={16} />
-                          </button>
-                          <button className="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-white">
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="16"
-                              height="16"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            >
-                              <path d="M3 6h18"></path>
-                              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
-                              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
-                            </svg>
-                          </button>
-                        </div>
-                      </td>
+            {loading ? (
+              <div className="flex justify-center items-center py-20">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-blue-500"></div>
+                <span className="ml-3 text-lg text-gray-500">Loading instructors...</span>
+              </div>
+            ) : filteredInstructors.length === 0 ? (
+              <div className="text-center py-20 text-gray-500">
+                <p className="text-xl">No instructors found</p>
+                <p className="mt-2">Try changing your search or filter criteria</p>
+              </div>
+            ) : (
+              <div className="w-full overflow-x-auto">
+                <table className="min-w-full">
+                  <thead>
+                    <tr className="text-gray-500 text-sm">
+                      <th className="pb-3 px-4 font-medium text-left">Name</th>
+                      <th className="pb-3 px-4 font-medium text-left">Course</th>
+                      <th className="pb-3 px-4 font-medium text-left">
+                        Join Date
+                      </th>
+                      <th className="pb-3 px-4 font-medium text-left">Earning</th>
+                      <th className="pb-3 px-4 font-medium text-left">Balance</th>
+                      <th className="pb-3 px-4 font-medium text-left">Status</th>
+                      <th className="pb-3 px-4 font-medium text-left">Action</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {filteredInstructors.map((instructor, index) => (
+                      <tr
+                        key={instructor.id || index}
+                        className={index % 2 === 0 ? "bg-white" : "bg-white"}
+                      >
+                        <td className="py-3 px-4 whitespace-nowrap">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full overflow-hidden">
+                              <img
+                                src={instructor.avatar}
+                                alt={instructor.name}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            <div>
+                              <p className="font-medium">{instructor.name}</p>
+                              <p className="text-sm text-gray-500">
+                                #{instructor.id}
+                              </p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 whitespace-nowrap">
+                          {instructor.course}
+                        </td>
+                        <td className="py-3 px-4 whitespace-nowrap">
+                          {instructor.joinDate}
+                        </td>
+                        <td className="py-3 px-4 whitespace-nowrap">
+                          {instructor.earning}
+                        </td>
+                        <td className="py-3 px-4 whitespace-nowrap">
+                          {instructor.balance}
+                        </td>
+                        <td className="py-3 px-4 whitespace-nowrap">
+                          <div className="relative">
+                            <span
+                              className={`inline-block w-24 text-center px-4 py-1 rounded-md text-sm font-medium cursor-pointer ${getStatusClass(
+                                instructor.status
+                              )}`}
+                              onClick={() => {
+                                const statusOptions = ["Active", "Suspended", "Pending"];
+                                const currentIndex = statusOptions.indexOf(instructor.status);
+                                const newStatus = statusOptions[(currentIndex + 1) % statusOptions.length];
+                                handleStatusChange(instructor.id, newStatus);
+                              }}
+                            >
+                              {instructor.status}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 whitespace-nowrap">
+                          <div className="flex space-x-2">
+                            <button
+                              className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white"
+                              onClick={() => handleViewInstructor(instructor.id)}
+                              title="View instructor details"
+                            >
+                              <Eye size={16} />
+                            </button>
+                            <button
+                              className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white"
+                              onClick={() => handleEditInstructor(instructor.id)}
+                              title="Edit instructor"
+                            >
+                              <Edit size={16} />
+                            </button>
+                            <button
+                              className="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-white"
+                              onClick={() => handleDeleteClick(instructor)}
+                              title="Delete instructor"
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              >
+                                <path d="M3 6h18"></path>
+                                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                              </svg>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
 
           {/* Pagination */}
           <div className="px-2">
             <div className="flex justify-between items-center text-sm lg:w-[91%] text-gray-600">
               <div className="hidden lg:block text-left pr-2">
-                Showing 1 to 10 of 97 results
+                Showing {(currentPage - 1) * coursesPerPage + 1} to {Math.min(currentPage * coursesPerPage, totalInstructors)} of {totalInstructors} results
               </div>
               <div className="w-full lg:w-auto flex items-center justify-center lg:justify-end space-x-1">
                 <button
@@ -677,6 +692,34 @@ const ManageInstructors = () => {
           </div>
         </div>
       </div>
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && instructorToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-96 max-w-full">
+            <h3 className="text-xl font-semibold mb-4">Confirm Delete</h3>
+            <p className="mb-6">
+              Are you sure you want to delete instructor <span className="font-semibold">{instructorToDelete.name}</span>? This action cannot be undone.
+            </p>
+            <div className="flex justify-end space-x-3">
+              <button
+                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100"
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setInstructorToDelete(null);
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+                onClick={confirmDeleteInstructor}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

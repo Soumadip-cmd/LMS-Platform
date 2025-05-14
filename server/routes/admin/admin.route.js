@@ -10,7 +10,10 @@ import {
     getStudentStats,
     getCourseAnalytics,
     getSupportInsights,
-    getTopCourses
+    getTopCourses,
+    getAllInstructors,
+    getInstructorById,
+    updateInstructorStatus
 } from "../../controller/admin/admin.controller.js";
 import { isAuthenticated, isAdmin } from "../../middlewares/isAuthenticated.js";
 
@@ -39,5 +42,10 @@ adminRouter.get('/feedback', getAllFeedback);
 
 // Messaging routes
 adminRouter.post('/send-message', sendBulkMessage);
+
+// Instructor management routes
+adminRouter.get('/instructors', getAllInstructors);
+adminRouter.get('/instructors/:id', getInstructorById);
+adminRouter.put('/instructors/:id/status', updateInstructorStatus);
 
 export default adminRouter;
