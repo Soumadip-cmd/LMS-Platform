@@ -13,7 +13,7 @@ const Navbar = () => {
   const [secondaryDropdown, setSecondaryDropdown] = useState(null); // Don't show German exams by default
   // Use navigate for programmatic navigation if needed
   const navigate = useNavigate();
-  
+
   // Clean up effect to ensure scroll is re-enabled when component unmounts
   useEffect(() => {
     return () => {
@@ -25,7 +25,7 @@ const Navbar = () => {
   const toggleMobileMenu = () => {
     const newState = !isMobileMenuOpen;
     setIsMobileMenuOpen(newState);
-    
+
     // Toggle body scroll lock
     if (newState) {
       // Lock scrolling on body when menu is open
@@ -62,9 +62,9 @@ const Navbar = () => {
 
   // Menu data structure with nested exams
   const menuItems = [
-    { 
-      name: "Courses", 
-      hasDropdown: true, 
+    {
+      name: "Courses",
+      hasDropdown: true,
       path: "/courses",
       subItems: [
         { name: "German", icon: "DE", available: true },
@@ -74,14 +74,14 @@ const Navbar = () => {
         { name: "Spanish", icon: "ES", available: false },
       ]
     },
-    { 
-      name: "Exams", 
-      hasDropdown: true, 
+    {
+      name: "Exams",
+      hasDropdown: true,
       path: "/exams",
       subItems: [
-        { 
-          name: "German", 
-          icon: "DE", 
+        {
+          name: "German",
+          icon: "DE",
           available: true,
           hasChildren: true,
           children: [
@@ -91,9 +91,9 @@ const Navbar = () => {
             { name: "DSH", available: false },
           ]
         },
-        { 
-          name: "English", 
-          icon: "GB", 
+        {
+          name: "English",
+          icon: "GB",
           available: false,
           hasChildren: true,
           children: [
@@ -102,9 +102,9 @@ const Navbar = () => {
             { name: "TOEFL", available: false },
           ]
         },
-        { 
-          name: "French", 
-          icon: "FR", 
+        {
+          name: "French",
+          icon: "FR",
           available: false,
           hasChildren: true,
           children: [
@@ -113,9 +113,9 @@ const Navbar = () => {
             { name: "TCF", available: false },
           ]
         },
-        { 
-          name: "Chinese", 
-          icon: "CN", 
+        {
+          name: "Chinese",
+          icon: "CN",
           available: false,
           hasChildren: true,
           children: [
@@ -123,9 +123,9 @@ const Navbar = () => {
             { name: "BCT", available: false },
           ]
         },
-        { 
-          name: "Spanish", 
-          icon: "ES", 
+        {
+          name: "Spanish",
+          icon: "ES",
           available: false,
           hasChildren: true,
           children: [
@@ -135,34 +135,37 @@ const Navbar = () => {
         },
       ]
     },
-    { 
-      name: "Dashboard", 
-      hasDropdown: false, 
-      path: "/dashboard/student" 
+    {
+      name: "Dashboard",
+      hasDropdown: false,
+      path: "/dashboard/student"
     },
-    { 
-      name: "Support", 
-      hasDropdown: true, 
+    {
+      name: "Support",
+      hasDropdown: true,
       path: "/support/contact-us",
       subItems: [
-        { name: "Contact Us", icon: "image" },
-        { name: "Resources", icon: "bar-chart" },
-        { name: "Community", icon: "users" },
+        { name: "Contact Us", icon: "image" , path:"/support/contact-us"},
+        { name: "Resources", icon: "bar-chart" , path:"/support/resources/home"},
+        { name: "Community", icon: "users", path:"/support/community/introduce" },
       ]
     },
   ];
-  
+
   // Handle direct navigation from dropdown items
   const handleDropdownItemNavigation = (e, path) => {
     e.preventDefault(); // Prevent default Link behavior
-    
+
     // First close all dropdowns and the mobile menu
     setHoverDropdown(null);
     setOpenDropdown(null);
     setSecondaryDropdown(null);
     setIsMobileMenuOpen(false);
     document.body.style.overflow = 'auto';
-    
+
+    // Log the path for debugging
+    console.log("Navigating to:", path);
+
     // Then navigate programmatically
     setTimeout(() => {
       navigate(path);
@@ -250,8 +253,8 @@ const Navbar = () => {
             {/* Menu items */}
             <div className="flex space-x-6">
               {menuItems.map((item) => (
-                <div 
-                  key={item.name} 
+                <div
+                  key={item.name}
                   className="group relative cursor-pointer"
                   onMouseEnter={() => setHoverDropdown(item.name)}
                   onMouseLeave={() => {
@@ -276,7 +279,7 @@ const Navbar = () => {
                       />
                     )}
                   </div>
-                  
+
                   {/* Custom dropdown matching the image design */}
                   {item.hasDropdown && item.subItems && (
                     <div className={`absolute left-0 top-full mt-1 w-48 bg-white shadow-lg rounded-md overflow-hidden z-10 hidden group-hover:block transform origin-top scale-95 opacity-0 group-hover:scale-100 group-hover:opacity-100 transition duration-200`}>
@@ -284,7 +287,7 @@ const Navbar = () => {
                         <div key={index} className="relative">
                           {/* First level dropdown item */}
                           {item.name === "Exams" && subItem.hasChildren ? (
-                            <div 
+                            <div
                               className={`flex items-center justify-between px-4 py-3 hover:bg-[#FFB71C] transition-colors duration-200 group/item ${!subItem.available && 'pointer-events-none opacity-70'}`}
                               onMouseEnter={() => setSecondaryDropdown(subItem.name)}
                               onClick={() => setSecondaryDropdown(subItem.name === secondaryDropdown ? null : subItem.name)}
@@ -314,12 +317,12 @@ const Navbar = () => {
                             </div>
                           ) : (
                             <Link
-                              to={`/${item.name.toLowerCase() === 'courses' ? subItem.name.toLowerCase() : item.name.toLowerCase() === 'exams' ? `german/${subItem.name.toLowerCase()}` : `${item.name.toLowerCase()}/${subItem.name.toLowerCase().replace(' ', '-')}`}`}
+                              to={item.name === 'Support' && subItem.path ? subItem.path : `/${item.name.toLowerCase() === 'courses' ? subItem.name.toLowerCase() : item.name.toLowerCase() === 'exams' ? `german/${subItem.name.toLowerCase()}` : item.name.toLowerCase() === 'support' ? `support/${subItem.name.toLowerCase().replace(' ', '-')}` : `${item.name.toLowerCase()}/${subItem.name.toLowerCase().replace(' ', '-')}`}`}
                               className={`flex items-center px-4 py-3 hover:bg-[#FFB71C] transition-colors duration-200 group/item ${item.name !== "Support" && !subItem.available && 'pointer-events-none opacity-70'}`}
                               onClick={(e) => {
                                 if (item.name === "Support" || subItem.available) {
-                                  // Calculate the path
-                                  const path = `/${item.name.toLowerCase() === 'courses' ? subItem.name.toLowerCase() : item.name.toLowerCase() === 'exams' ? `german/${subItem.name.toLowerCase()}` : `${item.name.toLowerCase()}/${subItem.name.toLowerCase().replace(' ', '-')}`}`;
+                                  // Use the predefined path for Support items if available
+                                  const path = item.name === 'Support' && subItem.path ? subItem.path : `/${item.name.toLowerCase() === 'courses' ? subItem.name.toLowerCase() : item.name.toLowerCase() === 'exams' ? `german/${subItem.name.toLowerCase()}` : item.name.toLowerCase() === 'support' ? `support/${subItem.name.toLowerCase().replace(' ', '-')}` : `${item.name.toLowerCase()}/${subItem.name.toLowerCase().replace(' ', '-')}`}`;
                                   // Use the handler for proper navigation
                                   handleDropdownItemNavigation(e, path);
                                 } else {
@@ -347,7 +350,7 @@ const Navbar = () => {
                               ) : (
                                 <span className="mr-2">{subItem.icon}</span>
                               )}
-                              
+
                               {/* Different text span styles for Support vs other items */}
                               {item.name === "Support" ? (
                                 <span className="text-gray-700 group-hover/item:text-black flex-grow">
@@ -358,33 +361,33 @@ const Navbar = () => {
                                   {subItem.name}
                                 </span>
                               )}
-                              
+
                               {/* Only show correct icons for Courses and Exams, NOT for Support */}
                               {(item.name === "Courses" || item.name === "Exams") && !subItem.hasChildren && (
-                                <img 
-                                  src={subItem.available ? 
-                                    `${process.env.PUBLIC_URL}/assets/Navbar_icons/green-Correct.png` : 
+                                <img
+                                  src={subItem.available ?
+                                    `${process.env.PUBLIC_URL}/assets/Navbar_icons/green-Correct.png` :
                                     `${process.env.PUBLIC_URL}/assets/Navbar_icons/gray-Correct.png`
-                                  } 
-                                  alt={subItem.available ? "Available" : "Not available"} 
+                                  }
+                                  alt={subItem.available ? "Available" : "Not available"}
                                   className="w-5 h-5 ml-auto"
                                 />
                               )}
                             </Link>
                           )}
-                          
+
                           {/* Secondary dropdown for exams */}
                           {item.name === "Exams" && subItem.hasChildren && subItem.children && (
-                            <div 
-                              className={`absolute left-full top-0 w-48 bg-white shadow-lg rounded-md overflow-hidden z-20 
-                                ${(hoverDropdown === item.name && secondaryDropdown === subItem.name) ? 'block' : 'hidden'} 
+                            <div
+                              className={`absolute left-full top-0 w-48 bg-white shadow-lg rounded-md overflow-hidden z-20
+                                ${(hoverDropdown === item.name && secondaryDropdown === subItem.name) ? 'block' : 'hidden'}
                                 transform origin-top-left opacity-100 transition duration-200`}
                             >
                               {subItem.children.map((childItem, childIndex) => (
                                 <Link
                                   key={childIndex}
                                   to={`/${subItem.name.toLowerCase()}/${childItem.name.toLowerCase()}`}
-                                  className={`flex items-center px-4 py-3 hover:bg-[#FFB71C] transition-colors duration-200 group/child 
+                                  className={`flex items-center px-4 py-3 hover:bg-[#FFB71C] transition-colors duration-200 group/child
                                     ${!childItem.available && 'pointer-events-none opacity-70'}`}
                                   onClick={(e) => {
                                     if (childItem.available) {
@@ -398,7 +401,7 @@ const Navbar = () => {
                                   <span className="text-gray-700 group-hover/child:text-black">
                                     {childItem.name}
                                   </span>
-                                  <Check 
+                                  <Check
                                     className={`w-5 h-5 ml-auto ${childItem.available ? 'text-green-500' : 'text-gray-300'}`}
                                   />
                                 </Link>
@@ -592,14 +595,14 @@ const Navbar = () => {
                               </div>
                             ) : (
                               <Link
-                                to={`/${item.name.toLowerCase() === 'courses' ? subItem.name.toLowerCase() : item.name.toLowerCase() === 'exams' ? `german/${subItem.name.toLowerCase()}` : `${item.name.toLowerCase()}/${subItem.name.toLowerCase().replace(' ', '-')}`}`}
+                                to={item.name === 'Support' && subItem.path ? subItem.path : `/${item.name.toLowerCase() === 'courses' ? subItem.name.toLowerCase() : item.name.toLowerCase() === 'exams' ? `german/${subItem.name.toLowerCase()}` : item.name.toLowerCase() === 'support' ? `support/${subItem.name.toLowerCase().replace(' ', '-')}` : `${item.name.toLowerCase()}/${subItem.name.toLowerCase().replace(' ', '-')}`}`}
                                 className={`flex items-center px-4 py-3 hover:bg-[#FFB71C] transition-colors duration-200 group/item ${item.name !== "Support" && !subItem.available && 'pointer-events-none opacity-70'}`}
                                 onClick={(e) => {
                                   if (!subItem.available && item.name !== "Support") {
                                     e.preventDefault();
                                   } else {
-                                    // Calculate the path
-                                    const path = `/${item.name.toLowerCase() === 'courses' ? subItem.name.toLowerCase() : item.name.toLowerCase() === 'exams' ? `german/${subItem.name.toLowerCase()}` : `${item.name.toLowerCase()}/${subItem.name.toLowerCase().replace(' ', '-')}`}`;
+                                    // Use the predefined path for Support items if available
+                                    const path = item.name === 'Support' && subItem.path ? subItem.path : `/${item.name.toLowerCase() === 'courses' ? subItem.name.toLowerCase() : item.name.toLowerCase() === 'exams' ? `german/${subItem.name.toLowerCase()}` : item.name.toLowerCase() === 'support' ? `support/${subItem.name.toLowerCase().replace(' ', '-')}` : `${item.name.toLowerCase()}/${subItem.name.toLowerCase().replace(' ', '-')}`}`;
                                     // Use the handler for proper navigation
                                     handleDropdownItemNavigation(e, path);
                                   }
@@ -625,7 +628,7 @@ const Navbar = () => {
                                 ) : (
                                   <span className="mr-2">{subItem.icon}</span>
                                 )}
-                                
+
                                 {/* Different text span styles for Support vs other items */}
                                 {item.name === "Support" ? (
                                   <span className="text-gray-700 group-hover/item:text-black flex-grow">
@@ -636,16 +639,16 @@ const Navbar = () => {
                                     {subItem.name}
                                   </span>
                                 )}
-                                
+
                                 {/* Only show correct icons for Courses and Exams, NOT for Support */}
                                 {(item.name === "Courses" || item.name === "Exams") && !subItem.hasChildren && (
                                   <div className="ml-auto">
-                                    <img 
-                                      src={subItem.available ? 
-                                        `${process.env.PUBLIC_URL}/assets/Navbar_icons/green-Correct.png` : 
+                                    <img
+                                      src={subItem.available ?
+                                        `${process.env.PUBLIC_URL}/assets/Navbar_icons/green-Correct.png` :
                                         `${process.env.PUBLIC_URL}/assets/Navbar_icons/gray-Correct.png`
-                                      } 
-                                      alt={subItem.available ? "Available" : "Not available"} 
+                                      }
+                                      alt={subItem.available ? "Available" : "Not available"}
                                       className="w-5 h-5"
                                     />
                                   </div>
@@ -679,8 +682,8 @@ const Navbar = () => {
                                     <span className="text-gray-700 group-hover:text-black">
                                       {childItem.name}
                                     </span>
-                                    <Check 
-                                      className={`w-5 h-5 ml-auto ${childItem.available ? 'text-green-500' : 'text-gray-300'}`} 
+                                    <Check
+                                      className={`w-5 h-5 ml-auto ${childItem.available ? 'text-green-500' : 'text-gray-300'}`}
                                     />
                                   </Link>
                                 ))}
