@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ChevronDown, Globe, Image, BarChart, Users, Check } from "lucide-react";
+import { ChevronDown, Globe, Image, BarChart, Users } from "lucide-react";
 
 const Navbar = () => {
   // State to track if mobile menu is open
@@ -20,6 +20,12 @@ const Navbar = () => {
       document.body.style.overflow = 'auto';
     };
   }, []);
+
+  // We're now handling click outside in the toggle function directly
+  // This effect is kept for compatibility but doesn't do anything
+  useEffect(() => {
+    // No-op
+  }, [secondaryDropdown]);
 
   // Toggle mobile menu and handle body scroll
   const toggleMobileMenu = () => {
@@ -57,6 +63,65 @@ const Navbar = () => {
       setSecondaryDropdown(null);
     } else {
       setSecondaryDropdown(item);
+    }
+  };
+
+  // Toggle secondary dropdown for desktop view - CLICK-ONLY APPROACH
+  const toggleDesktopSecondaryDropdown = (item, e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    console.log("Toggling secondary dropdown:", item);
+
+    // Store the clicked element for dropdown positioning
+    const clickedElement = e.currentTarget;
+
+    // Toggle the secondary dropdown
+    if (secondaryDropdown === item) {
+      // If it's already open, close it
+      setSecondaryDropdown(null);
+    } else {
+      // If it's closed, open it
+
+      // First, close any other open dropdown
+      setSecondaryDropdown(null);
+
+      // Then open the new dropdown after a brief delay
+      setTimeout(() => {
+        // Set the dropdown to be visible
+        setSecondaryDropdown(item);
+
+        // Position the dropdown after it's been rendered
+        setTimeout(() => {
+          const dropdown = document.getElementById(`secondary-dropdown-${item}`);
+          if (dropdown) {
+            // Get the position of the clicked element for more accurate positioning
+            const rect = clickedElement.getBoundingClientRect();
+
+            // Position the dropdown to the right of the clicked element
+            dropdown.style.position = 'fixed';
+            dropdown.style.top = `${rect.top}px`;
+            dropdown.style.left = `${rect.right + 5}px`; // Small offset from the right edge
+            dropdown.style.zIndex = '9999';
+
+            // Make sure it's visible
+            dropdown.style.display = 'block';
+            dropdown.style.opacity = '1';
+
+            // Add a click event listener to the document to close the dropdown when clicking outside
+            const closeDropdown = (event) => {
+              if (!dropdown.contains(event.target) && !clickedElement.contains(event.target)) {
+                setSecondaryDropdown(null);
+                document.removeEventListener('click', closeDropdown);
+              }
+            };
+
+            // Add the event listener after a short delay to prevent it from triggering immediately
+            setTimeout(() => {
+              document.addEventListener('click', closeDropdown);
+            }, 100);
+          }
+        }, 50);
+      }, 10);
     }
   };
 
@@ -180,7 +245,7 @@ const Navbar = () => {
         <div className="bg-blue-900 text-white p-2 text-center text-sm w-full">
           Keep learning with free resources! Experience{" "}
           <span className="font-bold">Preplings</span>.
-          <a href="#" className="ml-2 text-yellow-400 hover:underline">
+          <a href="/resources" className="ml-2 text-yellow-400 hover:underline">
             Learn more
           </a>
         </div>
@@ -256,10 +321,12 @@ const Navbar = () => {
                 <div
                   key={item.name}
                   className="group relative cursor-pointer"
-                  onMouseEnter={() => setHoverDropdown(item.name)}
+                  onMouseEnter={() => {
+                    setHoverDropdown(item.name);
+                  }}
                   onMouseLeave={() => {
                     setHoverDropdown(null);
-                    setSecondaryDropdown(null);
+                    // Don't close secondary dropdown on mouse leave
                   }}
                 >
                   <div className="flex items-center transition-transform duration-300 group-hover:scale-110">
@@ -282,17 +349,20 @@ const Navbar = () => {
 
                   {/* Custom dropdown matching the image design */}
                   {item.hasDropdown && item.subItems && (
-                    <div className={`absolute left-0 top-full mt-1 w-48 bg-white shadow-lg rounded-md overflow-hidden z-10 hidden group-hover:block transform origin-top scale-95 opacity-0 group-hover:scale-100 group-hover:opacity-100 transition duration-200`}>
+                    <div
+                      className={`absolute left-0 top-full mt-1 w-52 bg-white shadow-lg rounded-md overflow-hidden z-10 hidden group-hover:block transform origin-top scale-95 opacity-0 group-hover:scale-100 group-hover:opacity-100 transition duration-200`}
+                      onMouseEnter={() => setHoverDropdown(item.name)}
+                    >
                       {item.subItems.map((subItem, index) => (
-                        <div key={index} className="relative">
+                        <div key={index} className="relative" style={{ position: 'relative' }}>
                           {/* First level dropdown item */}
                           {item.name === "Exams" && subItem.hasChildren ? (
                             <div
                               className={`flex items-center justify-between px-4 py-3 hover:bg-[#FFB71C] transition-colors duration-200 group/item ${!subItem.available && 'pointer-events-none opacity-70'}`}
-                              onMouseEnter={() => setSecondaryDropdown(subItem.name)}
-                              onClick={() => setSecondaryDropdown(subItem.name === secondaryDropdown ? null : subItem.name)}
+                              onClick={(e) => toggleDesktopSecondaryDropdown(subItem.name, e)}
+                              data-dropdown-toggler="true"
                             >
-                              <div className="flex items-center">
+                              <div className="flex items-center min-w-[100px]">
                                 {subItem.icon === "DE" ? (
                                   <img src="https://placehold.co/20" alt="German flag" className="w-5 h-5 rounded-full mr-2" />
                                 ) : subItem.icon === "GB" ? (
@@ -363,7 +433,7 @@ const Navbar = () => {
                               )}
 
                               {/* Only show correct icons for Courses and Exams, NOT for Support */}
-                              {(item.name === "Courses" || item.name === "Exams") && !subItem.hasChildren && (
+                              {(item.name === "Courses" || item.name === "Exams") && (
                                 <img
                                   src={subItem.available ?
                                     `${process.env.PUBLIC_URL}/assets/Navbar_icons/green-Correct.png` :
@@ -376,18 +446,34 @@ const Navbar = () => {
                             </Link>
                           )}
 
-                          {/* Secondary dropdown for exams */}
+                          {/* Secondary dropdown for exams - NEW APPROACH */}
                           {item.name === "Exams" && subItem.hasChildren && subItem.children && (
                             <div
-                              className={`absolute left-full top-0 w-48 bg-white shadow-lg rounded-md overflow-hidden z-20
-                                ${(hoverDropdown === item.name && secondaryDropdown === subItem.name) ? 'block' : 'hidden'}
-                                transform origin-top-left opacity-100 transition duration-200`}
+                              id={`secondary-dropdown-${subItem.name}`}
+                              className="bg-white shadow-lg rounded-md overflow-hidden"
+                              style={{
+                                display: secondaryDropdown === subItem.name ? 'block' : 'none',
+                                minWidth: '200px',
+                                minHeight: '150px',
+                                zIndex: 9999,
+                                position: 'fixed',
+                                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                                border: '2px solid #e5e7eb',
+                                transition: 'opacity 0.2s ease-in-out',
+                                opacity: secondaryDropdown === subItem.name ? '1' : '0'
+                              }}
+                              onMouseEnter={() => {
+                                // Keep the dropdown open when hovering over it
+                                if (secondaryDropdown === subItem.name) {
+                                  console.log("Hovering over dropdown");
+                                }
+                              }}
                             >
                               {subItem.children.map((childItem, childIndex) => (
                                 <Link
                                   key={childIndex}
                                   to={`/${subItem.name.toLowerCase()}/${childItem.name.toLowerCase()}`}
-                                  className={`flex items-center px-4 py-3 hover:bg-[#FFB71C] transition-colors duration-200 group/child
+                                  className={`flex items-center justify-between px-4 py-3 hover:bg-[#FFB71C] transition-colors duration-200 group/child
                                     ${!childItem.available && 'pointer-events-none opacity-70'}`}
                                   onClick={(e) => {
                                     if (childItem.available) {
@@ -397,12 +483,19 @@ const Navbar = () => {
                                     }
                                   }}
                                 >
-                                  <img src="https://placehold.co/20" alt={`${subItem.name} flag`} className="w-5 h-5 rounded-full mr-2" />
-                                  <span className="text-gray-700 group-hover/child:text-black">
-                                    {childItem.name}
-                                  </span>
-                                  <Check
-                                    className={`w-5 h-5 ml-auto ${childItem.available ? 'text-green-500' : 'text-gray-300'}`}
+                                  <div className="flex items-center min-w-[100px]">
+                                    <img src="https://placehold.co/20" alt={`${subItem.name} flag`} className="w-5 h-5 rounded-full mr-2" />
+                                    <span className="text-gray-700 group-hover/child:text-black">
+                                      {childItem.name}
+                                    </span>
+                                  </div>
+                                  <img
+                                    src={childItem.available ?
+                                      `${process.env.PUBLIC_URL}/assets/Navbar_icons/green-Correct.png` :
+                                      `${process.env.PUBLIC_URL}/assets/Navbar_icons/gray-Correct.png`
+                                    }
+                                    alt={childItem.available ? "Available" : "Not available"}
+                                    className="w-5 h-5"
                                   />
                                 </Link>
                               ))}
@@ -566,7 +659,7 @@ const Navbar = () => {
                                 className={`flex items-center justify-between px-4 py-3 hover:bg-[#FFB71C] transition-colors duration-200 ${!subItem.available && 'opacity-70'}`}
                                 onClick={(e) => toggleSecondaryDropdown(subItem.name, e)}
                               >
-                                <div className="flex items-center">
+                                <div className="flex items-center min-w-[100px]">
                                   {subItem.icon === "DE" ? (
                                     <img src="https://placehold.co/20" alt="German flag" className="w-5 h-5 rounded-full mr-2" />
                                   ) : subItem.icon === "GB" ? (
@@ -641,7 +734,7 @@ const Navbar = () => {
                                 )}
 
                                 {/* Only show correct icons for Courses and Exams, NOT for Support */}
-                                {(item.name === "Courses" || item.name === "Exams") && !subItem.hasChildren && (
+                                {(item.name === "Courses" || item.name === "Exams") && (
                                   <div className="ml-auto">
                                     <img
                                       src={subItem.available ?
@@ -669,7 +762,7 @@ const Navbar = () => {
                                   <Link
                                     key={childIndex}
                                     to={`/${subItem.name.toLowerCase()}/${childItem.name.toLowerCase()}`}
-                                    className={`flex items-center px-4 py-3 ml-3 hover:bg-[#FFB71C] transition-colors duration-200 ${!childItem.available && 'pointer-events-none opacity-70'}`}
+                                    className={`flex items-center justify-between px-4 py-3 ml-3 hover:bg-[#FFB71C] transition-colors duration-200 ${!childItem.available && 'pointer-events-none opacity-70'}`}
                                     onClick={(e) => {
                                       if (childItem.available) {
                                         handleDropdownItemNavigation(e, `/${subItem.name.toLowerCase()}/${childItem.name.toLowerCase()}`);
@@ -678,12 +771,19 @@ const Navbar = () => {
                                       }
                                     }}
                                   >
-                                    <img src="https://placehold.co/20" alt={`${subItem.name} flag`} className="w-5 h-5 rounded-full mr-2" />
-                                    <span className="text-gray-700 group-hover:text-black">
-                                      {childItem.name}
-                                    </span>
-                                    <Check
-                                      className={`w-5 h-5 ml-auto ${childItem.available ? 'text-green-500' : 'text-gray-300'}`}
+                                    <div className="flex items-center min-w-[100px]">
+                                      <img src="https://placehold.co/20" alt={`${subItem.name} flag`} className="w-5 h-5 rounded-full mr-2" />
+                                      <span className="text-gray-700 group-hover:text-black">
+                                        {childItem.name}
+                                      </span>
+                                    </div>
+                                    <img
+                                      src={childItem.available ?
+                                        `${process.env.PUBLIC_URL}/assets/Navbar_icons/green-Correct.png` :
+                                        `${process.env.PUBLIC_URL}/assets/Navbar_icons/gray-Correct.png`
+                                      }
+                                      alt={childItem.available ? "Available" : "Not available"}
+                                      className="w-5 h-5"
                                     />
                                   </Link>
                                 ))}
