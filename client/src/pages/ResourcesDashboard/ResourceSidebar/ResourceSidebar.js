@@ -69,11 +69,11 @@ const ResourcesSidebar = () => {
     {
       title: null,
       items: [
-        { icon: <Home size={18} />, text: "Home", path: "/resources/home" },
+        { icon: <Home size={18} />, text: "Home", path: "/support/resources/home" },
         {
           icon: <Newspaper size={18} />,
           text: "Feed",
-          path: "/resources/feed",
+          path: "/support/resources/feed",
         },
       ],
     },
@@ -83,28 +83,28 @@ const ResourcesSidebar = () => {
         {
           icon: <Rocket size={18} />,
           text: "Get Started",
-          path: "/resources/get-started",
+          path: "/support/resources/get-started",
         },
-        { icon: <FileText size={18} />, text: "Blog", path: "/resources/blog" },
+        { icon: <FileText size={18} />, text: "Blog", path: "/support/resources/blog" },
         {
           icon: <HelpCircle size={18} />,
           text: "Help Center",
-          path: "/resources/help",
+          path: "/support/resources/help",
         },
         {
           icon: <Bell size={18} />,
           text: "Product Updates",
-          path: "/resources/updates",
+          path: "/support/resources/updates",
         },
         {
           icon: <Map size={18} />,
           text: "Roadmap",
-          path: "/resources/roadmap",
+          path: "/support/resources/roadmap",
         },
         {
           icon: <ClipboardList size={18} />,
           text: "Changelog",
-          path: "/resources/changelog",
+          path: "/support/resources/changelog",
         },
       ],
     },
@@ -114,32 +114,32 @@ const ResourcesSidebar = () => {
         {
           icon: <UserPlus size={18} />,
           text: "Introduce yourself",
-          path: "/resources/introduce",
+          path: "/support/community/introduce",
         },
         {
           icon: <MessageSquare size={18} />,
           text: "Discussions",
-          path: "/resources/discussions",
+          path: "/support/community/discussions",
         },
         {
           icon: <AskIcon size={18} />,
           text: "Ask the Community",
-          path: "/resources/ask",
+          path: "/support/community/ask",
         },
         {
           icon: <Star size={18} />,
           text: "Wishlist",
-          path: "/resources/wishlist",
+          path: "/support/community/wishlist",
         },
         {
           icon: <Calendar size={18} />,
           text: "Events",
-          path: "/resources/events",
+          path: "/support/community/events",
         },
         {
           icon: <Users size={18} />,
           text: "Groups",
-          path: "/resources/groups",
+          path: "/support/community/groups",
         },
       ],
     },

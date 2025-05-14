@@ -68,7 +68,8 @@ const AppContent = () => {
   const { userType } = authContext; // Assuming your auth context tracks user type
 
   // Check if current path is a resources page
-  const isResourcesPage = location.pathname.startsWith("/resources");
+  const isResourcesPage = location.pathname.startsWith("/support/resources") || location.pathname.startsWith("/support/community");
+
 
   // Function to determine which navbar to show based on route and user type
   const renderNavbar = () => {
@@ -222,39 +223,39 @@ const AppContent = () => {
             />
 
             {/* Resource Dashboard */}
-            <Route path="/resources/home" element={<ResourcesHomePage />} />
+            <Route path="/support/resources/home" element={<ResourcesHomePage />} />
             {/* Add all other resource routes here */}
-            <Route path="/resources/feed" element={<ResourceFeed />} />
-            <Route path="/resources/get-started" element={<GetStarted />} />
-            <Route path="/resources/blog" element={<ResourceBlog />} />
-            <Route path="/resources/help" element={<HelpCenter />} />
-            <Route path="/resources/updates" element={<ProductUpdate />} />
+            <Route path="/support/resources/feed" element={<ResourceFeed />} />
+            <Route path="/support/resources/get-started" element={<GetStarted />} />
+            <Route path="/support/resources/blog" element={<ResourceBlog />} />
+            <Route path="/support/resources/help" element={<HelpCenter />} />
+            <Route path="/support/resources/updates" element={<ProductUpdate />} />
             <Route
-              path="/resources/roadmap"
+              path="/support/resources/roadmap"
               element={<ProductRoadmap/>}
             />
             <Route
-              path="/resources/changelog"
+              path="/support/resources/changelog"
               element={<div>Changelog Page</div>}
             />
             <Route
-              path="/resources/introduce"
+              path="/support/community/introduce"
               element={<div>Introduce Yourself Page</div>}
             />
             <Route
-              path="/resources/discussions"
+              path="/support/community/discussions"
               element={<div>Discussions Page</div>}
             />
             <Route
-              path="/resources/ask"
+              path="/support/community/ask"
               element={<div>Ask the Community Page</div>}
             />
             <Route
-              path="/resources/wishlist"
+              path="/support/community/wishlist"
               element={<div>Wishlist Page</div>}
             />
-            <Route path="/resources/events" element={<div>Events Page</div>} />
-            <Route path="/resources/groups" element={<div>Groups Page</div>} />
+            <Route path="/support/community/events" element={<div>Events Page</div>} />
+            <Route path="/support/community/groups" element={<div>Groups Page</div>} />
 
             {/* Support - Contact Us */}
             <Route path="/support/contact-us" element={<ContactUs />} />
