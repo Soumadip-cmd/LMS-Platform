@@ -3,6 +3,7 @@ import { Plus, FileText, Video, Calendar, Edit, Trash2, CheckCircle, ChevronRigh
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import AdminSidebar from "../../../AdminSidebar";
+import AdminNavbar from "../../../../../../components/Header/AdminNavbar";
 import AddSection from "./AddSection";
 import AddLesson from "./AddLesson";
 import AddLiveLesson from "./AddLiveLesson";
@@ -185,12 +186,7 @@ const CourseMaterial = () => {
       }
     };
 
-    return (
-      <div className="flex min-h-screen bg-white">
-        <AdminSidebar active="Courses" />
-        {modalContent()}
-      </div>
-    );
+    return modalContent();
   };
 
   // Get icon for item type
@@ -471,7 +467,7 @@ const CourseMaterial = () => {
 
       {/* Full Page Modal */}
       {activeModal && (
-        <div className="fixed inset-0 z-50 overflow-auto" style={{ background: 'white' }}>
+        <div className="fixed inset-0 z-50 overflow-auto bg-white">
           {renderModal()}
         </div>
       )}

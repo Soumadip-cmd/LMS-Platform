@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { ChevronLeft, ChevronRight, Upload } from "lucide-react";
 import toast from "react-hot-toast";
+import AdminSidebar from "../../../AdminSidebar";
+import AdminNavbar from "../../../../../../components/Header/AdminNavbar";
 
 const AddAssignment = ({ sectionName, onSave, onCancel }) => {
   const [assignmentTitle, setAssignmentTitle] = useState("");
@@ -46,46 +48,42 @@ const AddAssignment = ({ sectionName, onSave, onCancel }) => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Sidebar is already in the parent component */}
-
-      {/* Main content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Header */}
-        <header className="bg-white shadow-sm border-b">
-          <div className="px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-            <div className="flex items-center">
-              <button
-                onClick={onCancel}
-                className="mr-4 text-blue-500"
-              >
-                <ChevronLeft size={24} />
-              </button>
-              <h1 className="text-2xl font-medium text-gray-700">Add Assignment</h1>
+    <div className="flex-1 bg-white">
+          {/* Header */}
+          <header className="bg-white shadow-sm border-b">
+            <div className="px-4 py-4 flex items-center justify-between">
+              <div className="flex items-center">
+                <button
+                  onClick={onCancel}
+                  className="mr-4 text-blue-500"
+                >
+                  <ChevronLeft size={20} />
+                </button>
+                <h1 className="text-xl font-medium text-gray-700">Add Assignment</h1>
+              </div>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={onCancel}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSave}
+                  className="px-4 py-2 bg-yellow-400 rounded-md text-white"
+                >
+                  Save
+                </button>
+              </div>
             </div>
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={onCancel}
-                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSave}
-                className="px-4 py-2 bg-yellow-400 rounded-md text-white"
-              >
-                Save
-              </button>
-            </div>
-          </div>
-        </header>
+          </header>
 
         {/* Main content scrollable area */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+        <main className="overflow-y-auto p-4">
           {/* Course Builder Header */}
-          <div className="mb-8 border-b pb-4">
+          <div className="mb-6 border-b pb-4">
             <div className="flex items-center">
-              <h3 className="text-sm font-medium uppercase text-gray-500 mr-6">COURSE BUILDER</h3>
+              <span className="text-sm font-medium uppercase text-gray-500 mr-4">COURSE BUILDER</span>
               <div className="flex items-center">
                 <div className="flex items-center">
                   <div className="w-6 h-6 rounded-full bg-yellow-400 flex items-center justify-center text-white text-xs">
@@ -242,7 +240,6 @@ const AddAssignment = ({ sectionName, onSave, onCancel }) => {
         </div>
 
         </main>
-      </div>
     </div>
   );
 };
