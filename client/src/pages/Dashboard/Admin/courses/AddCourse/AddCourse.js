@@ -322,26 +322,28 @@ const AddCourse = () => {
                   {/* Course Options */}
                   <div className="mb-6">
                     <h3 className="text-sm font-medium text-gray-700 mb-4">Options</h3>
-                    <CourseOptions
-                      activeOption={activeOption}
-                      setActiveOption={setActiveOption}
-                      language={language}
-                      setLanguage={setLanguage}
-                      examLevel={examLevel}
-                      setExamLevel={setExamLevel}
-                      examPattern={examPattern}
-                      setExamPattern={setExamPattern}
-                      isPublicCourse={isPublicCourse}
-                      setIsPublicCourse={setIsPublicCourse}
-                      isQnA={isQnA}
-                      setIsQnA={setIsQnA}
-                      isSequential={isSequential}
-                      setIsSequential={setIsSequential}
-                      isLiveCourse={isLiveCourse}
-                      setIsLiveCourse={setIsLiveCourse}
-                      liveCourseSettings={liveCourseSettings}
-                      setLiveCourseSettings={setLiveCourseSettings}
-                    />
+                    <div className="border border-gray-200 rounded-md overflow-hidden">
+                      <CourseOptions
+                        activeOption={activeOption}
+                        setActiveOption={setActiveOption}
+                        language={language}
+                        setLanguage={setLanguage}
+                        examLevel={examLevel}
+                        setExamLevel={setExamLevel}
+                        examPattern={examPattern}
+                        setExamPattern={setExamPattern}
+                        isPublicCourse={isPublicCourse}
+                        setIsPublicCourse={setIsPublicCourse}
+                        isQnA={isQnA}
+                        setIsQnA={setIsQnA}
+                        isSequential={isSequential}
+                        setIsSequential={setIsSequential}
+                        isLiveCourse={isLiveCourse}
+                        setIsLiveCourse={setIsLiveCourse}
+                        liveCourseSettings={liveCourseSettings}
+                        setLiveCourseSettings={setLiveCourseSettings}
+                      />
+                    </div>
                   </div>
                 </>
               )}
