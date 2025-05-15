@@ -21,12 +21,14 @@ const CourseOptions = ({
   setLiveCourseSettings,
 }) => {
   return (
-    <div className="flex">
+    <div className="flex flex-col sm:flex-row">
       {/* Left side - Options navigation */}
-      <div className="w-48 border-r border-gray-200">
+      <div className="w-full sm:w-48 border-b sm:border-b-0 sm:border-r border-gray-200">
         <button
-          className={`flex items-center w-full p-4 text-left ${
-            activeOption === "General" ? "bg-yellow-50 border-l-4 border-yellow-400 pl-3" : "hover:bg-gray-50"
+          className={`flex items-center w-full p-3 sm:p-4 text-left text-sm ${
+            activeOption === "General"
+              ? "bg-yellow-50 border-l-4 border-yellow-400 pl-2 sm:pl-3"
+              : "hover:bg-gray-50"
           }`}
           onClick={() => setActiveOption("General")}
         >
@@ -43,8 +45,10 @@ const CourseOptions = ({
         </button>
 
         <button
-          className={`flex items-center w-full p-4 text-left ${
-            activeOption === "ContentDrip" ? "bg-yellow-50 border-l-4 border-yellow-400 pl-3" : "hover:bg-gray-50"
+          className={`flex items-center w-full p-3 sm:p-4 text-left text-sm ${
+            activeOption === "ContentDrip"
+              ? "bg-yellow-50 border-l-4 border-yellow-400 pl-2 sm:pl-3"
+              : "hover:bg-gray-50"
           }`}
           onClick={() => setActiveOption("ContentDrip")}
         >
@@ -60,8 +64,10 @@ const CourseOptions = ({
         </button>
 
         <button
-          className={`flex items-center w-full p-4 text-left ${
-            activeOption === "FinalTest" ? "bg-yellow-50 border-l-4 border-yellow-400 pl-3" : "hover:bg-gray-50"
+          className={`flex items-center w-full p-3 sm:p-4 text-left text-sm ${
+            activeOption === "FinalTest"
+              ? "bg-yellow-50 border-l-4 border-yellow-400 pl-2 sm:pl-3"
+              : "hover:bg-gray-50"
           }`}
           onClick={() => setActiveOption("FinalTest")}
         >
@@ -77,8 +83,10 @@ const CourseOptions = ({
         </button>
 
         <button
-          className={`flex items-center w-full p-4 text-left ${
-            activeOption === "LiveCourse" ? "bg-yellow-50 border-l-4 border-yellow-400 pl-3" : "hover:bg-gray-50"
+          className={`flex items-center w-full p-3 sm:p-4 text-left text-sm ${
+            activeOption === "LiveCourse"
+              ? "bg-yellow-50 border-l-4 border-yellow-400 pl-2 sm:pl-3"
+              : "hover:bg-gray-50"
           }`}
           onClick={() => setActiveOption("LiveCourse")}
         >
@@ -95,7 +103,7 @@ const CourseOptions = ({
       </div>
 
       {/* Right side - Option content */}
-      <div className="flex-1 p-6">
+      <div className="flex-1 p-4 sm:p-6">
         {activeOption === "General" && (
           <div>
             <div className="mb-4">

@@ -201,22 +201,22 @@ const AddCourse = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-white">
+    <div className="flex flex-col md:flex-row min-h-screen bg-white">
       <AdminSidebar active="Courses" />
       <Toaster position="top-center" />
 
-      <div className="flex-1">
-        <div className="p-6">
-          <h1 className="text-2xl font-medium text-gray-700 mb-6">Add Course</h1>
+      <div className="flex-1 w-full">
+        <div className="p-3 md:p-6">
+          <h1 className="text-xl md:text-2xl font-medium text-gray-700 mb-4 md:mb-6">Add Course</h1>
 
           {/* Course Builder Nav */}
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center">
-              <h3 className="text-sm font-medium uppercase text-gray-500 mr-6">COURSE BUILDER</h3>
-              <div className="flex items-center">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center w-full sm:w-auto">
+              <h3 className="text-sm font-medium uppercase text-gray-500 mb-2 sm:mb-0 sm:mr-4">COURSE BUILDER</h3>
+              <div className="flex items-center flex-wrap">
                 {steps.map((step, index) => (
                   <React.Fragment key={index}>
-                    <div className="flex items-center">
+                    <div className="flex items-center mb-2 sm:mb-0">
                       <div
                         className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs ${
                           currentStep >= index + 1 ? 'bg-yellow-400' : 'bg-gray-200 text-gray-500'
@@ -233,25 +233,25 @@ const AddCourse = () => {
                       </span>
                     </div>
                     {index < steps.length - 1 && (
-                      <div className="w-8 mx-2 h-px bg-gray-300"></div>
+                      <div className="hidden sm:block w-8 mx-2 h-px bg-gray-300"></div>
                     )}
                   </React.Fragment>
                 ))}
               </div>
             </div>
-            <div className="flex space-x-2">
+            <div className="flex space-x-2 w-full sm:w-auto justify-end">
               <button
                 onClick={() => handleSubmit("draft")}
-                className="flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white"
+                className="flex items-center px-3 sm:px-4 py-2 border border-gray-300 rounded-md text-xs sm:text-sm font-medium text-gray-700 bg-white"
               >
                 Cancel
               </button>
               <div className="relative inline-block">
                 <button
                   onClick={() => handleSubmit("published")}
-                  className="flex items-center px-4 py-2 bg-yellow-400 rounded-md text-sm font-medium text-white"
+                  className="flex items-center px-3 sm:px-4 py-2 bg-yellow-400 rounded-md text-xs sm:text-sm font-medium text-white"
                 >
-                  <FileText size={16} className="mr-2" />
+                  <FileText size={16} className="mr-1 sm:mr-2" />
                   Save
                 </button>
               </div>
@@ -259,9 +259,9 @@ const AddCourse = () => {
           </div>
 
           {/* Main content area */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
             {/* Left side - Course details */}
-            <div className="md:col-span-2">
+            <div className="lg:col-span-2">
               {currentStep === 1 && (
                 <>
                   <CourseBasics
@@ -325,55 +325,55 @@ const AddCourse = () => {
               )}
 
               {currentStep === 3 && (
-                <div className="bg-white p-6 rounded-lg">
-                  <h3 className="text-xl font-medium text-gray-700 mb-6">Additional Information</h3>
+                <div className="bg-white p-4 md:p-6 rounded-lg">
+                  <h3 className="text-lg md:text-xl font-medium text-gray-700 mb-4 md:mb-6">Additional Information</h3>
 
                   {/* Course Name */}
-                  <div className="mb-6">
+                  <div className="mb-4 md:mb-6">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Course Name : <span className="text-blue-500">&lt; {courseTitle} &gt;</span></label>
                   </div>
 
                   {/* Overview */}
-                  <div className="mb-6">
+                  <div className="mb-4 md:mb-6">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Overview</label>
                     <p className="text-sm text-gray-500 mb-2">Provide essential course information to attract and inform potential students.</p>
                   </div>
 
                   {/* What Will I Learn? */}
-                  <div className="mb-6">
+                  <div className="mb-4 md:mb-6">
                     <label className="block text-sm font-medium text-gray-700 mb-1">What Will I Learn?</label>
                     <textarea
                       value={whatWillLearn}
                       onChange={(e) => setWhatWillLearn(e.target.value)}
                       placeholder="Key takeaways and learning outcomes students can expect."
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[100px]"
+                      className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[80px] md:min-h-[100px]"
                     />
                   </div>
 
                   {/* Target Audience */}
-                  <div className="mb-6">
+                  <div className="mb-4 md:mb-6">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Target Audience</label>
                     <textarea
                       value={targetAudience}
                       onChange={(e) => setTargetAudience(e.target.value)}
                       placeholder="The intended audience for your course."
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[100px]"
+                      className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[80px] md:min-h-[100px]"
                     />
                   </div>
 
                   {/* Total Course Duration */}
-                  <div className="mb-6">
+                  <div className="mb-4 md:mb-6">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Total Course Duration</label>
-                    <div className="flex gap-4">
+                    <div className="flex gap-2 md:gap-4">
                       <div className="w-1/2">
                         <input
                           type="number"
                           min="0"
                           value={courseDurationHours}
                           onChange={(e) => setCourseDurationHours(parseInt(e.target.value) || 0)}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-2 md:px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
-                        <span className="text-sm text-gray-500 mt-1 block text-center">Hours</span>
+                        <span className="text-xs md:text-sm text-gray-500 mt-1 block text-center">Hours</span>
                       </div>
                       <div className="w-1/2">
                         <input
@@ -382,43 +382,43 @@ const AddCourse = () => {
                           max="59"
                           value={courseDurationMinutes}
                           onChange={(e) => setCourseDurationMinutes(parseInt(e.target.value) || 0)}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-2 md:px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
-                        <span className="text-sm text-gray-500 mt-1 block text-center">Min</span>
+                        <span className="text-xs md:text-sm text-gray-500 mt-1 block text-center">Min</span>
                       </div>
                     </div>
                   </div>
 
                   {/* Materials Included */}
-                  <div className="mb-6">
+                  <div className="mb-4 md:mb-6">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Materials Included</label>
                     <textarea
                       value={materialsIncluded}
                       onChange={(e) => setMaterialsIncluded(e.target.value)}
                       placeholder="A list of resources or materials provided to students"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[100px]"
+                      className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[80px] md:min-h-[100px]"
                     />
                   </div>
 
                   {/* Requirements/Instructions */}
-                  <div className="mb-6">
+                  <div className="mb-4 md:mb-6">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Requirements/Instructions</label>
                     <textarea
                       value={requirements}
                       onChange={(e) => setRequirements(e.target.value)}
                       placeholder="Any prerequisites or special instructions for the course."
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[100px]"
+                      className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[80px] md:min-h-[100px]"
                     />
                   </div>
                 </div>
               )}
 
               {/* Navigation buttons */}
-              <div className="mt-8 flex justify-between">
+              <div className="mt-6 md:mt-8 flex justify-between">
                 <button
                   onClick={handlePrevStep}
                   disabled={currentStep === 1}
-                  className={`px-6 py-2 border border-gray-300 rounded-md ${
+                  className={`px-4 sm:px-6 py-2 border border-gray-300 rounded-md text-sm md:text-base ${
                     currentStep === 1 ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 hover:bg-gray-50'
                   }`}
                 >
@@ -427,14 +427,14 @@ const AddCourse = () => {
                 {currentStep === steps.length ? (
                   <button
                     onClick={() => handleSubmit("published")}
-                    className="px-6 py-2 bg-yellow-400 text-white rounded-md hover:bg-yellow-500"
+                    className="px-4 sm:px-6 py-2 bg-yellow-400 text-white rounded-md hover:bg-yellow-500 text-sm md:text-base"
                   >
                     Finish
                   </button>
                 ) : (
                   <button
                     onClick={handleNextStep}
-                    className="px-6 py-2 bg-yellow-400 text-white rounded-md hover:bg-yellow-500"
+                    className="px-4 sm:px-6 py-2 bg-yellow-400 text-white rounded-md hover:bg-yellow-500 text-sm md:text-base"
                   >
                     Next
                   </button>
@@ -443,7 +443,7 @@ const AddCourse = () => {
             </div>
 
             {/* Right side - Options */}
-            <div className="md:col-span-1">
+            <div className="lg:col-span-1">
               <div>
                 <h3 className="text-sm font-medium mb-2">Visibility</h3>
                 <div className="relative mb-1">
