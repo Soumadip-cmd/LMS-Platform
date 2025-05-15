@@ -1,19 +1,18 @@
-import React, { useState, useEffect, useContext, useRef } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import AdminSidebar from "../../AdminSidebar";
 import { useNavigate } from "react-router-dom";
 import courseContext from "../../../../../context/course/courseContext";
-import "quill/dist/quill.snow.css";
-import Quill from "quill";
 import {
-  LinkIcon,
   Upload,
-  Calendar,
-  Clock,
   ChevronDown,
   FileText,
-  Plus
+  Calendar,
+  Clock
 } from "lucide-react";
+import { Toaster, toast } from "react-hot-toast";
 import CourseOptions from "./components/CourseOptions";
+import CourseMaterial from "./components/CourseMaterial";
+import CourseBasics from "./components/CourseBasics";
 
 const AddCourse = () => {
   // Step tracking
@@ -70,42 +69,6 @@ const AddCourse = () => {
 
   const CourseContext = useContext(courseContext);
   const { createCourse, updateLiveCourseSettings, error, clearErrors } = CourseContext;
-  const quillRef = useRef(null);
-
-  useEffect(() => {
-    if (!quillRef.current) {
-      quillRef.current = new Quill("#quill-editor", {
-        modules: {
-          toolbar: [
-            ["bold", "italic", "underline", "strike"],
-            ["blockquote", "code-block"],
-            [{ header: 1 }, { header: 2 }],
-            [{ list: "ordered" }, { list: "bullet" }],
-            [{ indent: "-1" }, { indent: "+1" }],
-            [{ size: ["small", false, "large", "huge"] }],
-            [{ header: [1, 2, 3, 4, 5, 6, false] }],
-            [{ color: [] }, { background: [] }],
-            [{ font: [] }],
-            [{ align: [] }],
-            ["clean"],
-            ["link", "image"],
-          ],
-        },
-        placeholder: "Enter course description...",
-        theme: "snow",
-      });
-
-      // Set initial content if any
-      if (description) {
-        quillRef.current.root.innerHTML = description;
-      }
-
-      // Handle content changes
-      quillRef.current.on("text-change", function () {
-        setDescription(quillRef.current.root.innerHTML);
-      });
-    }
-  }, []);
 
   useEffect(() => {
     if (error) {
@@ -138,6 +101,9 @@ const AddCourse = () => {
 
   //handleSubmit function
   const handleSubmit = async (status = "draft") => {
+    // Show loading toast
+    const loadingToast = toast.loading(status === "draft" ? "Saving draft..." : "Publishing course...");
+
     // Create form data for file uploads
     const formData = new FormData();
 
@@ -168,6 +134,8 @@ const AddCourse = () => {
       const course = await createCourse(formData);
 
       if (!course) {
+        toast.error("Failed to create course");
+        toast.dismiss(loadingToast);
         throw new Error("Failed to create course");
       }
 
@@ -188,6 +156,10 @@ const AddCourse = () => {
         course._id
       }/${encodeURIComponent(courseTitle.replace(/\s+/g, "-").toLowerCase())}`;
 
+      // Show success toast
+      toast.dismiss(loadingToast);
+      toast.success(status === "draft" ? "Course draft saved successfully!" : "Course published successfully!");
+
       // Navigate to course management or curriculum editor
       navigate(`/admin/courses/${course._id}/curriculum`, {
         state: {
@@ -198,6 +170,8 @@ const AddCourse = () => {
       });
     } catch (error) {
       console.error("Error creating course:", error);
+      toast.dismiss(loadingToast);
+      toast.error("Error creating course: " + (error.message || "Please try again"));
     }
   };
 
@@ -218,6 +192,7 @@ const AddCourse = () => {
   return (
     <div className="flex min-h-screen bg-white">
       <AdminSidebar active="Courses" />
+      <Toaster position="top-center" />
 
       <div className="flex-1">
         <div className="p-6">
@@ -278,46 +253,12 @@ const AddCourse = () => {
             <div className="md:col-span-2">
               {currentStep === 1 && (
                 <>
-                  {/* Course Title */}
-                  <div className="mb-6">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Course Title</label>
-                    <input
-                      type="text"
-                      value={courseTitle}
-                      onChange={(e) => setCourseTitle(e.target.value)}
-                      placeholder="Type here"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none" />
-                  </div>
-
-                  {/* Course URL */}
-                  <div className="mb-6">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Course URL</label>
-                    <div className="flex items-center text-sm text-blue-600">
-                      <span>www.preplings.com/exam/goethea1/{courseTitle ? courseTitle.toLowerCase().replace(/\s+/g, '-') : 'algoetheea10123'}</span>
-                      <LinkIcon size={16} className="ml-2 text-blue-500" />
-                    </div>
-                  </div>
-
-                  {/* Course Description */}
-                  <div className="mb-6">
-                    <div className="flex items-center justify-between mb-1">
-                      <label className="block text-sm font-medium text-gray-700">Course Description</label>
-                      <div className="flex items-center">
-                        <button className="flex items-center px-2 py-1 border border-gray-300 rounded-l-md text-sm text-gray-700">
-                          <span>Paragraph</span>
-                          <ChevronDown size={16} className="ml-1" />
-                        </button>
-                        <div className="flex border-l border-gray-300">
-                          <button className="p-1 hover:bg-gray-100 rounded font-bold">B</button>
-                          <button className="p-1 hover:bg-gray-100 rounded italic">I</button>
-                          <button className="p-1 hover:bg-gray-100 rounded underline">U</button>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="border border-gray-300 rounded-md">
-                      <div id="quill-editor" className="min-h-[200px]"></div>
-                    </div>
-                  </div>
+                  <CourseBasics
+                    courseTitle={courseTitle}
+                    setCourseTitle={setCourseTitle}
+                    description={description}
+                    setDescription={setDescription}
+                  />
 
                   {/* Course Options */}
                   <div className="mb-6">
@@ -349,10 +290,7 @@ const AddCourse = () => {
               )}
 
               {currentStep === 2 && (
-                <div className="bg-gray-50 p-8 rounded-lg text-center">
-                  <h3 className="text-lg font-medium text-gray-700 mb-2">Course Material</h3>
-                  <p className="text-gray-500">You'll be able to add course content after creating the basic course information.</p>
-                </div>
+                <CourseMaterial />
               )}
 
               {currentStep === 3 && (
