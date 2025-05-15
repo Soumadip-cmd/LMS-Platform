@@ -351,10 +351,9 @@ const AddCourse = () => {
                   {currentStep < 3 ? 'Next' : 'Create Course'}
                 </button>
               </div>
-            </div>
 
             {/* Right side - Options */}
-            <div className="md:col-span-1">
+            <div>
               <div>
                 <h3 className="text-sm font-medium mb-2">Visibility</h3>
                 <div className="relative mb-1">
