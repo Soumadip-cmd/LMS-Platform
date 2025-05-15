@@ -14,7 +14,7 @@ import courseContext from "../../../context/course/courseContext";
 
 const StudentDashboard = () => {
   const [activeTab, setActiveTab] = useState("All");
-  
+
   const [currentPage, setCurrentPage] = useState(1);
   const coursesPerPage = 6;
 
@@ -49,28 +49,72 @@ const StudentDashboard = () => {
  const CourseContextData = useContext(courseContext);
  const { user, isAuthenticated } = AuthContext;
 
- const { 
-  dashboardStats, 
-  coursesProgress, 
-  loading, 
-  getDashboardStats, 
-  getCoursesProgress 
+ const {
+  dashboardStats,
+  coursesProgress,
+  loading,
+  getDashboardStats,
+  getCoursesProgress
 } = CourseContextData;
+ // Local loading state to handle API errors
+ const [localLoading, setLocalLoading] = useState(true);
+ const [error, setError] = useState(null);
+
+ // Fetch dashboard data on component mount and when activeTab changes
  useEffect(() => {
-  if (getDashboardStats && getCoursesProgress) {
-    getDashboardStats();
-    getCoursesProgress(activeTab);
-  }
-}, [activeTab, getDashboardStats, getCoursesProgress]);
- 
- 
+  let isMounted = true;
+
+  const fetchData = async () => {
+    if (!getDashboardStats || !getCoursesProgress) return;
+
+    setLocalLoading(true);
+    setError(null);
+
+    try {
+      // Fetch dashboard stats with a timeout
+      const statsPromise = getDashboardStats();
+      const progressPromise = getCoursesProgress(activeTab);
+
+      // Add a timeout to prevent infinite loading
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Request timeout')), 10000)
+      );
+
+      // Race the API calls against the timeout
+      await Promise.race([
+        Promise.all([statsPromise, progressPromise]),
+        timeoutPromise
+      ]);
+
+      if (isMounted) {
+        setLocalLoading(false);
+      }
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+      if (isMounted) {
+        setError("Failed to load dashboard data. Please try refreshing the page.");
+        setLocalLoading(false);
+      }
+    }
+  };
+
+  fetchData();
+
+  // Cleanup function
+  return () => {
+    isMounted = false;
+  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [activeTab]);
+
+
 
 
   // Pagination logic
   const indexOfLastCourse = currentPage * coursesPerPage;
   const indexOfFirstCourse = indexOfLastCourse - coursesPerPage;
   const currentCourses = loading || !coursesProgress ? [] : coursesProgress
-  .filter(course => activeTab === "All" ? true : 
+  .filter(course => activeTab === "All" ? true :
           activeTab === "Completed" ? course.completed : !course.completed)
   .slice(indexOfFirstCourse, indexOfLastCourse)
   .map(course => ({
@@ -78,7 +122,7 @@ const StudentDashboard = () => {
     title: course.title,
     progress: course.progress || 0,
     status: course.completed ? "Completed" : "Ongoing",
-    color: course.completed ? "bg-green-500" : 
+    color: course.completed ? "bg-green-500" :
            course.progress > 70 ? "bg-green-500" :
            course.progress > 40 ? "bg-yellow-400" :
            course.progress > 20 ? "bg-purple-500" : "bg-blue-500",
@@ -104,6 +148,38 @@ const StudentDashboard = () => {
     setCurrentPage(1);
   }, [activeTab]);
 
+  // Show loading indicator when data is being fetched
+  if (loading || localLoading) {
+    return (
+      <div className="flex flex-col md:flex-row bg-gray-100 relative pb-3">
+        <StudentSidebar/>
+        <div className="flex-1 md:ml-64 p-2 sm:p-4 flex justify-center items-center min-h-screen">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500"></div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error message if there was an error
+  if (error) {
+    return (
+      <div className="flex flex-col md:flex-row bg-gray-100 relative pb-3">
+        <StudentSidebar/>
+        <div className="flex-1 md:ml-64 p-2 sm:p-4 flex flex-col justify-center items-center min-h-screen">
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-md mb-4 max-w-lg">
+            <p>{error}</p>
+          </div>
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
+          >
+            Refresh Page
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     // Changed to div with relative positioning instead of min-h-screen
     <div className="flex flex-col md:flex-row bg-gray-100 relative pb-3">
@@ -120,8 +196,8 @@ const StudentDashboard = () => {
                   Welcome Back, {user ? user.name.split(' ')[0] : ''}!
                 </h1>
                 <div className="mt-2 custom-date-margin">
-                <DateDisplay 
-    date={`${new Date().toLocaleString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}|`} 
+                <DateDisplay
+    date={`${new Date().toLocaleString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}|`}
     time={new Date().toLocaleString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })}
   />
                 </div>
@@ -136,7 +212,7 @@ const StudentDashboard = () => {
           {/* Stats Cards */}
 
           <div className="grid grid-cols-1  md:grid-cols-2 2xl:grid-cols-4 gap-6 mt-6">
-           
+
 <StatCard
   icon={<DollarSign size={32} color="#FFC107" />}
   title="Course Progress"
@@ -195,18 +271,42 @@ const StudentDashboard = () => {
           </div>
 
           {/* Course Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {currentCourses.map((course) => (
-  <CourseCard
-    key={course.id}
-    title={course.title}
-    progress={course.progress}
-    status={course.status}
-    color={course.color}
-    thumbnailUrl={course.thumbnailUrl}
-  />
-))}
-          </div>
+          {currentCourses.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {currentCourses.map((course) => (
+                <CourseCard
+                  key={course.id}
+                  title={course.title}
+                  progress={course.progress}
+                  status={course.status}
+                  color={course.color}
+                  thumbnailUrl={course.thumbnailUrl}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="bg-gray-50 rounded-lg p-8 text-center">
+              <div className="text-gray-400 mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-4">
+                  <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path>
+                </svg>
+                <h3 className="text-lg font-medium text-gray-600 mb-2">No courses found</h3>
+                <p className="text-gray-500">
+                  {activeTab === "All"
+                    ? "You haven't enrolled in any courses yet."
+                    : activeTab === "Completed"
+                      ? "You haven't completed any courses yet."
+                      : "You don't have any ongoing courses."}
+                </p>
+              </div>
+              <button
+                onClick={() => window.open('/courses', '_blank')}
+                className="mt-4 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
+              >
+                Browse Courses
+              </button>
+            </div>
+          )}
 
           {/* Pagination Controls */}
           {totalPages > 1 && (

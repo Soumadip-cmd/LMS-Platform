@@ -20,7 +20,7 @@ const CourseState = (props) => {
     currentCourse: null,
     coursesProgress: [],
     dashboardStats: null,
-    loading: true,
+    loading: false,
     error: null
   };
 
@@ -133,36 +133,128 @@ const CourseState = (props) => {
 
   // Get dashboard stats
   const getDashboardStats = async () => {
+    dispatch({ type: SET_LOADING });
     try {
-      const res = await axios.get('/progress/dashboard-stats');
+      // Add a timeout to the request
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
 
+      const res = await axios.get('/progress/dashboard-stats', {
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
+      if (res.data && res.data.success) {
+        dispatch({
+          type: GET_COURSE_DASHBOARD_STATS,
+          payload: res.data.stats || {
+            overallProgress: 0,
+            activeCourses: 0,
+            achievements: 0,
+            studyTime: 0
+          }
+        });
+      } else {
+        // Handle case where API returns success: false
+        dispatch({
+          type: COURSE_ERROR,
+          payload: res.data?.message || "Error fetching dashboard stats"
+        });
+
+        // Return default stats to prevent UI issues
+        dispatch({
+          type: GET_COURSE_DASHBOARD_STATS,
+          payload: {
+            overallProgress: 0,
+            activeCourses: 0,
+            achievements: 0,
+            studyTime: 0
+          }
+        });
+      }
+    } catch (err) {
+      console.error("Dashboard stats error:", err);
+
+      // Handle abort error differently
+      if (err.name === 'AbortError') {
+        dispatch({
+          type: COURSE_ERROR,
+          payload: "Request timed out. Please try again."
+        });
+      } else {
+        dispatch({
+          type: COURSE_ERROR,
+          payload: err.response?.data?.message || "Error fetching dashboard stats"
+        });
+      }
+
+      // Return default stats to prevent UI issues
       dispatch({
         type: GET_COURSE_DASHBOARD_STATS,
-        payload: res.data.stats
-      });
-    } catch (err) {
-      dispatch({
-        type: COURSE_ERROR,
-        payload: err.response?.data?.message || "Error fetching dashboard stats"
+        payload: {
+          overallProgress: 0,
+          activeCourses: 0,
+          achievements: 0,
+          studyTime: 0
+        }
       });
     }
   };
 
   // Get all courses progress
   const getCoursesProgress = async (status = 'All') => {
+    dispatch({ type: SET_LOADING });
     try {
+      // Add a timeout to the request
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
+
       const res = await axios.get('/progress/courses-progress', {
-        params: { status }
+        params: { status },
+        signal: controller.signal
       });
 
+      clearTimeout(timeoutId);
+
+      if (res.data && res.data.success) {
+        dispatch({
+          type: GET_COURSE_PROGRESS,
+          payload: res.data.progress || []
+        });
+      } else {
+        // Handle case where API returns success: false
+        dispatch({
+          type: COURSE_ERROR,
+          payload: res.data?.message || "Error fetching course progress"
+        });
+
+        // Return empty array to prevent UI issues
+        dispatch({
+          type: GET_COURSE_PROGRESS,
+          payload: []
+        });
+      }
+    } catch (err) {
+      console.error("Course progress error:", err);
+
+      // Handle abort error differently
+      if (err.name === 'AbortError') {
+        dispatch({
+          type: COURSE_ERROR,
+          payload: "Request timed out. Please try again."
+        });
+      } else {
+        dispatch({
+          type: COURSE_ERROR,
+          payload: err.response?.data?.message || "Error fetching course progress"
+        });
+      }
+
+      // Return empty array to prevent UI issues
       dispatch({
         type: GET_COURSE_PROGRESS,
-        payload: res.data.progress
-      });
-    } catch (err) {
-      dispatch({
-        type: COURSE_ERROR,
-        payload: err.response?.data?.message || "Error fetching course progress"
+        payload: []
       });
     }
   };

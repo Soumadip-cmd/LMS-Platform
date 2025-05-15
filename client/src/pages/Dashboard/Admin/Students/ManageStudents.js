@@ -1,10 +1,24 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useContext } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import AdminSidebar from "../AdminSidebar";
 import { Search, Eye, Edit, ChevronDown, Download, Plus } from "lucide-react";
+import StudentContext from "../../../../context/student/studentContext";
+import { toast } from "react-hot-toast";
 
 const ManageStudents = () => {
-  const [currentPage, setCurrentPage] = useState(2);
-  const [totalPages] = useState(21);
+  const navigate = useNavigate();
+  const studentContext = useContext(StudentContext);
+  const {
+    students,
+    totalStudents,
+    loading,
+    error,
+    getAllStudents
+  } = studentContext;
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [coursesPerPage] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
   const [dateRange, setDateRange] = useState("Jan 11–Jan 25");
@@ -14,6 +28,7 @@ const ManageStudents = () => {
   const [selectedEndDate, setSelectedEndDate] = useState(25);
   const [selectedFilter, setSelectedFilter] = useState("All");
   const [priceSort, setPriceSort] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const filterRef = useRef(null);
   const calendarRef = useRef(null);
@@ -60,7 +75,7 @@ const ManageStudents = () => {
   const renderPaginationButtons = () => {
     const buttons = [];
     const maxVisibleButtons = 5; // Number of visible page buttons (excluding ellipsis and edge buttons)
-    
+
     // Always show first page
     buttons.push(
       <button
@@ -73,31 +88,31 @@ const ManageStudents = () => {
         1
       </button>
     );
-    
+
     // Calculate the range of visible page numbers
     let startPage, endPage;
-    
+
     if (currentPage <= 3) {
       // Current page is near the beginning
       startPage = 2;
       endPage = Math.min(5, totalPages - 1);
-      
+
     } else if (currentPage >= totalPages - 2) {
       // Current page is near the end
       startPage = Math.max(totalPages - 4, 2);
       endPage = totalPages - 1;
-      
+
     } else {
       // Current page is in the middle
       startPage = currentPage - 1;
       endPage = currentPage + 1;
     }
-    
+
     // Add first ellipsis if needed
     if (startPage > 2) {
       buttons.push(<span key="ellipsis1" className="text-center w-6">...</span>);
     }
-    
+
     // Add visible page numbers
     for (let i = startPage; i <= endPage; i++) {
       buttons.push(
@@ -112,12 +127,12 @@ const ManageStudents = () => {
         </button>
       );
     }
-    
+
     // Add last ellipsis if needed
     if (endPage < totalPages - 1) {
       buttons.push(<span key="ellipsis2" className="text-center w-6">...</span>);
     }
-    
+
     // Always show last page if we have more than 1 page
     if (totalPages > 1) {
       buttons.push(
@@ -132,7 +147,7 @@ const ManageStudents = () => {
         </button>
       );
     }
-    
+
     return buttons;
   };
 
@@ -221,107 +236,59 @@ const ManageStudents = () => {
     setSelectedYear(newYear);
   };
 
-  // Sample student data
-  const students = [
-    {
-      id: "86785765",
-      name: "Deepak",
-      course: "05",
-      joinDate: "05 Jan,2025",
-      totalPaid: "$225.00",
-      status: "Active",
-      avatar: "https://placehold.co/40x40",
-    },
-    {
-      id: "86785765",
-      name: "Hasan",
-      course: "05",
-      joinDate: "05 Jan,2025",
-      totalPaid: "$225.00",
-      status: "Suspend",
-      avatar: "https://placehold.co/40x40",
-    },
-    {
-      id: "86785765",
-      name: "Lisa",
-      course: "05",
-      joinDate: "05 Jan,2025",
-      totalPaid: "$225.00",
-      status: "Pending",
-      avatar: "https://placehold.co/40x40",
-    },
-    {
-      id: "86785765",
-      name: "Hena",
-      course: "05",
-      joinDate: "05 Jan,2025",
-      totalPaid: "$225.00",
-      status: "Active",
-      avatar: "https://placehold.co/40x40",
-    },
-    {
-      id: "86785765",
-      name: "Rahul",
-      course: "05",
-      joinDate: "05 Jan,2025",
-      totalPaid: "$225.00",
-      status: "Suspend",
-      avatar: "https://placehold.co/40x40",
-    },
-    {
-      id: "86785765",
-      name: "Hasan",
-      course: "05",
-      joinDate: "05 Jan,2025",
-      totalPaid: "$225.00",
-      status: "Active",
-      avatar: "https://placehold.co/40x40",
-    },
-    {
-      id: "86785765",
-      name: "Jamal",
-      course: "05",
-      joinDate: "05 Jan,2025",
-      totalPaid: "$225.00",
-      status: "Pending",
-      avatar: "https://placehold.co/40x40",
-    },
-    {
-      id: "86785765",
-      name: "Arif",
-      course: "05",
-      joinDate: "05 Jan,2025",
-      totalPaid: "$225.00",
-      status: "Active",
-      avatar: "https://placehold.co/40x40",
-    },
-    {
-      id: "86785765",
-      name: "Ashik",
-      course: "05",
-      joinDate: "05 Jan,2025",
-      totalPaid: "$225.00",
-      status: "Active",
-      avatar: "https://placehold.co/40x40",
-    },
-    {
-      id: "86785765",
-      name: "Rohan",
-      course: "05",
-      joinDate: "05 Jan,2025",
-      totalPaid: "$225.00",
-      status: "Active",
-      avatar: "https://placehold.co/40x40",
-    },
-  ];
+  // Fetch students when component mounts or when filters/pagination change
+  useEffect(() => {
+    const fetchStudents = async () => {
+      try {
+        const statusMap = {
+          'All': '',
+          'Active': 'active',
+          'Suspend': 'suspended',
+          'Pending': 'pending'
+        };
+
+        const mappedStatus = statusMap[selectedFilter] || '';
+
+        await getAllStudents(
+          currentPage,
+          coursesPerPage,
+          mappedStatus,
+          searchTerm
+        );
+      } catch (err) {
+        toast.error('Failed to fetch students');
+      }
+    };
+
+    fetchStudents();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, coursesPerPage, selectedFilter, searchTerm]);
+
+  // Calculate total pages when totalStudents changes
+  useEffect(() => {
+    if (totalStudents) {
+      setTotalPages(Math.ceil(totalStudents / coursesPerPage));
+    }
+  }, [totalStudents, coursesPerPage]);
+
+  // Handle search input change
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
+  };
+
+  // Handle search submission
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    setCurrentPage(1); // Reset to first page when searching
+  };
 
   const getStatusClass = (status) => {
-    switch (status) {
-      case "Active":
+    switch (status?.toLowerCase()) {
+      case "active":
         return "bg-blue-500 text-white";
-      case "Suspend":
+      case "suspended":
         return "bg-red-500 text-white";
-      case "Pending":
+      case "pending":
         return "bg-yellow-400 text-white";
       default:
         return "bg-gray-500 text-white";
@@ -329,10 +296,10 @@ const ManageStudents = () => {
   };
 
   // Filter and sort students based on selected filters
-  let filteredStudents = selectedFilter === "All" 
-    ? students 
+  let filteredStudents = selectedFilter === "All"
+    ? students
     : students.filter(student => student.status === selectedFilter);
-    
+
   // Sort by price if a sort option is selected
   if (priceSort === "high-to-low") {
     filteredStudents = [...filteredStudents].sort((a, b) => {
@@ -384,16 +351,21 @@ const ManageStudents = () => {
                 <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
                   <Search size={20} className="text-blue-500" />
                 </div>
-                <input
-                  type="text"
-                  placeholder="Search by ID, Product, or others..."
-                  className="w-full pl-12 pr-4 py-3 border-none rounded-full bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+                <form onSubmit={handleSearchSubmit}>
+                  <input
+                    type="text"
+                    placeholder="Search by name or email..."
+                    className="w-full pl-12 pr-4 py-3 border-none rounded-full bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    value={searchTerm}
+                    onChange={handleSearch}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSearchSubmit(e)}
+                  />
+                </form>
               </div>
 
               <div className="w-full flex justify-between lg:justify-start lg:w-auto gap-3">
                 <div className="relative" ref={filterRef}>
-                  <button 
+                  <button
                     className="flex items-center gap-2 border border-gray-300 bg-white px-4 py-2 rounded-lg"
                     onClick={toggleFilterDropdown}
                   >
@@ -421,32 +393,34 @@ const ManageStudents = () => {
                     </svg>
                     Filter {priceSort || selectedFilter !== "All" ? "(Active)" : ""}
                   </button>
-                  
+
                   {showFilterDropdown && (
                     <div className="absolute z-10 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200">
                       <div className="py-2">
                         <div className="px-4 py-1 font-medium text-gray-700 border-b">Status</div>
                         <ul className="py-1">
-                          {["All", "Active", "Suspend", "Pending"].map((status) => (
-                            <li 
-                              key={status} 
+                          {["All", "active", "suspended", "pending"].map((status) => (
+                            <li
+                              key={status}
                               className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
                               onClick={() => {
                                 setSelectedFilter(status);
                               }}
                             >
-                              {status}
+                              {status === "active" ? "Active" :
+                               status === "suspended" ? "Suspended" :
+                               status === "pending" ? "Pending" : status}
                             </li>
                           ))}
                         </ul>
-                        
+
                         <div className="px-4 py-1 font-medium text-gray-700 border-b border-t">Price</div>
                         <ul className="py-1">
                           <li className="px-4 py-2 hover:bg-gray-100">
                             <label className="flex items-center space-x-2 cursor-pointer">
-                              <input 
-                                type="radio" 
-                                name="priceSort" 
+                              <input
+                                type="radio"
+                                name="priceSort"
                                 checked={priceSort === "high-to-low"}
                                 onChange={() => setPriceSort("high-to-low")}
                                 className="text-blue-500"
@@ -456,9 +430,9 @@ const ManageStudents = () => {
                           </li>
                           <li className="px-4 py-2 hover:bg-gray-100">
                             <label className="flex items-center space-x-2 cursor-pointer">
-                              <input 
-                                type="radio" 
-                                name="priceSort" 
+                              <input
+                                type="radio"
+                                name="priceSort"
                                 checked={priceSort === "low-to-high"}
                                 onChange={() => setPriceSort("low-to-high")}
                                 className="text-blue-500"
@@ -472,9 +446,9 @@ const ManageStudents = () => {
                             </li>
                           )}
                         </ul>
-                        
+
                         <div className="px-4 py-2 border-t">
-                          <button 
+                          <button
                             className="w-full bg-blue-500 text-white px-4 py-2 rounded-md text-sm"
                             onClick={() => setShowFilterDropdown(false)}
                           >
@@ -485,9 +459,9 @@ const ManageStudents = () => {
                     </div>
                   )}
                 </div>
-                
+
                 <div className="relative" ref={calendarRef}>
-                  <button 
+                  <button
                     className="flex items-center gap-2 border border-gray-300 bg-white px-4 py-2 rounded-lg"
                     onClick={toggleCalendar}
                   >
@@ -510,7 +484,7 @@ const ManageStudents = () => {
                     </svg>
                     {dateRange}
                   </button>
-                  
+
                   {showCalendar && (
                     <div className="absolute z-10 mt-2 right-0 bg-white rounded-lg shadow-lg border border-gray-200 p-4 w-72">
                       <div className="flex justify-between items-center mb-4">
@@ -526,25 +500,25 @@ const ManageStudents = () => {
                           </svg>
                         </button>
                       </div>
-                      
+
                       <div className="grid grid-cols-7 gap-1 mb-2">
                         {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((day) => (
                           <div key={day} className="text-center text-xs text-gray-500 font-medium">{day}</div>
                         ))}
                       </div>
-                      
+
                       <div className="grid grid-cols-7 gap-1">
                         {generateCalendarDays(selectedMonth, selectedYear).map((day) => {
-                          const isSelected = 
-                            (day >= selectedStartDate && day <= selectedEndDate && selectedEndDate) || 
+                          const isSelected =
+                            (day >= selectedStartDate && day <= selectedEndDate && selectedEndDate) ||
                             day === selectedStartDate;
-                          
+
                           return (
-                            <div 
-                              key={day} 
+                            <div
+                              key={day}
                               className={`text-center py-1 cursor-pointer text-sm rounded ${
-                                isSelected 
-                                  ? "bg-blue-500 text-white" 
+                                isSelected
+                                  ? "bg-blue-500 text-white"
                                   : "hover:bg-gray-100"
                               }`}
                               onClick={() => handleDateSelection(day)}
@@ -554,9 +528,9 @@ const ManageStudents = () => {
                           );
                         })}
                       </div>
-                      
+
                       <div className="mt-4 flex justify-end">
-                        <button 
+                        <button
                           className="bg-blue-500 text-white px-4 py-2 rounded-md text-sm"
                           onClick={applyDateRange}
                         >
@@ -578,94 +552,127 @@ const ManageStudents = () => {
             }}
           >
             <div className="w-full overflow-x-auto">
-              <table className="min-w-full">
-                <thead>
-                  <tr className="text-gray-500 text-sm">
-                    <th className="pb-3 px-4 font-medium text-left">Name</th>
-                    <th className="pb-3 px-4 font-medium text-left">Course</th>
-                    <th className="pb-3 px-4 font-medium text-left">
-                      Join Date
-                    </th>
-                    <th className="pb-3 px-4 font-medium text-left">
-                      Total Paid
-                    </th>
-                    <th className="pb-3 px-4 font-medium text-left">Status</th>
-                    <th className="pb-3 px-4 font-medium text-left">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredStudents.map((student, index) => (
-                    <tr
-                      key={index}
-                      className={index % 2 === 0 ? "bg-white" : "bg-white"}
-                    >
-                      <td className="py-3 px-4 whitespace-nowrap">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full overflow-hidden">
-                            <img
-                              src={student.avatar}
-                              alt={student.name}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                          <div>
-                            <p className="font-medium">{student.name}</p>
-                            <p className="text-sm text-gray-500">
-                              #{student.id}
-                            </p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="py-3 px-4 whitespace-nowrap">
-                        {student.course}
-                      </td>
-                      <td className="py-3 px-4 whitespace-nowrap">
-                        {student.joinDate}
-                      </td>
-                      <td className="py-3 px-4 whitespace-nowrap">
-                        {student.totalPaid}
-                      </td>
-                      <td className="py-3 px-4 whitespace-nowrap">
-                        <span
-                          className={`inline-block w-24 text-center px-4 py-1 rounded-md text-sm font-medium cursor-pointer ${getStatusClass(
-                            student.status
-                          )}`}
-                        >
-                          {student.status}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 whitespace-nowrap">
-                        <div className="flex space-x-2">
-                          <button className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white">
-                            <Eye size={16} />
-                          </button>
-                          <button className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white">
-                            <Edit size={16} />
-                          </button>
-                          <button className="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-white">
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="16"
-                              height="16"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              className="lucide lucide-trash"
-                            >
-                              <path d="M3 6h18"></path>
-                              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
-                              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
-                            </svg>
-                          </button>
-                        </div>
-                      </td>
+              {loading ? (
+                <div className="flex justify-center items-center py-10">
+                  <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-blue-500"></div>
+                </div>
+              ) : students && students.length > 0 ? (
+                <table className="min-w-full">
+                  <thead>
+                    <tr className="text-gray-500 text-sm">
+                      <th className="pb-3 px-4 font-medium text-left">Name</th>
+                      <th className="pb-3 px-4 font-medium text-left">Email</th>
+                      <th className="pb-3 px-4 font-medium text-left">
+                        Join Date
+                      </th>
+                      <th className="pb-3 px-4 font-medium text-left">
+                        Learning Goal
+                      </th>
+                      <th className="pb-3 px-4 font-medium text-left">Status</th>
+                      <th className="pb-3 px-4 font-medium text-left">Action</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {students.map((student, index) => (
+                      <tr
+                        key={student._id || index}
+                        className={index % 2 === 0 ? "bg-gray-50" : "bg-white"}
+                      >
+                        <td className="py-3 px-4 whitespace-nowrap">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full overflow-hidden bg-blue-100 flex items-center justify-center">
+                              {student.photoUrl ? (
+                                <img
+                                  src={student.photoUrl}
+                                  alt={student.name}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <span className="text-blue-500 font-bold">
+                                  {student.name?.charAt(0).toUpperCase() || 'S'}
+                                </span>
+                              )}
+                            </div>
+                            <div>
+                              <p className="font-medium">{student.name}</p>
+                              <p className="text-sm text-gray-500">
+                                #{student._id?.substring(0, 8) || 'N/A'}
+                              </p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 whitespace-nowrap">
+                          {student.email}
+                        </td>
+                        <td className="py-3 px-4 whitespace-nowrap">
+                          {new Date(student.createdAt).toLocaleDateString()}
+                        </td>
+                        <td className="py-3 px-4 whitespace-nowrap">
+                          {student.learningGoal || 'Not specified'}
+                        </td>
+                        <td className="py-3 px-4 whitespace-nowrap">
+                          <span
+                            className={`inline-block w-24 text-center px-4 py-1 rounded-md text-sm font-medium cursor-pointer ${getStatusClass(
+                              student.status || 'active'
+                            )}`}
+                          >
+                            {student.status === 'active' ? 'Active' :
+                             student.status === 'suspended' ? 'Suspended' :
+                             student.status === 'pending' ? 'Pending' :
+                             student.status || 'Active'}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 whitespace-nowrap">
+                          <div className="flex space-x-2">
+                            <Link
+                              to={`/dashboard/admin/students/${student._id}`}
+                              className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white"
+                              title="View Student"
+                            >
+                              <Eye size={16} />
+                            </Link>
+                            <Link
+                              to={`/dashboard/admin/students/edit/${student._id}`}
+                              className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white"
+                              title="Edit Student"
+                            >
+                              <Edit size={16} />
+                            </Link>
+                            <button
+                              className="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-white"
+                              title="Delete Student"
+                              onClick={() => {
+                                toast.error('Delete functionality not implemented yet');
+                              }}
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                className="lucide lucide-trash"
+                              >
+                                <path d="M3 6h18"></path>
+                                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                              </svg>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <div className="text-center py-10 text-gray-500">
+                  No students found. Try adjusting your filters or search terms.
+                </div>
+              )}
             </div>
           </div>
 
@@ -673,55 +680,61 @@ const ManageStudents = () => {
           <div className="px-2">
             <div className="flex justify-between items-center text-sm lg:w-[91%] text-gray-600">
               <div className="hidden lg:block text-left pr-2">
-                Showing 1 to 10 of 97 results
+                {totalStudents > 0 ? (
+                  `Showing ${(currentPage - 1) * coursesPerPage + 1} to ${Math.min(currentPage * coursesPerPage, totalStudents)} of ${totalStudents} results`
+                ) : (
+                  "No results found"
+                )}
               </div>
-              <div className="w-full lg:w-auto flex items-center justify-center lg:justify-end space-x-1">
-                <button
-                  className="w-8 h-8 flex items-center justify-center rounded-full bg-blue-100 text-blue-500 cursor-pointer p-[1px]"
-                  onClick={goToPrevious}
-                  disabled={currentPage === 1}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="lucide lucide-arrow-left"
+              {totalPages > 0 && (
+                <div className="w-full lg:w-auto flex items-center justify-center lg:justify-end space-x-1">
+                  <button
+                    className="w-8 h-8 flex items-center justify-center rounded-full bg-blue-100 text-blue-500 cursor-pointer p-[1px]"
+                    onClick={goToPrevious}
+                    disabled={currentPage === 1}
                   >
-                    <path d="m12 19-7-7 7-7" />
-                    <path d="M19 12H5" />
-                  </svg>
-                </button>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="lucide lucide-arrow-left"
+                    >
+                      <path d="m12 19-7-7 7-7" />
+                      <path d="M19 12H5" />
+                    </svg>
+                  </button>
 
-                {renderPaginationButtons()}
+                  {renderPaginationButtons()}
 
-                <button
-                  className="w-8 h-8 flex items-center justify-center rounded-full bg-blue-100 text-blue-500 cursor-pointer p-[1px]"
-                  onClick={goToNext}
-                  disabled={currentPage === totalPages}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="lucide lucide-arrow-right"
+                  <button
+                    className="w-8 h-8 flex items-center justify-center rounded-full bg-blue-100 text-blue-500 cursor-pointer p-[1px]"
+                    onClick={goToNext}
+                    disabled={currentPage === totalPages}
                   >
-                    <path d="M5 12h14" />
-                    <path d="m12 5 7 7-7 7" />
-                  </svg>
-                </button>
-              </div>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="lucide lucide-arrow-right"
+                    >
+                      <path d="M5 12h14" />
+                      <path d="m12 5 7 7-7 7" />
+                    </svg>
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>

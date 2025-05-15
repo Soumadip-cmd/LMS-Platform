@@ -231,6 +231,11 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: true
     },
+    status: {
+        type: String,
+        enum: ["active", "suspended", "pending"],
+        default: "active"
+    },
     // For content recommendation system
     readHistory: [
         {

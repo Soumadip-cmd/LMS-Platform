@@ -348,12 +348,18 @@ export const getUserById = async (req, res) => {
  */
 export const updateUserById = async (req, res) => {
     try {
+        console.log('Update user request body:', req.body);
+
         const {
             name,
             role,
             subscriptionPlan,
             subscriptionStatus,
             preferredLearningStyle,
+            learningGoal,
+            phoneNumber,
+            email,
+            status,
             notes
         } = req.body;
 
@@ -364,8 +370,14 @@ export const updateUserById = async (req, res) => {
             ...(subscriptionPlan && { subscriptionPlan }),
             ...(subscriptionStatus && { subscriptionStatus }),
             ...(preferredLearningStyle && { preferredLearningStyle }),
+            ...(learningGoal && { learningGoal }),
+            ...(phoneNumber && { phoneNumber }),
+            ...(email && { email }),
+            ...(status && { status }),
             ...(notes !== undefined && { notes })
         };
+
+        console.log('Update data being applied:', updateData);
 
         const updatedUser = await User.findByIdAndUpdate(
             req.params.id,
@@ -379,6 +391,8 @@ export const updateUserById = async (req, res) => {
                 message: "User not found."
             });
         }
+
+        console.log('Updated user:', updatedUser);
 
         return res.status(200).json({
             success: true,

@@ -27,6 +27,8 @@ import AdminDashboard from "./pages/Dashboard/Admin/AdminDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminCourse from "./pages/Dashboard/Admin/courses/AdminCourse";
 import ManageStudents from "./pages/Dashboard/Admin/Students/ManageStudents";
+import ViewStudent from "./pages/Dashboard/Admin/Students/ViewStudent";
+import EditStudent from "./pages/Dashboard/Admin/Students/EditStudent";
 import ManageInstructors from "./pages/Dashboard/Admin/instructors/ManageInstructors";
 import InstructorDetails from "./pages/Dashboard/Admin/instructors/InstructorDetails";
 import EditInstructor from "./pages/Dashboard/Admin/instructors/EditInstructor";
@@ -38,6 +40,7 @@ import ContactUs from "./pages/support/ContactUs";
 import CourseState from "./context/course/CourseState";
 import AdminState from "./context/admin/adminState";
 import InstructorState from "./context/instructor/instructorState";
+import StudentState from "./context/student/studentState";
 import CourseType from "./pages/ExamsNav/courseType/CourseType";
 import GeneralPractice from "./pages/ExamsNav/Practice/GeneralPractice";
 import LiveOnline from "./pages/Details/LiveOnline/LiveOnline";
@@ -194,6 +197,14 @@ const AppContent = () => {
               element={<ManageStudents />}
             />
             <Route
+              path="/dashboard/admin/students/:id"
+              element={<ViewStudent />}
+            />
+            <Route
+              path="/dashboard/admin/students/edit/:id"
+              element={<EditStudent />}
+            />
+            <Route
               path="/dashboard/admin/instructors"
               element={<ManageInstructors />}
             />
@@ -292,11 +303,13 @@ function App() {
       <CourseState>
         <AdminState>
           <InstructorState>
-            <BlogState>
-              <Router>
-                <AppContent />
-              </Router>
-            </BlogState>
+            <StudentState>
+              <BlogState>
+                <Router>
+                  <AppContent />
+                </Router>
+              </BlogState>
+            </StudentState>
           </InstructorState>
         </AdminState>
       </CourseState>
