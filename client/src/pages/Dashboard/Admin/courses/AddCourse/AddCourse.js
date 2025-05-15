@@ -19,6 +19,14 @@ const AddCourse = () => {
   const [description, setDescription] = useState("");
   const [difficulty, setDifficulty] = useState("Beginner");
 
+  // Additional course information
+  const [whatWillLearn, setWhatWillLearn] = useState("");
+  const [targetAudience, setTargetAudience] = useState("");
+  const [courseDurationHours, setCourseDurationHours] = useState(0);
+  const [courseDurationMinutes, setCourseDurationMinutes] = useState(0);
+  const [materialsIncluded, setMaterialsIncluded] = useState("");
+  const [requirements, setRequirements] = useState("");
+
   // Course settings
   const [visibility, setVisibility] = useState("Public");
   const [lastUpdated, setLastUpdated] = useState(new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }));
@@ -106,7 +114,16 @@ const AddCourse = () => {
     formData.append("description", description);
     formData.append("level", difficulty);
     formData.append("language", language || "en");
-    formData.append("duration[weeks]", 4);
+    formData.append("whatWillLearn", whatWillLearn);
+    formData.append("targetAudience", targetAudience);
+    formData.append("materialsIncluded", materialsIncluded);
+    formData.append("requirements", requirements);
+
+    // Calculate total duration in minutes
+    const totalDurationMinutes = (courseDurationHours * 60) + courseDurationMinutes;
+    formData.append("duration[minutes]", totalDurationMinutes);
+    formData.append("duration[hours]", courseDurationHours);
+    formData.append("duration[weeks]", 4); // Default value
     formData.append("status", status);
 
     // Set price based on pricing model
@@ -227,16 +244,15 @@ const AddCourse = () => {
                 onClick={() => handleSubmit("draft")}
                 className="flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white"
               >
-                <FileText size={16} className="mr-2" />
-                Save as Draft
+                Cancel
               </button>
               <div className="relative inline-block">
                 <button
                   onClick={() => handleSubmit("published")}
                   className="flex items-center px-4 py-2 bg-yellow-400 rounded-md text-sm font-medium text-white"
                 >
-                  Publish
-                  <ChevronDown size={16} className="ml-2" />
+                  <FileText size={16} className="mr-2" />
+                  Save
                 </button>
               </div>
             </div>
@@ -253,6 +269,26 @@ const AddCourse = () => {
                     setCourseTitle={setCourseTitle}
                     description={description}
                     setDescription={setDescription}
+                    difficulty={difficulty}
+                    setDifficulty={setDifficulty}
+                    activeOption={activeOption}
+                    setActiveOption={setActiveOption}
+                    language={language}
+                    setLanguage={setLanguage}
+                    examLevel={examLevel}
+                    setExamLevel={setExamLevel}
+                    examPattern={examPattern}
+                    setExamPattern={setExamPattern}
+                    isPublicCourse={isPublicCourse}
+                    setIsPublicCourse={setIsPublicCourse}
+                    isQnA={isQnA}
+                    setIsQnA={setIsQnA}
+                    isSequential={isSequential}
+                    setIsSequential={setIsSequential}
+                    isLiveCourse={isLiveCourse}
+                    setIsLiveCourse={setIsLiveCourse}
+                    liveCourseSettings={liveCourseSettings}
+                    setLiveCourseSettings={setLiveCourseSettings}
                   />
 
                   {/* Course Options */}
@@ -289,9 +325,91 @@ const AddCourse = () => {
               )}
 
               {currentStep === 3 && (
-                <div className="bg-gray-50 p-8 rounded-lg text-center">
-                  <h3 className="text-lg font-medium text-gray-700 mb-2">Additional Information</h3>
-                  <p className="text-gray-500">You'll be able to add additional information after creating the basic course details.</p>
+                <div className="bg-white p-6 rounded-lg">
+                  <h3 className="text-xl font-medium text-gray-700 mb-6">Additional Information</h3>
+
+                  {/* Course Name */}
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Course Name : <span className="text-blue-500">&lt; {courseTitle} &gt;</span></label>
+                  </div>
+
+                  {/* Overview */}
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Overview</label>
+                    <p className="text-sm text-gray-500 mb-2">Provide essential course information to attract and inform potential students.</p>
+                  </div>
+
+                  {/* What Will I Learn? */}
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">What Will I Learn?</label>
+                    <textarea
+                      value={whatWillLearn}
+                      onChange={(e) => setWhatWillLearn(e.target.value)}
+                      placeholder="Key takeaways and learning outcomes students can expect."
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[100px]"
+                    />
+                  </div>
+
+                  {/* Target Audience */}
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Target Audience</label>
+                    <textarea
+                      value={targetAudience}
+                      onChange={(e) => setTargetAudience(e.target.value)}
+                      placeholder="The intended audience for your course."
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[100px]"
+                    />
+                  </div>
+
+                  {/* Total Course Duration */}
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Total Course Duration</label>
+                    <div className="flex gap-4">
+                      <div className="w-1/2">
+                        <input
+                          type="number"
+                          min="0"
+                          value={courseDurationHours}
+                          onChange={(e) => setCourseDurationHours(parseInt(e.target.value) || 0)}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        <span className="text-sm text-gray-500 mt-1 block text-center">Hours</span>
+                      </div>
+                      <div className="w-1/2">
+                        <input
+                          type="number"
+                          min="0"
+                          max="59"
+                          value={courseDurationMinutes}
+                          onChange={(e) => setCourseDurationMinutes(parseInt(e.target.value) || 0)}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        <span className="text-sm text-gray-500 mt-1 block text-center">Min</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Materials Included */}
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Materials Included</label>
+                    <textarea
+                      value={materialsIncluded}
+                      onChange={(e) => setMaterialsIncluded(e.target.value)}
+                      placeholder="A list of resources or materials provided to students"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[100px]"
+                    />
+                  </div>
+
+                  {/* Requirements/Instructions */}
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Requirements/Instructions</label>
+                    <textarea
+                      value={requirements}
+                      onChange={(e) => setRequirements(e.target.value)}
+                      placeholder="Any prerequisites or special instructions for the course."
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[100px]"
+                    />
+                  </div>
                 </div>
               )}
 
@@ -306,12 +424,21 @@ const AddCourse = () => {
                 >
                   Previous
                 </button>
-                <button
-                  onClick={handleNextStep}
-                  className="px-6 py-2 bg-yellow-400 text-white rounded-md hover:bg-yellow-500"
-                >
-                  {currentStep < steps.length ? 'Next' : 'Finish'}
-                </button>
+                {currentStep === steps.length ? (
+                  <button
+                    onClick={() => handleSubmit("published")}
+                    className="px-6 py-2 bg-yellow-400 text-white rounded-md hover:bg-yellow-500"
+                  >
+                    Finish
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleNextStep}
+                    className="px-6 py-2 bg-yellow-400 text-white rounded-md hover:bg-yellow-500"
+                  >
+                    Next
+                  </button>
+                )}
               </div>
             </div>
 
