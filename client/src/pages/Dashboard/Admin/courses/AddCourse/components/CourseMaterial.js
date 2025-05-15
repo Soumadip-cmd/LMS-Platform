@@ -1,6 +1,8 @@
 import React, { useState } from "react";
-import { Plus, FileText, Video, Calendar, Edit, Trash2, CheckCircle } from "lucide-react";
+import { Plus, FileText, Video, Calendar, Edit, Trash2, CheckCircle, ChevronRight } from "lucide-react";
 import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
+import AdminSidebar from "../../../AdminSidebar";
 import AddSection from "./AddSection";
 import AddLesson from "./AddLesson";
 import AddLiveLesson from "./AddLiveLesson";
@@ -8,21 +10,37 @@ import AddAssignment from "./AddAssignment";
 import AddQuiz from "./AddQuiz";
 
 const CourseMaterial = () => {
+  const navigate = useNavigate();
   const [sections, setSections] = useState([]);
   const [activeModal, setActiveModal] = useState(null);
   const [activeSectionIndex, setActiveSectionIndex] = useState(null);
   const [autoSaveEnabled, setAutoSaveEnabled] = useState(true);
+  const [sectionTitle, setSectionTitle] = useState("");
+  const [sectionSummary, setSectionSummary] = useState("");
 
   // Handle adding a new section
   const handleAddSection = () => {
+    // Open the section modal instead of navigating
     setActiveModal("section");
   };
 
   // Handle saving a new section
-  const handleSaveSection = (sectionData) => {
-    setSections([...sections, { ...sectionData, items: [] }]);
-    setActiveModal(null);
-    
+  const handleSaveSection = () => {
+    if (!sectionTitle.trim()) {
+      toast.error("Section title is required");
+      return;
+    }
+
+    setSections([...sections, {
+      title: sectionTitle,
+      summary: sectionSummary,
+      items: []
+    }]);
+
+    // Clear the form
+    setSectionTitle("");
+    setSectionSummary("");
+
     // Show auto-save toast
     if (autoSaveEnabled) {
       toast.success("Section auto-saved", {
@@ -37,6 +55,7 @@ const CourseMaterial = () => {
 
   // Handle adding a new item to a section
   const handleAddItem = (sectionIndex, itemType) => {
+    // Open the modal for the item type instead of navigating
     setActiveSectionIndex(sectionIndex);
     setActiveModal(itemType);
   };
@@ -45,16 +64,16 @@ const CourseMaterial = () => {
   const handleSaveItem = (itemData) => {
     const updatedSections = [...sections];
     const itemType = activeModal;
-    
+
     updatedSections[activeSectionIndex].items.push({
       type: itemType,
       ...itemData,
     });
-    
+
     setSections(updatedSections);
     setActiveModal(null);
     setActiveSectionIndex(null);
-    
+
     // Show auto-save toast
     if (autoSaveEnabled) {
       toast.success(`${itemType.charAt(0).toUpperCase() + itemType.slice(1)} auto-saved`, {
@@ -107,61 +126,71 @@ const CourseMaterial = () => {
 
   // Render the appropriate modal based on activeModal state
   const renderModal = () => {
-    switch (activeModal) {
-      case "section":
-        return (
-          <AddSection
-            onSave={handleSaveSection}
-            onCancel={() => setActiveModal(null)}
-          />
-        );
-      case "lesson":
-        return (
-          <AddLesson
-            sectionName={sections[activeSectionIndex]?.title}
-            onSave={handleSaveItem}
-            onCancel={() => {
-              setActiveModal(null);
-              setActiveSectionIndex(null);
-            }}
-          />
-        );
-      case "liveLesson":
-        return (
-          <AddLiveLesson
-            sectionName={sections[activeSectionIndex]?.title}
-            onSave={handleSaveItem}
-            onCancel={() => {
-              setActiveModal(null);
-              setActiveSectionIndex(null);
-            }}
-          />
-        );
-      case "assignment":
-        return (
-          <AddAssignment
-            sectionName={sections[activeSectionIndex]?.title}
-            onSave={handleSaveItem}
-            onCancel={() => {
-              setActiveModal(null);
-              setActiveSectionIndex(null);
-            }}
-          />
-        );
-      case "quiz":
-        return (
-          <AddQuiz
-            sectionName={sections[activeSectionIndex]?.title}
-            onSave={handleSaveItem}
-            onCancel={() => {
-              setActiveModal(null);
-              setActiveSectionIndex(null);
-            }}
-          />
-        );
-      default:
-        return null;
-    }
+    const modalContent = () => {
+      switch (activeModal) {
+        case "section":
+          return (
+            <AddSection
+              onSave={handleSaveSection}
+              onCancel={() => setActiveModal(null)}
+            />
+          );
+        case "lesson":
+          return (
+            <AddLesson
+              sectionName={sections[activeSectionIndex]?.title}
+              onSave={handleSaveItem}
+              onCancel={() => {
+                setActiveModal(null);
+                setActiveSectionIndex(null);
+              }}
+            />
+          );
+        case "liveLesson":
+          return (
+            <AddLiveLesson
+              sectionName={activeSectionIndex !== null ? sections[activeSectionIndex]?.title : "New Section"}
+              onSave={activeSectionIndex !== null ? handleSaveItem : handleSaveSection}
+              onCancel={() => {
+                setActiveModal(null);
+                setActiveSectionIndex(null);
+              }}
+              isNewSection={activeSectionIndex === null}
+            />
+          );
+        case "assignment":
+          return (
+            <AddAssignment
+              sectionName={sections[activeSectionIndex]?.title}
+              onSave={handleSaveItem}
+              onCancel={() => {
+                setActiveModal(null);
+                setActiveSectionIndex(null);
+              }}
+            />
+          );
+        case "quiz":
+          return (
+            <AddQuiz
+              sectionName={sections[activeSectionIndex]?.title}
+              onSave={handleSaveItem}
+              onCancel={() => {
+                setActiveModal(null);
+                setActiveSectionIndex(null);
+              }}
+            />
+          );
+        default:
+          return null;
+      }
+    };
+
+    return (
+      <div className="flex min-h-screen bg-white">
+        <AdminSidebar active="Courses" />
+        {modalContent()}
+      </div>
+    );
   };
 
   // Get icon for item type
@@ -220,15 +249,34 @@ const CourseMaterial = () => {
           </button>
         </div>
 
-        {/* Add Section Button */}
-        <div className="mb-6">
-          <button
-            onClick={handleAddSection}
-            className="flex items-center px-4 py-2 bg-blue-500 text-white rounded-md"
-          >
-            <Plus size={18} className="mr-2" />
-            Add Section
-          </button>
+        {/* Default Section Title and Summary */}
+        <div className="bg-gray-50 p-8 rounded-lg mb-6">
+          <h3 className="text-lg font-medium mb-4">Section Title and Summary</h3>
+          <div className="mb-4">
+            <input
+              type="text"
+              value={sectionTitle}
+              onChange={(e) => setSectionTitle(e.target.value)}
+              placeholder="Add a Title"
+              className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-yellow-400"
+            />
+          </div>
+          <div className="mb-4">
+            <textarea
+              value={sectionSummary}
+              onChange={(e) => setSectionSummary(e.target.value)}
+              placeholder="Add a Summary"
+              className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-yellow-400 min-h-[150px]"
+            ></textarea>
+          </div>
+          <div className="flex justify-end">
+            <button
+              onClick={handleSaveSection}
+              className="px-6 py-2 bg-yellow-400 rounded-md text-white hover:bg-yellow-500"
+            >
+              OK
+            </button>
+          </div>
         </div>
 
         {/* Sections List */}
@@ -236,7 +284,7 @@ const CourseMaterial = () => {
           <div className="bg-gray-50 p-8 rounded-lg text-center">
             <h3 className="text-lg font-medium text-gray-700 mb-2">No Sections Yet</h3>
             <p className="text-gray-500">
-              Start by adding a section to your course.
+              Start by adding a section to your course using the form above.
             </p>
           </div>
         ) : (
@@ -339,12 +387,92 @@ const CourseMaterial = () => {
         )}
       </div>
 
-      {/* Modal */}
+      {/* Bottom Action Buttons */}
+      <div className="mt-8 bg-gray-50 p-6 rounded-lg">
+        <div className="grid grid-cols-4 gap-4 mb-6">
+          <button
+            onClick={() => {
+              if (sections.length > 0) {
+                handleAddItem(0, "lesson");
+              } else {
+                toast.error("Please add a section first");
+                handleAddSection();
+              }
+            }}
+            className="flex items-center justify-center px-4 py-2 border border-yellow-400 text-gray-700 rounded-md hover:bg-yellow-50"
+          >
+            <Plus size={18} className="mr-2" />
+            Lesson
+          </button>
+          <button
+            onClick={() => {
+              if (sections.length > 0) {
+                handleAddItem(0, "quiz");
+              } else {
+                toast.error("Please add a section first");
+                handleAddSection();
+              }
+            }}
+            className="flex items-center justify-center px-4 py-2 border border-yellow-400 text-gray-700 rounded-md hover:bg-yellow-50"
+          >
+            <Plus size={18} className="mr-2" />
+            Quiz
+          </button>
+          <button
+            onClick={() => {
+              if (sections.length > 0) {
+                handleAddItem(0, "liveLesson");
+              } else {
+                toast.error("Please add a section first");
+                handleAddSection();
+              }
+            }}
+            className="flex items-center justify-center px-4 py-2 border border-yellow-400 text-gray-700 rounded-md hover:bg-yellow-50"
+          >
+            <Plus size={18} className="mr-2" />
+            Add Live Lesson
+          </button>
+          <button
+            onClick={() => {
+              if (sections.length > 0) {
+                handleAddItem(0, "assignment");
+              } else {
+                toast.error("Please add a section first");
+                handleAddSection();
+              }
+            }}
+            className="flex items-center justify-center px-4 py-2 border border-yellow-400 text-gray-700 rounded-md hover:bg-yellow-50"
+          >
+            <Plus size={18} className="mr-2" />
+            Assignment
+          </button>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <button
+            onClick={handleAddSection}
+            className="flex items-center justify-center px-4 py-3 bg-yellow-400 text-white rounded-md hover:bg-yellow-500"
+          >
+            <Plus size={18} className="mr-2" />
+            Add New Section
+          </button>
+          <button
+            onClick={() => {
+              setActiveModal("liveLesson");
+              setActiveSectionIndex(null);
+            }}
+            className="flex items-center justify-center px-4 py-3 bg-yellow-400 text-white rounded-md hover:bg-yellow-500"
+          >
+            <Plus size={18} className="mr-2" />
+            Add Live Lesson (as New Section)
+          </button>
+        </div>
+      </div>
+
+      {/* Full Page Modal */}
       {activeModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-            {renderModal()}
-          </div>
+        <div className="fixed inset-0 z-50 overflow-auto" style={{ background: 'white' }}>
+          {renderModal()}
         </div>
       )}
     </div>

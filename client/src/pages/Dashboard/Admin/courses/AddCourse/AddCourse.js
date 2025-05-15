@@ -2,13 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import AdminSidebar from "../../AdminSidebar";
 import { useNavigate } from "react-router-dom";
 import courseContext from "../../../../../context/course/courseContext";
-import {
-  Upload,
-  ChevronDown,
-  FileText,
-  Calendar,
-  Clock
-} from "lucide-react";
+import { Upload, Calendar, Clock, ChevronDown, FileText } from "lucide-react";
 import { Toaster, toast } from "react-hot-toast";
 import CourseOptions from "./components/CourseOptions";
 import CourseMaterial from "./components/CourseMaterial";
@@ -201,47 +195,48 @@ const AddCourse = () => {
           {/* Course Builder Nav */}
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center">
-              <div className="text-sm font-medium uppercase text-gray-500 mr-4">COURSE BUILDER</div>
+              <h3 className="text-sm font-medium uppercase text-gray-500 mr-6">COURSE BUILDER</h3>
               <div className="flex items-center">
                 {steps.map((step, index) => (
                   <React.Fragment key={index}>
                     <div className="flex items-center">
                       <div
-                        className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs mr-2 ${
-                          currentStep === index + 1 ? 'bg-yellow-400' : 'bg-gray-200 text-gray-500'
+                        className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs ${
+                          currentStep >= index + 1 ? 'bg-yellow-400' : 'bg-gray-200 text-gray-500'
                         }`}
                       >
                         {index + 1}
                       </div>
-                      <span className={`text-sm ${currentStep === index + 1 ? 'text-black' : 'text-gray-400'}`}>
+                      <span
+                        className={`ml-2 text-sm ${
+                          currentStep >= index + 1 ? 'text-gray-700' : 'text-gray-500'
+                        }`}
+                      >
                         {step}
                       </span>
                     </div>
                     {index < steps.length - 1 && (
-                      <div className="mx-3 h-px w-6 bg-gray-300"></div>
+                      <div className="w-8 mx-2 h-px bg-gray-300"></div>
                     )}
                   </React.Fragment>
                 ))}
               </div>
             </div>
-
             <div className="flex space-x-2">
               <button
-                className="flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white"
                 onClick={() => handleSubmit("draft")}
+                className="flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white"
               >
                 <FileText size={16} className="mr-2" />
                 Save as Draft
               </button>
-              <div className="flex">
+              <div className="relative inline-block">
                 <button
-                  className="flex items-center px-4 py-2 bg-yellow-400 rounded-l-md text-sm font-medium text-white"
                   onClick={() => handleSubmit("published")}
+                  className="flex items-center px-4 py-2 bg-yellow-400 rounded-md text-sm font-medium text-white"
                 >
                   Publish
-                </button>
-                <button className="flex items-center px-2 py-2 bg-yellow-400 rounded-r-md text-sm font-medium text-white border-l border-yellow-500">
-                  <ChevronDown size={16} />
+                  <ChevronDown size={16} className="ml-2" />
                 </button>
               </div>
             </div>
@@ -301,20 +296,21 @@ const AddCourse = () => {
               )}
 
               {/* Navigation buttons */}
-              <div className="mt-8 flex justify-end">
-                {currentStep > 1 && (
-                  <button
-                    onClick={handlePrevStep}
-                    className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 mr-4 hover:bg-gray-50"
-                  >
-                    Previous
-                  </button>
-                )}
+              <div className="mt-8 flex justify-between">
                 <button
-                  onClick={currentStep < 3 ? handleNextStep : handleSubmit}
-                  className="px-4 py-2 bg-yellow-400 text-white rounded-md hover:bg-yellow-500"
+                  onClick={handlePrevStep}
+                  disabled={currentStep === 1}
+                  className={`px-6 py-2 border border-gray-300 rounded-md ${
+                    currentStep === 1 ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 hover:bg-gray-50'
+                  }`}
                 >
-                  {currentStep < 3 ? 'Next' : 'Create Course'}
+                  Previous
+                </button>
+                <button
+                  onClick={handleNextStep}
+                  className="px-6 py-2 bg-yellow-400 text-white rounded-md hover:bg-yellow-500"
+                >
+                  {currentStep < steps.length ? 'Next' : 'Finish'}
                 </button>
               </div>
             </div>

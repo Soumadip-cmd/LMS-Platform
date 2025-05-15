@@ -64,12 +64,42 @@ const AddLesson = ({ sectionName, onSave, onCancel }) => {
   };
 
   return (
-    <div className="bg-white">
-      <div className="border-b py-4 px-6">
-        <h2 className="text-2xl font-medium text-gray-700">Add Lesson</h2>
-      </div>
+    <div className="flex h-screen bg-gray-50">
+      {/* Sidebar is already in the parent component */}
 
-      <div className="p-6">
+      {/* Main content */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Header */}
+        <header className="bg-white shadow-sm border-b">
+          <div className="px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+            <div className="flex items-center">
+              <button
+                onClick={onCancel}
+                className="mr-4 text-blue-500"
+              >
+                <ChevronLeft size={24} />
+              </button>
+              <h1 className="text-2xl font-medium text-gray-700">Add Lesson</h1>
+            </div>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={onCancel}
+                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSave}
+                className="px-4 py-2 bg-yellow-400 rounded-md text-white"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </header>
+
+        {/* Main content scrollable area */}
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
         <div className="mb-6">
           <div className="flex items-center mb-4">
             <h3 className="text-lg font-medium">COURSE BUILDER</h3>
@@ -277,31 +307,7 @@ const AddLesson = ({ sectionName, onSave, onCancel }) => {
           </div>
         </div>
 
-        <div className="flex justify-between mt-6">
-          <button
-            onClick={onCancel}
-            className="px-4 py-2 border border-gray-300 rounded-md text-gray-700"
-          >
-            Cancel
-          </button>
-          <div className="flex">
-            <button
-              onClick={handleSave}
-              className="px-6 py-2 bg-yellow-400 rounded-md text-white font-medium"
-            >
-              OK
-            </button>
-          </div>
-        </div>
-
-        <div className="flex justify-center mt-6">
-          <button className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center text-white mr-2">
-            <ChevronLeft size={18} />
-          </button>
-          <button className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center text-white">
-            <ChevronRight size={18} />
-          </button>
-        </div>
+        </main>
       </div>
     </div>
   );
