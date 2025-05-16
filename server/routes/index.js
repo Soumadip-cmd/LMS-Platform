@@ -12,6 +12,8 @@ import Mockrouter from "./mock-exam/mock-exam.route.js";
 import studySessionRouter from "./progress/studySession.routes.js";
 import LiveCourserouter from "./course/live.course.route.js";
 import contactRouter from "./contact-us/contact.routes.js";
+import assignmentRouter from "./assignment/assignment.route.js";
+import quizRouter from "./quiz/quiz.route.js";
 const mainRouter = express.Router();
 
 mainRouter.use('/auth', authRouter);
@@ -27,4 +29,6 @@ mainRouter.use('/mock',Mockrouter)
 mainRouter.use('/study-session', studySessionRouter);
 mainRouter.use("/contact",contactRouter);
 mainRouter.use("/blog",blogRouter);
+mainRouter.use("/assignments", assignmentRouter);
+mainRouter.use("/quizzes", quizRouter);
 export default mainRouter;

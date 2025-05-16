@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
-import { Quiz } from "../models/quiz.model.js";
-import { Course } from "../models/course.model.js";
-import { User } from "../models/user.model.js";
-import { uploadMedia, deleteMediaFromCloudinary } from "../utils/cloudinary.js";
+import { Quiz } from "../../models/quiz.model.js";
+import { Course } from "../../models/course.model.js";
+import { User } from "../../models/user.model.js";
+import { uploadMedia, deleteMediaFromCloudinary } from "../../utils/cloudinary.js";
 
 /**
  * Create a new quiz
@@ -49,7 +49,7 @@ export const createQuiz = async (req, res) => {
     // Ensure creator is instructor of the course or admin
     const user = await User.findById(creatorId);
     const isAuthorized = course.instructor.toString() === creatorId || user.role === "admin";
-    
+
     if (!isAuthorized) {
       return res.status(403).json({
         success: false,
@@ -358,7 +358,7 @@ export const addQuestion = async (req, res) => {
       difficulty,
       points
     } = req.body;
-    
+
     const mediaFile = req.file;
 
     // Validate quizId
@@ -429,7 +429,7 @@ export const addQuestion = async (req, res) => {
     if (mediaFile) {
       const cloudResponse = await uploadMedia(mediaFile.path);
       mediaUrl = cloudResponse.secure_url;
-      
+
       // Determine media type based on file mime type
       if (mediaFile.mimetype.startsWith("image")) {
         mediaType = "image";
@@ -489,14 +489,14 @@ export const updateQuestion = async (req, res) => {
       points,
       removeMedia
     } = req.body;
-    
+
     const mediaFile = req.file;
 
     // Validate IDs
-    if (!mongoose.Types.ObjectId.isValid(quizId) || !mongoose.Types.ObjectId.isValid(questionId)) {
+    if (!mongoose.Types.ObjectId.isValid(quizId)) {
       return res.status(400).json({
         success: false,
-        message: "Invalid quiz or question ID"
+        message: "Invalid quiz ID"
       });
     }
 
@@ -521,46 +521,42 @@ export const updateQuestion = async (req, res) => {
       });
     }
 
-    // Find question in quiz
+    // Find question
     const question = quiz.questions.id(questionId);
     if (!question) {
       return res.status(404).json({
         success: false,
-        message: "Question not found in this quiz"
+        message: "Question not found"
       });
     }
 
-    // Handle media changes
-    let mediaUrl = question.mediaUrl;
-    let mediaType = question.mediaType;
-
-    // Remove existing media if requested
-    if (removeMedia === true && question.mediaUrl) {
-      // Extract public ID from URL
-      const publicId = question.mediaUrl.split("/").pop().split(".")[0];
+    // Handle media
+    if (removeMedia && question.mediaUrl) {
+      // Extract public ID from the URL
+      const publicId = question.mediaUrl.split('/').pop().split('.')[0];
       await deleteMediaFromCloudinary(publicId);
-      mediaUrl = "";
-      mediaType = "none";
+      question.mediaUrl = '';
+      question.mediaType = 'none';
     }
 
-    // Upload new media if provided
     if (mediaFile) {
-      // Remove old media if exists
+      // Delete old media if exists
       if (question.mediaUrl) {
-        const publicId = question.mediaUrl.split("/").pop().split(".")[0];
+        const publicId = question.mediaUrl.split('/').pop().split('.')[0];
         await deleteMediaFromCloudinary(publicId);
       }
 
+      // Upload new media
       const cloudResponse = await uploadMedia(mediaFile.path);
-      mediaUrl = cloudResponse.secure_url;
-      
+      question.mediaUrl = cloudResponse.secure_url;
+
       // Determine media type based on file mime type
       if (mediaFile.mimetype.startsWith("image")) {
-        mediaType = "image";
+        question.mediaType = "image";
       } else if (mediaFile.mimetype.startsWith("audio")) {
-        mediaType = "audio";
+        question.mediaType = "audio";
       } else if (mediaFile.mimetype.startsWith("video")) {
-        mediaType = "video";
+        question.mediaType = "video";
       }
     }
 
@@ -572,9 +568,6 @@ export const updateQuestion = async (req, res) => {
     if (explanation !== undefined) question.explanation = explanation;
     if (difficulty) question.difficulty = difficulty;
     if (points) question.points = points;
-    
-    question.mediaUrl = mediaUrl;
-    question.mediaType = mediaType;
 
     // Save quiz
     await quiz.save();
@@ -604,10 +597,10 @@ export const removeQuestion = async (req, res) => {
     const userId = req.id;
 
     // Validate IDs
-    if (!mongoose.Types.ObjectId.isValid(quizId) || !mongoose.Types.ObjectId.isValid(questionId)) {
+    if (!mongoose.Types.ObjectId.isValid(quizId)) {
       return res.status(400).json({
         success: false,
-        message: "Invalid quiz or question ID"
+        message: "Invalid quiz ID"
       });
     }
 
@@ -632,23 +625,17 @@ export const removeQuestion = async (req, res) => {
       });
     }
 
-    // Find question in quiz
-    const question = quiz.questions.id(questionId);
-    if (!question) {
+    // Find question
+    const questionIndex = quiz.questions.findIndex(q => q._id.toString() === questionId);
+    if (questionIndex === -1) {
       return res.status(404).json({
         success: false,
-        message: "Question not found in this quiz"
+        message: "Question not found"
       });
     }
 
-    // Delete media if exists
-    if (question.mediaUrl) {
-      const publicId = question.mediaUrl.split("/").pop().split(".")[0];
-      await deleteMediaFromCloudinary(publicId);
-    }
-
     // Remove question
-    quiz.questions.pull(questionId);
+    quiz.questions.splice(questionIndex, 1);
     await quiz.save();
 
     return res.status(200).json({
@@ -660,6 +647,69 @@ export const removeQuestion = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to remove question"
+    });
+  }
+};
+
+/**
+ * Delete a quiz
+ * @route DELETE /api/quizzes/:id
+ * @access Private (Creator or Admin only)
+ */
+export const deleteQuiz = async (req, res) => {
+  try {
+    const quizId = req.params.id;
+    const userId = req.id;
+
+    // Validate quizId
+    if (!mongoose.Types.ObjectId.isValid(quizId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid quiz ID"
+      });
+    }
+
+    // Find quiz
+    const quiz = await Quiz.findById(quizId);
+    if (!quiz) {
+      return res.status(404).json({
+        success: false,
+        message: "Quiz not found"
+      });
+    }
+
+    // Check if user is authorized
+    const user = await User.findById(userId);
+    const isAdmin = user.role === "admin";
+    const isCreator = quiz.creator.toString() === userId;
+
+    if (!isAdmin && !isCreator) {
+      return res.status(403).json({
+        success: false,
+        message: "You don't have permission to delete this quiz"
+      });
+    }
+
+    // Delete media files if any
+    for (const question of quiz.questions) {
+      if (question.mediaUrl) {
+        const publicId = question.mediaUrl.split('/').pop().split('.')[0];
+        await deleteMediaFromCloudinary(publicId);
+      }
+    }
+
+    // Delete quiz
+    await Quiz.findByIdAndDelete(quizId);
+
+    return res.status(200).json({
+      success: true,
+      message: "Quiz deleted successfully"
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to delete quiz"
     });
   }
 };
@@ -700,7 +750,7 @@ export const startQuizAttempt = async (req, res) => {
     }
 
     // Check if user has exceeded max retakes
-    const userAttempts = quiz.attempts.filter(attempt => 
+    const userAttempts = quiz.attempts.filter(attempt =>
       attempt.user.toString() === userId
     );
 
@@ -720,7 +770,7 @@ export const startQuizAttempt = async (req, res) => {
 
     // Prepare quiz for user (may randomize questions if enabled)
     let quizQuestions = quiz.questions;
-    
+
     if (quiz.randomizeQuestionOrder) {
       quizQuestions = [...quiz.questions].sort(() => Math.random() - 0.5);
     }
@@ -730,7 +780,7 @@ export const startQuizAttempt = async (req, res) => {
       _id: q._id,
       questionText: q.questionText,
       questionType: q.questionType,
-      options: q.questionType === "MultipleChoice" || q.questionType === "TrueFalse" 
+      options: q.questionType === "MultipleChoice" || q.questionType === "TrueFalse"
         ? q.options.map(o => ({ _id: o._id, text: o.text }))
         : undefined,
       difficulty: q.difficulty,
@@ -760,520 +810,286 @@ export const startQuizAttempt = async (req, res) => {
 };
 
 /**
- * Submit a quiz attempt
+ * Submit quiz answers
  * @route POST /api/quizzes/:id/submit
  * @access Private
  */
-// Continuing from the previous part of the submitQuizAttempt function
-export const submitQuizAttempt = async (req, res) => {
-    try {
-      const quizId = req.params.id;
-      const userId = req.id;
-      const { answers, startTime } = req.body;
-  
-      // Validate quizId
-      if (!mongoose.Types.ObjectId.isValid(quizId)) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid quiz ID"
-        });
-      }
-  
-      // Validate required fields
-      if (!answers || !Array.isArray(answers) || !startTime) {
-        return res.status(400).json({
-          success: false,
-          message: "Answers and start time are required"
-        });
-      }
-  
-      // Find quiz
-      const quiz = await Quiz.findById(quizId);
-      if (!quiz) {
-        return res.status(404).json({
-          success: false,
-          message: "Quiz not found"
-        });
-      }
-  
-      // Calculate time taken
-      const startTimeDate = new Date(startTime);
-      const endTimeDate = new Date();
-      const timeTakenMinutes = (endTimeDate - startTimeDate) / (1000 * 60);
-  
-      // Check if time limit exceeded (if applicable)
-      if (quiz.timeLimit > 0 && timeTakenMinutes > quiz.timeLimit) {
-        return res.status(400).json({
-          success: false,
-          message: "Time limit exceeded"
-        });
-      }
-  
-      // Process answers and calculate score
-      let totalPoints = 0;
-      let earnedPoints = 0;
-      const processedAnswers = [];
-  
-      // Process each answer
-      for (const answer of answers) {
-        const question = quiz.questions.id(answer.questionId);
-        
-        if (!question) continue;
-        
-        // Add to total possible points
-        totalPoints += question.points;
-        
-        // Check if answer is correct
-        const isCorrect = quiz.checkAnswer(answer.questionId, answer.userAnswer);
-        const pointsEarned = isCorrect ? question.points : 0;
-        earnedPoints += pointsEarned;
-        
-        // Add to processed answers
-        processedAnswers.push({
-          questionId: answer.questionId,
-          userAnswer: answer.userAnswer,
-          isCorrect,
-          points: pointsEarned
-        });
-      }
-  
-      // Calculate percentage score
-      const scorePercentage = totalPoints > 0 ? (earnedPoints / totalPoints) * 100 : 0;
-      const passed = scorePercentage >= quiz.passingScore;
-  
-      // Create attempt record
-      const attempt = {
-        user: userId,
-        score: scorePercentage,
-        totalPoints,
-        answers: processedAnswers,
-        startTime: startTimeDate,
-        endTime: endTimeDate,
-        passed
-      };
-  
-      // Add attempt to quiz
-      quiz.attempts.push(attempt);
-      await quiz.save();
-  
-      // Add quiz to user's exam history if passed
-      if (passed) {
-        await User.findByIdAndUpdate(userId, {
-          $push: {
-            examAttempts: {
-              exam: quizId,
-              score: scorePercentage,
-              date: endTimeDate
-            }
-          }
-        });
-      }
-  
-      // Prepare response
-      let response = {
-        success: true,
-        result: {
-          score: scorePercentage,
-          passed,
-          timeTaken: timeTakenMinutes,
-          totalQuestions: quiz.questions.length,
-          answeredQuestions: answers.length,
-          correctAnswers: processedAnswers.filter(a => a.isCorrect).length
-        }
-      };
-  
-      // Include answers and explanations if enabled
-      if (quiz.showAnswersAfterSubmission) {
-        const feedbackDetails = processedAnswers.map(answer => {
-          const question = quiz.questions.id(answer.questionId);
-          return {
-            questionId: question._id,
-            questionText: question.questionText,
-            yourAnswer: answer.userAnswer,
-            isCorrect: answer.isCorrect,
-            correctAnswer: question.questionType === "MultipleChoice" || question.questionType === "TrueFalse" 
-              ? question.options.find(o => o.isCorrect).text
-              : question.correctAnswer,
-            explanation: question.explanation,
-            points: answer.points
-          };
-        });
-        
-        response.result.feedback = feedbackDetails;
-      }
-  
-      return res.status(200).json(response);
-    } catch (error) {
-      console.log(error);
-      return res.status(500).json({
+export const submitQuizAnswers = async (req, res) => {
+  try {
+    const quizId = req.params.id;
+    const userId = req.id;
+    const { answers, startTime } = req.body;
+
+    // Validate quizId
+    if (!mongoose.Types.ObjectId.isValid(quizId)) {
+      return res.status(400).json({
         success: false,
-        message: "Failed to submit quiz attempt"
+        message: "Invalid quiz ID"
       });
     }
-  };
-  
-  /**
-   * Get quiz results (for user)
-   * @route GET /api/quizzes/:id/results
-   * @access Private
-   */
-  export const getQuizResults = async (req, res) => {
-    try {
-      const quizId = req.params.id;
-      const userId = req.id;
-  
-      // Validate quizId
-      if (!mongoose.Types.ObjectId.isValid(quizId)) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid quiz ID"
-        });
-      }
-  
-      // Find quiz
-      const quiz = await Quiz.findById(quizId);
-      if (!quiz) {
-        return res.status(404).json({
-          success: false,
-          message: "Quiz not found"
-        });
-      }
-  
-      // Filter attempts for this user
-      const userAttempts = quiz.attempts.filter(attempt => 
-        attempt.user.toString() === userId
-      );
-  
-      if (userAttempts.length === 0) {
-        return res.status(404).json({
-          success: false,
-          message: "No attempts found for this quiz"
-        });
-      }
-  
-      // Sort attempts by date (newest first)
-      userAttempts.sort((a, b) => b.endTime - a.endTime);
-  
-      // Format results
-      const results = userAttempts.map(attempt => ({
-        attemptId: attempt._id,
-        score: attempt.score,
-        passed: attempt.passed,
-        date: attempt.endTime,
-        timeTaken: (attempt.endTime - attempt.startTime) / (1000 * 60), // in minutes
-        correctAnswers: attempt.answers.filter(a => a.isCorrect).length,
-        totalQuestions: quiz.questions.length
-      }));
-  
-      return res.status(200).json({
-        success: true,
-        quizTitle: quiz.title,
-        passingScore: quiz.passingScore,
-        results
-      });
-    } catch (error) {
-      console.log(error);
-      return res.status(500).json({
+
+    // Validate required fields
+    if (!answers || !Array.isArray(answers) || !startTime) {
+      return res.status(400).json({
         success: false,
-        message: "Failed to fetch quiz results"
+        message: "Answers array and start time are required"
       });
     }
-  };
-  
-  /**
-   * Get quiz statistics (for creator/admin)
-   * @route GET /api/quizzes/:id/stats
-   * @access Private (Creator or Admin only)
-   */
-  export const getQuizStats = async (req, res) => {
-    try {
-      const quizId = req.params.id;
-      const userId = req.id;
-  
-      // Validate quizId
-      if (!mongoose.Types.ObjectId.isValid(quizId)) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid quiz ID"
-        });
-      }
-  
-      // Find quiz
-      const quiz = await Quiz.findById(quizId);
-      if (!quiz) {
-        return res.status(404).json({
-          success: false,
-          message: "Quiz not found"
-        });
-      }
-  
-      // Check if user is authorized
-      const user = await User.findById(userId);
-      const isAdmin = user.role === "admin";
-      const isCreator = quiz.creator.toString() === userId;
-  
-      if (!isAdmin && !isCreator) {
-        return res.status(403).json({
-          success: false,
-          message: "You don't have permission to view these statistics"
-        });
-      }
-  
-      // Calculate statistics
-      const totalAttempts = quiz.attempts.length;
-      const passedAttempts = quiz.attempts.filter(attempt => attempt.passed).length;
-      const passRate = totalAttempts > 0 ? (passedAttempts / totalAttempts) * 100 : 0;
-      
-      // Calculate average score
-      let averageScore = 0;
-      if (totalAttempts > 0) {
-        const totalScore = quiz.attempts.reduce((sum, attempt) => sum + attempt.score, 0);
-        averageScore = totalScore / totalAttempts;
-      }
-  
-      // Get question statistics
-      const questionStats = quiz.questions.map(question => {
-        const questionAttempts = quiz.attempts.flatMap(attempt => 
-          attempt.answers.filter(answer => answer.questionId.toString() === question._id.toString())
-        );
-        
-        const totalQuestionAttempts = questionAttempts.length;
-        const correctAnswers = questionAttempts.filter(answer => answer.isCorrect).length;
-        const successRate = totalQuestionAttempts > 0 ? (correctAnswers / totalQuestionAttempts) * 100 : 0;
-        
-        return {
-          questionId: question._id,
-          questionText: question.questionText,
-          difficulty: question.difficulty,
-          totalAttempts: totalQuestionAttempts,
-          correctAnswers,
-          successRate
-        };
-      });
-  
-      // Most recent attempts (limited to 10)
-      const recentAttempts = await User.populate(
-        quiz.attempts.slice(-10).sort((a, b) => b.endTime - a.endTime),
-        { path: "user", select: "name" }
-      );
-  
-      const formattedRecentAttempts = recentAttempts.map(attempt => ({
-        user: attempt.user.name,
-        score: attempt.score,
-        passed: attempt.passed,
-        date: attempt.endTime
-      }));
-  
-      return res.status(200).json({
-        success: true,
-        stats: {
-          totalAttempts,
-          passedAttempts,
-          passRate,
-          averageScore,
-          questionStats,
-          recentAttempts: formattedRecentAttempts
-        }
-      });
-    } catch (error) {
-      console.log(error);
-      return res.status(500).json({
+
+    // Find quiz
+    const quiz = await Quiz.findById(quizId);
+    if (!quiz) {
+      return res.status(404).json({
         success: false,
-        message: "Failed to fetch quiz statistics"
+        message: "Quiz not found"
       });
     }
-  };
-  
-  /**
-   * Delete a quiz
-   * @route DELETE /api/quizzes/:id
-   * @access Private (Creator or Admin only)
-   */
-  export const deleteQuiz = async (req, res) => {
-    try {
-      const quizId = req.params.id;
-      const userId = req.id;
-  
-      // Validate quizId
-      if (!mongoose.Types.ObjectId.isValid(quizId)) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid quiz ID"
-        });
-      }
-  
-      // Find quiz
-      const quiz = await Quiz.findById(quizId);
-      if (!quiz) {
-        return res.status(404).json({
-          success: false,
-          message: "Quiz not found"
-        });
-      }
-  
-      // Check if user is authorized
-      const user = await User.findById(userId);
-      const isAdmin = user.role === "admin";
-      const isCreator = quiz.creator.toString() === userId;
-  
-      if (!isAdmin && !isCreator) {
-        return res.status(403).json({
-          success: false,
-          message: "You don't have permission to delete this quiz"
-        });
-      }
-  
-      // Delete media from all questions
-      for (const question of quiz.questions) {
-        if (question.mediaUrl) {
-          const publicId = question.mediaUrl.split("/").pop().split(".")[0];
-          await deleteMediaFromCloudinary(publicId);
-        }
-      }
-  
-      // Delete quiz
-      await Quiz.findByIdAndDelete(quizId);
-  
-      return res.status(200).json({
-        success: true,
-        message: "Quiz deleted successfully"
-      });
-    } catch (error) {
-      console.log(error);
-      return res.status(500).json({
+
+    // Check if quiz is published
+    if (quiz.status !== "published") {
+      return res.status(403).json({
         success: false,
-        message: "Failed to delete quiz"
+        message: "This quiz is not available for submission"
       });
     }
-  };
-  
-  /**
-   * Generate quiz from content (AI-powered)
-   * @route POST /api/quizzes/generate
-   * @access Private (Instructor only)
-   */
-  export const generateQuiz = async (req, res) => {
-    try {
-      const userId = req.id;
-      const {
-        content,
-        courseId,
-        lessonId,
-        languageId,
-        level,
-        title,
-        description,
-        questionCount = 10,
-        difficulty = "Medium",
-        questionTypes = ["MultipleChoice", "TrueFalse"]
-      } = req.body;
-  
-      // Validate required fields
-      if (!content || !courseId || !languageId || !level) {
-        return res.status(400).json({
-          success: false,
-          message: "Content, course, language and level are required"
-        });
-      }
-  
-      // Check if course exists and user is authorized
-      const course = await Course.findById(courseId);
-      if (!course) {
-        return res.status(404).json({
-          success: false,
-          message: "Course not found"
-        });
-      }
-  
-      // Ensure creator is instructor of the course or admin
-      const user = await User.findById(userId);
-      const isAuthorized = course.instructor.toString() === userId || user.role === "admin";
-      
-      if (!isAuthorized) {
-        return res.status(403).json({
-          success: false,
-          message: "You can only generate quizzes for courses you instruct"
-        });
-      }
-  
-      // Create a placeholder quiz first
-      const quiz = new Quiz({
-        title: title || "Auto-generated Quiz",
-        description: description || "Automatically generated quiz from content",
-        course: courseId,
-        ...(lessonId && { lesson: lessonId }),
-        language: languageId,
-        level,
-        creator: userId,
-        questions: [],
-        status: "draft",
-        isAutoGenerated: true
-      });
-  
-      // Save placeholder quiz
-      await quiz.save();
-  
-      // In a production app, here you would:
-      // 1. Call an AI service (like OpenAI) to generate questions
-      // 2. Process the response into quiz questions
-      // 3. Add the questions to the quiz
-      
-      // For now, we'll just generate some placeholder questions to demonstrate the flow
-      const dummyQuestions = [];
-      
-      // Generate dummy questions based on specified count and types
-      for (let i = 0; i < questionCount; i++) {
-        // Choose a random question type from the specified types
-        const randomTypeIndex = Math.floor(Math.random() * questionTypes.length);
-        const questionType = questionTypes[randomTypeIndex];
-        
-        let question = {
-          questionText: `Sample Question ${i + 1} about the content`,
-          questionType,
-          difficulty,
-          points: 1
-        };
-        
-        // Add options or correct answer based on question type
-        if (questionType === "MultipleChoice") {
-          question.options = [
-            { text: "Option 1", isCorrect: i % 4 === 0 },
-            { text: "Option 2", isCorrect: i % 4 === 1 },
-            { text: "Option 3", isCorrect: i % 4 === 2 },
-            { text: "Option 4", isCorrect: i % 4 === 3 }
-          ];
-        } else if (questionType === "TrueFalse") {
-          question.options = [
-            { text: "True", isCorrect: i % 2 === 0 },
-            { text: "False", isCorrect: i % 2 === 1 }
-          ];
-        } else if (questionType === "FillInTheBlank") {
-          question.correctAnswer = "sample answer";
-        } else if (questionType === "ShortAnswer") {
-          question.correctAnswer = "sample response";
-        }
-        
-        dummyQuestions.push(question);
-      }
-      
-      // Add dummy questions to quiz
-      quiz.questions = dummyQuestions;
-      await quiz.save();
-  
-      return res.status(200).json({
-        success: true,
-        message: "Quiz generated successfully",
-        quiz: {
-          _id: quiz._id,
-          title: quiz.title,
-          questionCount: quiz.questions.length
-        }
-      });
-    } catch (error) {
-      console.log(error);
-      return res.status(500).json({
+
+    // Calculate time taken
+    const endTime = new Date();
+    const startTimeDate = new Date(startTime);
+    const timeTakenMs = endTime - startTimeDate;
+    const timeTakenMinutes = Math.round(timeTakenMs / 60000);
+
+    // Check if time limit exceeded
+    if (quiz.timeLimit > 0 && timeTakenMinutes > quiz.timeLimit) {
+      return res.status(400).json({
         success: false,
-        message: "Failed to generate quiz"
+        message: "Time limit exceeded"
       });
     }
-  };
+
+    // Grade answers
+    let totalPoints = 0;
+    let earnedPoints = 0;
+    const gradedAnswers = [];
+
+    for (const answer of answers) {
+      const { questionId, userAnswer } = answer;
+
+      // Find the question in the quiz
+      const question = quiz.questions.id(questionId);
+      if (!question) continue;
+
+      // Add to total points
+      totalPoints += question.points || 1;
+
+      // Grade based on question type
+      let isCorrect = false;
+      let score = 0;
+
+      if (question.questionType === "MultipleChoice" || question.questionType === "TrueFalse") {
+        // For multiple choice, check if selected option is correct
+        const selectedOption = question.options.id(userAnswer);
+        isCorrect = selectedOption && selectedOption.isCorrect;
+      } else if (question.questionType === "FillInTheBlank") {
+        // For fill in the blank, check exact match
+        isCorrect = userAnswer.toLowerCase().trim() === question.correctAnswer.toLowerCase().trim();
+      } else if (question.questionType === "ShortAnswer") {
+        // For short answer, check if answer contains key phrases
+        const userAnswerLower = userAnswer.toLowerCase().trim();
+        const correctAnswerLower = question.correctAnswer.toLowerCase().trim();
+        isCorrect = userAnswerLower.includes(correctAnswerLower) || correctAnswerLower.includes(userAnswerLower);
+      }
+
+      // Calculate score
+      score = isCorrect ? (question.points || 1) : 0;
+      earnedPoints += score;
+
+      // Add to graded answers
+      gradedAnswers.push({
+        questionId,
+        userAnswer,
+        isCorrect,
+        score,
+        correctAnswer: quiz.showAnswersAfterSubmission ? question.correctAnswer : undefined,
+        explanation: quiz.showAnswersAfterSubmission ? question.explanation : undefined
+      });
+    }
+
+    // Calculate percentage score
+    const percentageScore = totalPoints > 0 ? Math.round((earnedPoints / totalPoints) * 100) : 0;
+
+    // Determine if passed
+    const passed = percentageScore >= quiz.passingScore;
+
+    // Create attempt record
+    const attempt = {
+      user: userId,
+      date: endTime,
+      timeTaken: timeTakenMinutes,
+      answers: gradedAnswers,
+      score: {
+        earned: earnedPoints,
+        total: totalPoints,
+        percentage: percentageScore
+      },
+      passed
+    };
+
+    // Add attempt to quiz
+    quiz.attempts.push(attempt);
+    await quiz.save();
+
+    return res.status(200).json({
+      success: true,
+      result: {
+        score: {
+          earned: earnedPoints,
+          total: totalPoints,
+          percentage: percentageScore
+        },
+        passed,
+        timeTaken: timeTakenMinutes,
+        answers: gradedAnswers,
+        showAnswers: quiz.showAnswersAfterSubmission
+      },
+      message: passed ? "Congratulations! You passed the quiz." : "You did not pass the quiz."
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to submit quiz answers"
+    });
+  }
+};
+
+/**
+ * Get quiz results
+ * @route GET /api/quizzes/:id/results
+ * @access Private
+ */
+export const getQuizResults = async (req, res) => {
+  try {
+    const quizId = req.params.id;
+    const userId = req.id;
+
+    // Validate quizId
+    if (!mongoose.Types.ObjectId.isValid(quizId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid quiz ID"
+      });
+    }
+
+    // Find quiz
+    const quiz = await Quiz.findById(quizId);
+    if (!quiz) {
+      return res.status(404).json({
+        success: false,
+        message: "Quiz not found"
+      });
+    }
+
+    // Find user's attempts
+    const userAttempts = quiz.attempts.filter(attempt =>
+      attempt.user.toString() === userId
+    );
+
+    if (userAttempts.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No attempts found for this quiz"
+      });
+    }
+
+    // Sort attempts by date (newest first)
+    userAttempts.sort((a, b) => b.date - a.date);
+
+    // Get latest attempt
+    const latestAttempt = userAttempts[0];
+
+    // Get best attempt (highest score)
+    const bestAttempt = [...userAttempts].sort((a, b) =>
+      b.score.percentage - a.score.percentage
+    )[0];
+
+    return res.status(200).json({
+      success: true,
+      results: {
+        totalAttempts: userAttempts.length,
+        latestAttempt: {
+          date: latestAttempt.date,
+          score: latestAttempt.score,
+          passed: latestAttempt.passed,
+          timeTaken: latestAttempt.timeTaken
+        },
+        bestAttempt: {
+          date: bestAttempt.date,
+          score: bestAttempt.score,
+          passed: bestAttempt.passed,
+          timeTaken: bestAttempt.timeTaken
+        },
+        canRetake: quiz.allowRetake && (quiz.maxRetakes === 0 || userAttempts.length < quiz.maxRetakes)
+      }
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch quiz results"
+    });
+  }
+};
+
+/**
+ * Generate a quiz from content
+ * @route POST /api/quizzes/generate
+ * @access Private (Instructor or Admin only)
+ */
+export const generateQuiz = async (req, res) => {
+  try {
+    const { content, courseId, title, description, numQuestions = 5, level = "Beginner" } = req.body;
+    const userId = req.id;
+
+    // Validate required fields
+    if (!content || !courseId || !title) {
+      return res.status(400).json({
+        success: false,
+        message: "Content, course ID, and title are required"
+      });
+    }
+
+    // Check if course exists and user is authorized
+    const course = await Course.findById(courseId);
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: "Course not found"
+      });
+    }
+
+    // Ensure creator is instructor of the course or admin
+    const user = await User.findById(userId);
+    const isAuthorized = course.instructor.toString() === userId || user.role === "admin";
+
+    if (!isAuthorized) {
+      return res.status(403).json({
+        success: false,
+        message: "You can only generate quizzes for courses you instruct"
+      });
+    }
+
+    // TODO: Implement AI-based quiz generation here
+    // For now, return a placeholder response
+    return res.status(501).json({
+      success: false,
+      message: "Quiz generation feature is not yet implemented"
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to generate quiz"
+    });
+  }
+};

@@ -1,12 +1,14 @@
 import { Course } from "../../models/course.model.js";
 import { Lecture } from "../../models/lecture.model.js";
 import { Language } from "../../models/language.model.js";
+import { Quiz } from "../../models/quiz.model.js";
+import { Assignment } from "../../models/assignment.model.js";
 import { deleteMediaFromCloudinary, uploadMedia } from "../../utils/cloudinary.js";
 
 export const createCourse = async (req, res) => {
     try {
         const { title, language, level, description, duration, price, discountPrice, instructorId } = req.body;
-        
+
         // Validate required fields
         if (!title || !language || !level || !description || !duration?.weeks || !price) {
             return res.status(400).json({
@@ -59,7 +61,7 @@ export const createCourse = async (req, res) => {
 export const searchCourses = async (req, res) => {
     try {
         const { query = "", language = [], level = [], status, sortByPrice = "" } = req.query;
-        
+
         // Create search criteria
         const searchCriteria = {};
 
@@ -133,7 +135,7 @@ export const getPublishedCourses = async (req, res) => {
         const courses = await Course.find({ status: "published" })
             .populate({ path: "instructor", select: "name photoUrl" })
             .populate({ path: "language", select: "name code" });
-            
+
         return res.status(200).json({
             success: true,
             courses
@@ -153,7 +155,7 @@ export const getInstructorCourses = async (req, res) => {
         // If instructor, can only see their own courses
         const { instructorId } = req.query;
         let query = {};
-        
+
         if (req.user.role === "admin") {
             // Admin can filter by instructor if specified, otherwise see all courses
             if (instructorId) {
@@ -163,11 +165,11 @@ export const getInstructorCourses = async (req, res) => {
             // Instructor can only see their own courses
             query = { instructor: req.id };
         }
-        
+
         const courses = await Course.find(query)
             .populate({ path: "language", select: "name code" })
             .populate({ path: "instructor", select: "name photoUrl" });
-            
+
         return res.status(200).json({
             success: true,
             courses
@@ -184,13 +186,13 @@ export const getInstructorCourses = async (req, res) => {
 export const getAllCoursesAdmin = async (req, res) => {
     try {
         const { status, language, level, sortBy } = req.query;
-        
+
         // Build query
         const query = {};
         if (status) query.status = status;
         if (language) query.language = language;
         if (level) query.level = level;
-        
+
         // Build sort options
         const sortOptions = {};
         if (sortBy === "recent") {
@@ -204,12 +206,12 @@ export const getAllCoursesAdmin = async (req, res) => {
         } else {
             sortOptions.createdAt = -1; // Default
         }
-        
+
         const courses = await Course.find(query)
             .populate({ path: "instructor", select: "name photoUrl" })
             .populate({ path: "language", select: "name code" })
             .sort(sortOptions);
-            
+
         return res.status(200).json({
             success: true,
             courses
@@ -256,7 +258,20 @@ export const getCourseById = async (req, res) => {
                 // Continue without quiz population
             }
         }
-        
+
+        // Manually populate assignments if needed
+        if (course.assignments && course.assignments.length > 0) {
+            try {
+                course = await course.populate({
+                    path: "assignments",
+                    select: "title description dueDate timeLimit maxScore status"
+                });
+            } catch (populateError) {
+                console.warn('Assignment population failed:', populateError);
+                // Continue without assignment population
+            }
+        }
+
         return res.status(200).json({
             success: true,
             course
@@ -323,7 +338,7 @@ export const updateCourse = async (req, res) => {
                 course.language,
                 { $pull: { courses: courseId } }
             );
-            
+
             // Add course to new language
             await Language.findByIdAndUpdate(
                 language,
@@ -343,7 +358,7 @@ export const updateCourse = async (req, res) => {
             ...(status && { status }),
             ...(thumbnailUrl && { thumbnailUrl })
         };
-        
+
         // If admin is updating the instructor
         if (req.user.role === "admin" && instructor) {
             updateData.instructor = instructor;
@@ -529,7 +544,7 @@ export const updateCourseStatus = async (req, res) => {
 export const deleteCourse = async (req, res) => {
     try {
         const { courseId } = req.params;
-        
+
         // Check if course exists
         const course = await Course.findById(courseId);
         if (!course) {
@@ -538,20 +553,20 @@ export const deleteCourse = async (req, res) => {
                 message: "Course not found!"
             });
         }
-        
+
         // Delete thumbnail from cloudinary if exists
         if (course.thumbnailUrl) {
             const publicId = course.thumbnailUrl.split("/").pop().split(".")[0];
             await deleteMediaFromCloudinary(publicId);
         }
-        
+
         // Delete all materials from cloudinary
         for (const material of course.materials) {
             if (material.publicId) {
                 await deleteMediaFromCloudinary(material.publicId);
             }
         }
-        
+
         // Delete all associated lectures
         const lectures = await Lecture.find({ course: courseId });
         for (const lecture of lectures) {
@@ -559,18 +574,38 @@ export const deleteCourse = async (req, res) => {
             if (lecture.publicId) {
                 await deleteMediaFromCloudinary(lecture.publicId);
             }
-            
+
             // Delete lecture attachments if any
             for (const attachment of lecture.attachments || []) {
                 if (attachment.publicId) {
                     await deleteMediaFromCloudinary(attachment.publicId);
                 }
             }
-            
+
             // Delete the lecture
             await Lecture.findByIdAndDelete(lecture._id);
         }
-        
+
+        // Delete all associated quizzes
+        const quizzes = await Quiz.find({ course: courseId });
+        for (const quiz of quizzes) {
+            await Quiz.findByIdAndDelete(quiz._id);
+        }
+
+        // Delete all associated assignments
+        const assignments = await Assignment.find({ course: courseId });
+        for (const assignment of assignments) {
+            // Delete assignment attachments if any
+            for (const attachment of assignment.attachments || []) {
+                if (attachment.publicId) {
+                    await deleteMediaFromCloudinary(attachment.publicId);
+                }
+            }
+
+            // Delete the assignment
+            await Assignment.findByIdAndDelete(assignment._id);
+        }
+
         // Remove course from language
         if (course.language) {
             await Language.findByIdAndUpdate(
@@ -578,10 +613,10 @@ export const deleteCourse = async (req, res) => {
                 { $pull: { courses: courseId } }
             );
         }
-        
+
         // Delete the course
         await Course.findByIdAndDelete(courseId);
-        
+
         return res.status(200).json({
             success: true,
             message: "Course and all associated content deleted successfully."
@@ -599,21 +634,21 @@ export const deleteCourse = async (req, res) => {
 export const getTopCourses = async (req, res) => {
     try {
       const { limit = 4, language, level } = req.query;
-      
+
       // Build query object
       const query = { status: "published" };
-      
+
       // Add optional filters if provided
       if (language) query.language = language;
       if (level) query.level = level;
-      
+
       // Find top courses based on rating and enrollment count
       const topCourses = await Course.find(query)
         .sort({ "rating.average": -1, "enrolledStudents.length": -1 })
         .limit(parseInt(limit))
         .populate({ path: "instructor", select: "name photoUrl" })
         .populate({ path: "language", select: "name code" });
-      
+
       return res.status(200).json({
         success: true,
         topCourses
@@ -626,45 +661,45 @@ export const getTopCourses = async (req, res) => {
       });
     }
   };
-  
+
   export const getFeaturedCourses = async (req, res) => {
     try {
-      const { 
-        limit = 8, 
-        page = 1, 
-        language = [], 
-        level = [], 
-        sortBy = "popularity", 
+      const {
+        limit = 8,
+        page = 1,
+        language = [],
+        level = [],
+        sortBy = "popularity",
         price = ""
       } = req.query;
-      
+
       // Parse page and limit to integers
       const pageInt = parseInt(page);
       const limitInt = parseInt(limit);
       const skip = (pageInt - 1) * limitInt;
-      
+
       // Build query object
       const query = { status: "published" };
-      
+
       // Add language filter if provided
       if (language.length > 0) {
         const languageArr = Array.isArray(language) ? language : [language];
         query.language = { $in: languageArr };
       }
-      
+
       // Add level filter if provided
       if (level.length > 0) {
         const levelArr = Array.isArray(level) ? level : [level];
         query.level = { $in: levelArr };
       }
-      
+
       // Add price filter if provided
       if (price === "free") {
         query.price = 0;
       } else if (price === "paid") {
         query.price = { $gt: 0 };
       }
-      
+
       // Determine sort options
       let sortOptions = {};
       switch(sortBy) {
@@ -682,10 +717,10 @@ export const getTopCourses = async (req, res) => {
           sortOptions = { "enrolledStudents.length": -1, "rating.average": -1 };
           break;
       }
-      
+
       // Get total count for pagination
       const totalCourses = await Course.countDocuments(query);
-      
+
       // Find featured courses
       const featuredCourses = await Course.find(query)
         .sort(sortOptions)
@@ -693,7 +728,7 @@ export const getTopCourses = async (req, res) => {
         .limit(limitInt)
         .populate({ path: "instructor", select: "name photoUrl" })
         .populate({ path: "language", select: "name code" });
-      
+
       return res.status(200).json({
         success: true,
         featuredCourses,

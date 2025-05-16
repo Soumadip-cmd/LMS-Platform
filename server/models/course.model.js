@@ -42,6 +42,12 @@ const courseSchema = new mongoose.Schema({
             ref: 'Quiz'
         }
     ],
+    assignments: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Assignment'
+        }
+    ],
     materials: [
         {
             title: String,
