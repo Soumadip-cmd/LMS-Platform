@@ -1,15 +1,15 @@
 
 import React, { useState, useEffect, useRef,useContext } from 'react';
 import { XCircle } from 'lucide-react';
-import authContext from '../../../context/auth/authContext';
+import AuthContext from '../../../context/auth/authContext';
 const OTPVerificationModal = ({ isOpen, onClose, email, activationToken, onVerifySuccess, onResendOTP,isSocialSignup = false }) => {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const [timer, setTimer] = useState(60);
   const inputRefs = useRef([]);
-  const auth = useContext(authContext); 
+  const auth = useContext(AuthContext);
   // Focus on first input when modal opens
   useEffect(() => {
     if (isOpen && inputRefs.current[0]) {
@@ -31,14 +31,14 @@ const OTPVerificationModal = ({ isOpen, onClose, email, activationToken, onVerif
   // Handle OTP input change
   const handleChange = (index, e) => {
     const value = e.target.value;
-    
+
     // Only allow numbers
     if (!/^\d*$/.test(value)) return;
-    
+
     const newOtp = [...otp];
     newOtp[index] = value.slice(0, 1); // Take only the first digit
     setOtp(newOtp);
-    
+
     // Auto-focus to next input
     if (value && index < 5) {
       inputRefs.current[index + 1].focus();
@@ -59,10 +59,10 @@ const OTPVerificationModal = ({ isOpen, onClose, email, activationToken, onVerif
   //     setError('Please enter the 6-digit OTP');
   //     return;
   //   }
-  
+
   //   setIsLoading(true);
   //   setError('');
-  
+
   //   try {
   //     if (isSocialSignup) {
   //       // For social signup, we need to send the complete parameters the backend expects
@@ -89,13 +89,13 @@ const OTPVerificationModal = ({ isOpen, onClose, email, activationToken, onVerif
   // const handleResendOTP = async () => {
   //   setTimer(60);
   //   setError('');
-    
+
   //   try {
   //     if (isSocialSignup) {
   //       // Call social resend OTP
   //       await auth.resendGooglePhoneOTP({
   //         tempUserId: activationToken,
-  //         phoneNumber: email  
+  //         phoneNumber: email
   //       });
   //     } else {
   //       // Call regular resend OTP
@@ -112,10 +112,10 @@ const OTPVerificationModal = ({ isOpen, onClose, email, activationToken, onVerif
       setError('Please enter the 6-digit OTP');
       return;
     }
-  
+
     setIsLoading(true);
     setError('');
-  
+
     try {
       if (isSocialSignup) {
         // Social login verification (Google)
@@ -124,7 +124,7 @@ const OTPVerificationModal = ({ isOpen, onClose, email, activationToken, onVerif
           otp: otpString,
           phoneNumber: email // The email field is used for phone in social signup
         });
-        
+
         // Close modal and show success notification
         onClose();
         onVerifySuccess && onVerifySuccess();
@@ -138,12 +138,12 @@ const OTPVerificationModal = ({ isOpen, onClose, email, activationToken, onVerif
       setIsLoading(false);
     }
   };
-  
+
   // Handle resend OTP with proper flow detection
   const handleResendOTP = async () => {
     setTimer(60);
     setError('');
-    
+
     try {
       if (isSocialSignup) {
         // Social login resend
@@ -172,18 +172,18 @@ const OTPVerificationModal = ({ isOpen, onClose, email, activationToken, onVerif
               <XCircle size={24} />
             </button>
           </div>
-          
+
           <p className="text-gray-600 mb-6">
-            We've sent a 6-digit verification code to <span className="font-medium">{email}</span>. 
+            We've sent a 6-digit verification code to <span className="font-medium">{email}</span>.
             Enter the code below to confirm your email address.
           </p>
-          
+
           {error && (
             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
               {error}
             </div>
           )}
-          
+
           <div className="flex justify-center gap-2 sm:gap-3 mb-6">
             {otp.map((digit, index) => (
               <input
@@ -198,18 +198,18 @@ const OTPVerificationModal = ({ isOpen, onClose, email, activationToken, onVerif
               />
             ))}
           </div>
-          
+
           <button
             onClick={handleVerify}
             disabled={isLoading || otp.join('').length !== 6}
-            className={`w-full py-3 rounded-md font-medium text-white 
-              ${isLoading || otp.join('').length !== 6 
-                ? 'bg-yellow-300 cursor-not-allowed' 
+            className={`w-full py-3 rounded-md font-medium text-white
+              ${isLoading || otp.join('').length !== 6
+                ? 'bg-yellow-300 cursor-not-allowed'
                 : 'bg-yellow-500 hover:bg-yellow-600'}`}
           >
             {isLoading ? 'Verifying...' : 'Verify OTP'}
           </button>
-          
+
           <div className="mt-4 text-center">
             <p className="text-gray-600">
               Didn't receive a code?{' '}

@@ -18,7 +18,7 @@ import {
 import { Link, useLocation } from "react-router-dom";
 
 import { useContext } from "react";
-import authContext from "../../context/auth/authContext";
+import AuthContext from "../../context/auth/authContext";
 const AdminNavbar = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -29,7 +29,7 @@ const AdminNavbar = () => {
   const sidebarRef = useRef(null);
   const location = useLocation();
   const currentPath = location.pathname;
-  const auth = useContext(authContext);
+  const auth = useContext(AuthContext);
 
   const { user } = auth;
 
@@ -249,7 +249,7 @@ const AdminNavbar = () => {
 
                   {/* Desktop Dropdown Menu with Animation */}
                   <div
-                    className={`absolute right-0 mt-2 w-48 bg-white rounded-md shadow-md ring-1 ring-black ring-opacity-5 py-1 transition-all duration-200 ease-in-out origin-top-right z-10 
+                    className={`absolute right-0 mt-2 w-48 bg-white rounded-md shadow-md ring-1 ring-black ring-opacity-5 py-1 transition-all duration-200 ease-in-out origin-top-right z-10
                       ${
                         isProfileOpen
                           ? "transform scale-100 opacity-100"

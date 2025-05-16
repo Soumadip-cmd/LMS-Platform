@@ -1,7 +1,7 @@
 import React, { useState, useContext, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-import authContext from "../../../context/auth/authContext";
+import AuthContext from "../../../context/auth/authContext";
 import OTPVerificationModal from "./otpVerificationModal";
 import { toast } from "react-toastify";
 import { ChevronDown, Eye, EyeOff } from "lucide-react";
@@ -71,7 +71,7 @@ const Signup = () => {
   }, []);
   const navigate = useNavigate();
 
-  const auth = useContext(authContext);
+  const auth = useContext(AuthContext);
   const {
     register,
     socialLogin,
@@ -230,7 +230,7 @@ const Signup = () => {
           setActivationToken(response.tempUserId);
   setRegisteredEmail(response.email);
   setIsOtpModalOpen(true);
-        
+
           toast.info(
             "Please verify your phone number to complete registration"
           );
@@ -657,7 +657,7 @@ const Signup = () => {
             {/* <div className="mb-6">
               <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-1">Mobile Number</label>
               <div className="flex">
-              
+
                 <div className="relative w-1/3 mr-2">
                   <button
                     type="button"
@@ -690,7 +690,7 @@ const Signup = () => {
                   )}
                 </div>
 
-               
+
                 <input
                   id="mobile"
                   name="phoneNumber"
@@ -816,7 +816,7 @@ const Signup = () => {
               </div>
             </div>
             {/* New */}
-            
+
             <button
               type="submit"
               className="w-full py-2 px-4 bg-yellow-500 hover:bg-yellow-600 text-white font-medium rounded-md transition-colors"

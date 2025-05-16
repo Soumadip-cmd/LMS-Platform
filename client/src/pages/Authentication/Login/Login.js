@@ -1,6 +1,6 @@
 import React from 'react';
 import { Facebook } from 'lucide-react';
-import authContext from '../../../context/auth/authContext';
+import AuthContext from '../../../context/auth/authContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { useState, useContext, useEffect } from 'react';
 import { toast } from 'react-toastify';
@@ -17,16 +17,16 @@ const Login = () => {
   const [userEmail, setUserEmail] = useState('');
 
   const navigate = useNavigate();
-  const AuthContext = useContext(authContext);
-  const { login, socialLogin, error: authError, isAuthenticated, clearErrors } = AuthContext;
+  const auth = useContext(AuthContext);
+  const { login, socialLogin, error: authError, isAuthenticated, clearErrors, user } = auth;
 
   useEffect(() => {
     // If already authenticated, redirect based on role
-    if (isAuthenticated && AuthContext.user) {
+    if (isAuthenticated && user) {
       console.log('User authenticated, navigating...');
-      console.log('Current user:', AuthContext.user);
+      console.log('Current user:', user);
 
-      switch(AuthContext.user.role) {
+      switch(user.role) {
         case 'student':
           navigate('/dashboard/student');
           break;
@@ -40,7 +40,7 @@ const Login = () => {
           navigate('/');
       }
     }
-  }, [isAuthenticated, AuthContext.user, navigate]);
+  }, [isAuthenticated, user, navigate]);
 
 
 

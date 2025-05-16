@@ -9,7 +9,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import StudentSidebar from "./StudentSidebar";
-import authContext from "../../../context/auth/authContext";
+import AuthContext from "../../../context/auth/authContext";
 import courseContext from "../../../context/course/courseContext";
 
 const StudentDashboard = () => {
@@ -45,9 +45,9 @@ const StudentDashboard = () => {
       document.head.removeChild(style);
     };
   }, []);
- const AuthContext = useContext(authContext);
+ const auth = useContext(AuthContext);
  const CourseContextData = useContext(courseContext);
- const { user, isAuthenticated } = AuthContext;
+ const { user, isAuthenticated } = auth;
 
  const {
   dashboardStats,

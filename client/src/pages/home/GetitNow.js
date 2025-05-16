@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useContext } from "react";
-import authContext from "../../context/auth/authContext";
+import AuthContext from "../../context/auth/authContext";
 import { useNavigate } from "react-router-dom";
 const GetitNow = () => {
   const [timeLeft, setTimeLeft] = useState({
@@ -25,10 +25,10 @@ const GetitNow = () => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState(null);
-  
+
   const { fullName, email, phone } = formData;
-  const AuthContext = useContext(authContext);
-  const { getItNow } = AuthContext;
+  const auth = useContext(AuthContext);
+  const { getItNow } = auth;
 
   const onChange = e => setFormData({ ...formData, [e.target.name]: e.target.value });
 
@@ -37,7 +37,7 @@ const GetitNow = () => {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    
+
     try {
       await getItNow(formData);
       setSuccess(true);
@@ -216,8 +216,8 @@ const GetitNow = () => {
                 />
               </div>
 
-              <button 
-  type="submit" 
+              <button
+  type="submit"
   disabled={loading}
   className="w-full py-3 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 transition-colors"
 >
@@ -249,72 +249,72 @@ const GetitNow = () => {
       <div className="flex-1 bg-[#F3EDF0] rounded-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 hover:shadow-lg">
         <div className="p-8">
           <h2 className="text-2xl font-bold mb-4">Become An Instructor</h2>
-          
+
           <div className="flex flex-col md:flex-row justify-between">
             <div className="mb-6 md:mb-0 md:mr-4 md:max-w-xs">
               <p className="text-gray-700 mb-6">
                 Top instructors from around the world teach millions of students on Preplings
               </p>
-              
+
               <button  onClick={handleButtonClick}  className="bg-blue-600 text-white py-2 px-6 rounded font-medium hover:bg-blue-700 transition-colors">
                 Start teaching today
               </button>
             </div>
-            
+
             {/* Hidden on desktop, shown on mobile as full width */}
             <div className="hidden sm:block md:mt-0">
-              <img 
-                src="https://placehold.co/200x160" 
-                alt="Group of instructors" 
+              <img
+                src="https://placehold.co/200x160"
+                alt="Group of instructors"
                 className="w-52 h-40 object-cover"
               />
             </div>
           </div>
         </div>
-        
+
         {/* Full width image for mobile */}
         <div className="sm:hidden w-full h-48">
-          <img 
-            src="https://placehold.co/400x240" 
-            alt="Group of instructors" 
+          <img
+            src="https://placehold.co/400x240"
+            alt="Group of instructors"
             className="w-full h-full object-cover"
           />
         </div>
       </div>
-      
+
       {/* Transform Access Card */}
       <div className="flex-1 bg-[#F3EDF0] rounded-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 hover:shadow-lg">
         <div className="p-8">
           <h2 className="text-2xl font-bold mb-4">Transform Access To Education</h2>
-          
+
           <div className="flex flex-col md:flex-row justify-between">
             <div className="mb-6 md:mb-0 md:mr-4 md:max-w-xs">
               <p className="text-gray-700 mb-6">
                 Create an account to receive our newsletter.
                 Course recommendations and promotions.
               </p>
-              
+
               <button onClick={handleRegisterNow} className="bg-blue-600 text-white py-2 px-6 rounded font-medium hover:bg-blue-700 transition-colors">
                 Register for free
               </button>
             </div>
-            
+
             {/* Hidden on desktop, shown on mobile as full width */}
             <div className="hidden sm:block md:mt-0">
-              <img 
-                src="https://placehold.co/160x120" 
-                alt="Education platform interface" 
+              <img
+                src="https://placehold.co/160x120"
+                alt="Education platform interface"
                 className="w-40 h-32 object-cover rounded-md"
               />
             </div>
           </div>
         </div>
-        
+
         {/* Full width image for mobile */}
         <div className="sm:hidden w-full h-48">
-          <img 
-            src="https://placehold.co/400x240" 
-            alt="Education platform interface" 
+          <img
+            src="https://placehold.co/400x240"
+            alt="Education platform interface"
             className="w-full h-full object-cover"
           />
         </div>

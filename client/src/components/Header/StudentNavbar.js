@@ -15,7 +15,7 @@ import {
   Bell,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
-import authContext from "../../context/auth/authContext";
+import AuthContext from "../../context/auth/authContext";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 const StudentNavbar = () => {
@@ -29,8 +29,8 @@ const StudentNavbar = () => {
   const sidebarRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation(); // Add this to track route changes
-  const AuthContext = useContext(authContext);
-  const { user, isAuthenticated, logout } = AuthContext;
+  const auth = useContext(AuthContext);
+  const { user, isAuthenticated, logout } = auth;
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
@@ -41,16 +41,16 @@ const StudentNavbar = () => {
 
   useEffect(() => {
     if (!user && isAuthenticated) {
-      authContext.loadUser();
+      auth.loadUser();
     }
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated, user, auth]);
 
   // Close sidebar when location changes
   useEffect(() => {
     setIsSidebarOpen(false);
     setIsProfileOpen(false);
   }, [location.pathname]);
-  
+
   // Screen height detection
   useEffect(() => {
     const checkScreenHeight = () => {
@@ -230,7 +230,7 @@ const StudentNavbar = () => {
 
                   {/* Desktop Dropdown Menu with Animation */}
                   <div
-                    className={`absolute right-0 mt-2 w-48 bg-white rounded-md shadow-md ring-1 ring-black ring-opacity-5 py-1 transition-all duration-200 ease-in-out origin-top-right z-10 
+                    className={`absolute right-0 mt-2 w-48 bg-white rounded-md shadow-md ring-1 ring-black ring-opacity-5 py-1 transition-all duration-200 ease-in-out origin-top-right z-10
                       ${
                         isProfileOpen
                           ? "transform scale-100 opacity-100"

@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ChevronDown, Globe, Image, BarChart, Users, LogOut, User } from "lucide-react";
-import { authContext } from "../../context/auth/authContext";
+import AuthContext from "../../context/auth/authContext";
 
 const Navbar = () => {
   // Get auth context
-  const authCtx = useContext(authContext);
+  const authCtx = useContext(AuthContext);
   const { isAuthenticated, user, logout, loading } = authCtx;
 
   // Debug auth state
