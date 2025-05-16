@@ -26,10 +26,9 @@ const transporter = nodemailer.createTransport({
     secure: true,
     auth: {
         user: process.env.EMAIL_USER || 'care@preplings.com',
-        pass: process.env.EMAIL_PASSWORD || 'AWMA4KAjFaep',
-        type: 'login'  // Explicitly set authentication type
+        pass: process.env.EMAIL_PASSWORD || 'VELQXEEps10B'
     },
-    debug: true  // Enable debug for troubleshooting
+    debug: process.env.NODE_ENV === 'development'
 });
 
 /**

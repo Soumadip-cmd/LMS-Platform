@@ -3,12 +3,7 @@ import nodemailer from "nodemailer";
 import path from "path";
 import ejs from 'ejs';
 // Configure email transport
-// Log email configuration for debugging
-console.log('Email Configuration:', {
-    host: process.env.EMAIL_SERVICE || 'smtp.zoho.in',
-    port: 465,
-    user: process.env.EMAIL_USER || 'care@preplings.com'
-});
+// Email configuration is set up
 
 const transporter = nodemailer.createTransport({
     host: process.env.EMAIL_SERVICE || 'smtp.zoho.in',
@@ -16,10 +11,9 @@ const transporter = nodemailer.createTransport({
     secure: true,
     auth: {
         user: process.env.EMAIL_USER || 'care@preplings.com',
-        pass: process.env.EMAIL_PASSWORD || 'VELQXEEps10B',
-        type: 'login'  // Explicitly set authentication type
+        pass: process.env.EMAIL_PASSWORD || 'VELQXEEps10B'
     },
-    debug: true  // Enable debug for troubleshooting
+    debug: process.env.NODE_ENV === 'development'
 });
 
 
