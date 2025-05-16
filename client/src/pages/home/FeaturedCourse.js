@@ -91,7 +91,7 @@ const FeaturedCourses = () => {
     prevPageRef.current = currentPage;
     prevFilterRef.current = filterOption;
 
-  }, [currentPage, filterOption, loading]); // Removed getFeaturedCourses from dependencies
+  }, []); // Removed getFeaturedCourses from dependencies
 
   const handleDotClick = (index) => {
     console.log(`Dot clicked: ${index}`);
