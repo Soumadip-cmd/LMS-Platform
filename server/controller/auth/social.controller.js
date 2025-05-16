@@ -18,14 +18,15 @@ const twilioClient = process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_T
 
 // Configure email transport
 const transporter = nodemailer.createTransport({
-    host: process.env.EMAIL_SERVICE || 'smtppro.zoho.in',
+    host: process.env.EMAIL_SERVICE || 'smtp.zoho.in',
     port: 465,
     secure: true,
     auth: {
         user: process.env.EMAIL_USER || 'care@preplings.com',
-        pass: process.env.EMAIL_PASSWORD || 'qTKPpt2a77KP'
+        pass: process.env.EMAIL_PASSWORD || 'AWMA4KAjFaep',
+        type: 'login'  // Explicitly set authentication type
     },
-    debug: process.env.NODE_ENV === 'development'
+    debug: true  // Enable debug for troubleshooting
 });
 
 /**
@@ -139,6 +140,7 @@ export const socialLogin = async (req, res) => {
             // Log the initial OTP for testing
             console.log('=================================================');
             console.log(`🔑 INITIAL OTP FOR SOCIAL LOGIN: ${initialOtp} for ${email}`);
+            console.log(`🔑 COPY THIS CODE: ${initialOtp}`);
             console.log('=================================================');
 
             // Store the user data temporarily with the OTP
@@ -231,6 +233,7 @@ export const verifyPhoneForSocialLogin = async (req, res) => {
         // Log the OTP prominently for testing
         console.log('=================================================');
         console.log(`🔑 VERIFICATION CODE: ${otp} for ${userEmail}`);
+        console.log(`🔑 COPY THIS CODE: ${otp}`);
         console.log('=================================================');
 
         // Get existing data from OTP store to preserve it

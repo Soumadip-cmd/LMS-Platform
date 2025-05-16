@@ -21,14 +21,15 @@ const otpStore = new Map();
 
 // Configure email transport
 const transporter = nodemailer.createTransport({
-    host: process.env.EMAIL_SERVICE || 'smtppro.zoho.in',
+    host: process.env.EMAIL_SERVICE || 'smtp.zoho.in',
     port: 465,
     secure: true,
     auth: {
         user: process.env.EMAIL_USER || 'care@preplings.com',
-        pass: process.env.EMAIL_PASSWORD || 'qTKPpt2a77KP'
+        pass: process.env.EMAIL_PASSWORD || 'AWMA4KAjFaep',
+        type: 'login'  // Explicitly set authentication type
     },
-    debug: process.env.NODE_ENV === 'development'
+    debug: true  // Enable debug for troubleshooting
 });
 
 /**
@@ -156,6 +157,7 @@ export const initiateRegistration = async (req, res) => {
         // Log the OTP prominently for testing
         console.log('=================================================');
         console.log(`🔑 INITIAL REGISTRATION OTP: ${otp} for ${email}`);
+        console.log(`🔑 COPY THIS CODE: ${otp}`);
         console.log('=================================================');
 
         // Use a fallback secret key if environment variable is not set
@@ -441,6 +443,7 @@ export const resendOTP = async (req, res) => {
         // Log the OTP prominently for testing
         console.log('=================================================');
         console.log(`🔑 RESENT REGISTRATION OTP: ${otp} for ${email}`);
+        console.log(`🔑 COPY THIS CODE: ${otp}`);
         console.log('=================================================');
 
         // Update OTP store with new data
