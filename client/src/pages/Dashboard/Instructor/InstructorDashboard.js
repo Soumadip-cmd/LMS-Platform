@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import {
   BarChart2,
   Settings,
@@ -16,15 +16,30 @@ import {
   X,
 } from "lucide-react";
 import InstructorSidebar from "./InstructorSidebar";
+import AuthContext from "../../../context/auth/authContext";
 
 const InstructorDashboard = () => {
-  // No sidebar state needed
+  // Get auth context for user information
+  const authContext = useContext(AuthContext);
+  const { user } = authContext;
 
   // Pagination state
-  const [currentPage, setCurrentPage] = useState(2);
+  const [currentPage, setCurrentPage] = useState(1);
   const coursesPerPage = 10;
   const totalCourses = 97;
   const totalPages = Math.ceil(totalCourses / coursesPerPage);
+
+  // Current date for display
+  const currentDate = new Date();
+  const formattedDate = currentDate.toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    year: 'numeric'
+  });
+  const formattedTime = currentDate.toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit'
+  });
 
   // Course data
   const courses = [
@@ -185,10 +200,10 @@ const InstructorDashboard = () => {
               <div className="w-full">
                 <div className="flex flex-col xl:flex-row xl:justify-between">
                   <h1 className="text-2xl md:text-3xl lg:text-4xl font-semibold text-[#1976D2]">
-                    Welcome Back, Prof. Hasan!
+                    Welcome Back, {user ? user.name.split(' ')[0] : 'Instructor'}!
                   </h1>
                   <div className="mt-4 xl:mt-0">
-                    <DateDisplay date="Tuesday, March 2025|" time="12:10 AM" />
+                    <DateDisplay date={`${formattedDate}|`} time={formattedTime} />
                   </div>
                 </div>
                 <p className="text-gray-600 text-base md:text-lg mt-4">
@@ -562,7 +577,7 @@ const InstructorDashboard = () => {
                         <button
                           key={pageNum}
                           onClick={() => handlePageChange(pageNum)}
-                          className={`w-8 h-8 flex items-center justify-center rounded-full 
+                          className={`w-8 h-8 flex items-center justify-center rounded-full
               ${
                 pageNum === currentPage
                   ? "text-white bg-blue-500"
@@ -582,7 +597,7 @@ const InstructorDashboard = () => {
                     <div className="hidden sm:inline-flex space-x-1">
                       <button
                         onClick={() => handlePageChange(totalPages - 1)}
-                        className={`w-8 h-8 flex items-center justify-center rounded-full 
+                        className={`w-8 h-8 flex items-center justify-center rounded-full
             ${
               currentPage === totalPages - 1
                 ? "text-white bg-blue-500"
@@ -594,7 +609,7 @@ const InstructorDashboard = () => {
 
                       <button
                         onClick={() => handlePageChange(totalPages)}
-                        className={`w-8 h-8 flex items-center justify-center rounded-full 
+                        className={`w-8 h-8 flex items-center justify-center rounded-full
             ${
               currentPage === totalPages
                 ? "text-white bg-blue-500"

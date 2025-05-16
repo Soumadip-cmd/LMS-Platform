@@ -158,79 +158,136 @@ const AppContent = () => {
             <Route
               path="/dashboard/student"
               element={
-                // <ProtectedRoute allowedRoles={["student"]}>
-                <StudentDashboard />
-                // </ProtectedRoute>
+                <ProtectedRoute allowedRoles={["student"]}>
+                  <StudentDashboard />
+                </ProtectedRoute>
               }
             />
 
             <Route
               path="/dashboard/instructor"
               element={
-                // <ProtectedRoute allowedRoles={["instructor"]}>
-                <InstructorDashboard />
-                //</ProtectedRoute>
+                <ProtectedRoute allowedRoles={["instructor"]}>
+                  <InstructorDashboard />
+                </ProtectedRoute>
               }
             />
 
             <Route
               path="/become-an-instructor"
               element={
-                // <ProtectedRoute allowedRoles={["instructor"]}>
-                <BecomeAnInstructor />
-                //</ProtectedRoute>
+                <ProtectedRoute allowedRoles={["student"]}>
+                  <BecomeAnInstructor />
+                </ProtectedRoute>
               }
             />
 
             <Route
               path="/dashboard/admin"
               element={
-                // <ProtectedRoute allowedRoles={["admin"]}>
-                <AdminDashboard />
-                // </ProtectedRoute>
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <AdminDashboard />
+                </ProtectedRoute>
               }
             />
-            {/* dasboard -admin routes */}
-            <Route path="/dashboard/admin/courses" element={<AdminCourse />} />
+            {/* dashboard -admin routes */}
+            <Route
+              path="/dashboard/admin/courses"
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <AdminCourse />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/dashboard/admin/students"
-              element={<ManageStudents />}
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <ManageStudents />
+                </ProtectedRoute>
+              }
             />
             <Route
               path="/dashboard/admin/students/:id"
-              element={<ViewStudent />}
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <ViewStudent />
+                </ProtectedRoute>
+              }
             />
             <Route
               path="/dashboard/admin/students/edit/:id"
-              element={<EditStudent />}
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <EditStudent />
+                </ProtectedRoute>
+              }
             />
             <Route
               path="/dashboard/admin/instructors"
-              element={<ManageInstructors />}
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <ManageInstructors />
+                </ProtectedRoute>
+              }
             />
             <Route
               path="/admin/instructors/:id"
-              element={<InstructorDetails />}
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <InstructorDetails />
+                </ProtectedRoute>
+              }
             />
             <Route
               path="/admin/instructors/edit/:id"
-              element={<EditInstructor />}
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <EditInstructor />
+                </ProtectedRoute>
+              }
             />
             <Route
               path="/dashboard/admin/assignments"
-              element={<Assignment />}
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Assignment />
+                </ProtectedRoute>
+              }
             />
-            <Route path="/dashboard/admin/mock-tests" element={<Mocktest />} />
-            <Route path="/dashboard/admin/messages" element={<Messages />} />
+            <Route
+              path="/dashboard/admin/mock-tests"
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Mocktest />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/admin/messages"
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Messages />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/dashboard/admin/settings"
-              element={<AdminSettings />}
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <AdminSettings />
+                </ProtectedRoute>
+              }
             />
 
             {/* dashboard admin -course */}
             <Route
               path="/dashboard/admin/courses/add-course"
-              element={<AddCourse />}
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <AddCourse />
+                </ProtectedRoute>
+              }
             />
 
             {/* dashboard student routes */}

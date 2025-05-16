@@ -25,7 +25,7 @@ const Login = () => {
     if (isAuthenticated && AuthContext.user) {
       console.log('User authenticated, navigating...');
       console.log('Current user:', AuthContext.user);
-      
+
       switch(AuthContext.user.role) {
         case 'student':
           navigate('/dashboard/student');
@@ -50,38 +50,38 @@ const Login = () => {
   const handlePasswordChange = (e) => {
     setPassword(e.target.value);
   };
- 
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!email || !password) {
       setError('Please fill in all fields');
       toast.error('Please fill in all fields');
       return;
     }
-    
+
     try {
       console.log('Attempting login...');
       await login(email, password);
       console.log('Login successful');
-      toast.success('Login successful!');
-      
-    
+      toast.success('Sign in successful!');
+
+
     } catch (err) {
       console.error('Login error:', err);
-      setError(err.response?.data?.message || 'Login failed. Please try again.');
-      toast.error(err.response?.data?.message || 'Login failed. Please try again.');
+      setError(err.response?.data?.message || 'Sign in failed. Please try again.');
+      toast.error(err.response?.data?.message || 'Sign in failed. Please try again.');
     }
   };
-  
+
 
   const handleGoogleLogin = async () => {
     try {
       const auth = getAuth();
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
-      
+
       // Get user information
       const user = result.user;
       const userData = {
@@ -91,10 +91,10 @@ const Login = () => {
         provider: 'google',
         photoURL: user.photoURL
       };
-      
+
       // Call socialLogin function
       const loginResponse = await socialLogin(userData);
-      
+
       // Check if user is existing
       if (loginResponse.existingUser) {
         toast.info('Welcome back! You logged in with your existing Google account.');
@@ -108,13 +108,13 @@ const Login = () => {
       }
     } catch (error) {
       console.error('Google login error:', error);
-      
+
       if (error.response?.status === 403) {
         toast.error('Verification required to continue. Please complete the verification process.');
       } else if (error.response?.status === 400) {
         toast.error('Invalid information provided. Please try again.');
       } else {
-        toast.error('Google login failed. Please try again.');
+        toast.error('Google sign in failed. Please try again.');
       }
     }
   };
@@ -222,7 +222,7 @@ const Login = () => {
 
           <div className="flex items-center mb-6">
             <div className="flex-1 border-t border-gray-300"></div>
-            <span className="px-3 text-sm text-gray-500">Or sign up with email</span>
+            <span className="px-3 text-sm text-gray-500">Or sign in with email</span>
             <div className="flex-1 border-t border-gray-300"></div>
           </div>
 
@@ -277,7 +277,7 @@ const Login = () => {
               type="submit"
               className="w-full py-2 px-4 bg-yellow-500 hover:bg-yellow-600 text-white font-medium rounded-md transition-colors"
             >
-              Login
+              Sign in
             </button>
           </form>
         </div>

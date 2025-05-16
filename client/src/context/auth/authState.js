@@ -396,6 +396,68 @@ const AuthState = (props) => {
     };
   }, []);
 
+  // Complete social registration with OTP verification
+  const completeSocialRegistration = async (data) => {
+    const config = {
+      headers: {
+        "Content-Type": "application/json"
+      }
+    };
+
+    try {
+      const res = await axios.post(`/social/complete-registration`, data, config);
+
+      dispatch({
+        type: LOGIN_SUCCESS
+      });
+
+      await loadUser();
+      return res.data;
+    } catch (err) {
+      console.error('Social registration completion error:', err.response?.data || err);
+
+      dispatch({
+        type: REGISTER_FAIL,
+        payload: err.response?.data?.message || "Failed to complete registration"
+      });
+      throw err;
+    }
+  };
+
+  // Resend OTP for Google phone verification
+  const resendGooglePhoneOTP = async (data) => {
+    const config = {
+      headers: {
+        "Content-Type": "application/json"
+      }
+    };
+
+    try {
+      const res = await axios.post(`/social/resend-phone-otp`, data, config);
+      return res.data;
+    } catch (err) {
+      console.error('Resend OTP error:', err.response?.data || err);
+      throw err;
+    }
+  };
+
+  // Resend OTP for regular registration
+  const resendOTP = async (data) => {
+    const config = {
+      headers: {
+        "Content-Type": "application/json"
+      }
+    };
+
+    try {
+      const res = await axios.post(`/auth/resend-otp`, data, config);
+      return res.data;
+    } catch (err) {
+      console.error('Resend OTP error:', err.response?.data || err);
+      throw err;
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -413,6 +475,9 @@ const AuthState = (props) => {
         login,
         socialLogin,
         verifyOTPAndRegister,
+        completeSocialRegistration,
+        resendGooglePhoneOTP,
+        resendOTP,
         logout,
         loadUser,
         clearErrors: () => dispatch({ type: CLEAR_ERRORS }),

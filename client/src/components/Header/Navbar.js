@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ChevronDown, Globe, Image, BarChart, Users } from "lucide-react";
+import { ChevronDown, Globe, Image, BarChart, Users, LogOut, LogIn } from "lucide-react";
+import authContext from "../../context/auth/authContext";
+import { toast } from "react-hot-toast";
 
 const Navbar = () => {
   // State to track if mobile menu is open
@@ -13,6 +15,10 @@ const Navbar = () => {
   const [secondaryDropdown, setSecondaryDropdown] = useState(null); // Don't show German exams by default
   // Use navigate for programmatic navigation if needed
   const navigate = useNavigate();
+
+  // Get authentication context
+  const AuthContext = useContext(authContext);
+  const { isAuthenticated, user, logout } = AuthContext;
 
   // Clean up effect to ensure scroll is re-enabled when component unmounts
   useEffect(() => {
@@ -235,6 +241,18 @@ const Navbar = () => {
     setTimeout(() => {
       navigate(path);
     }, 10); // Small delay to ensure dropdowns close first
+  };
+
+  // Handle logout
+  const handleLogout = async (e) => {
+    e.preventDefault();
+    try {
+      await logout();
+      toast.success("Logged out successfully!");
+      navigate("/auth/login");
+    } catch (error) {
+      toast.error("Logout failed. Please try again.");
+    }
   };
 
   return (
@@ -511,18 +529,37 @@ const Navbar = () => {
 
             {/* Auth buttons for desktop */}
             <div className="flex space-x-3">
-              <Link
-                to="/auth/login"
-                className="bg-gray-200 font-medium text-blue-600 px-4 py-1 rounded hover:text-blue-800 transition-colors duration-300"
-              >
-                Login
-              </Link>
-              <Link
-                to="/auth/signup"
-                className="bg-[#FFB71C] text-white px-4 py-1 rounded hover:bg-yellow-400 hover:text-[#0D47A1] font-medium transition-colors duration-300"
-              >
-                Sign up
-              </Link>
+              {isAuthenticated ? (
+                <div className="flex items-center space-x-3">
+                  {user && (
+                    <span className="text-gray-700">Welcome, {user.name ? user.name.split(' ')[0] : 'User'}</span>
+                  )}
+                  <a
+                    href="#"
+                    onClick={handleLogout}
+                    className="bg-gray-200 font-medium text-blue-600 px-4 py-1 rounded hover:text-blue-800 transition-colors duration-300 flex items-center"
+                  >
+                    <LogOut size={16} className="mr-1" />
+                    Sign out
+                  </a>
+                </div>
+              ) : (
+                <>
+                  <Link
+                    to="/auth/login"
+                    className="bg-gray-200 font-medium text-blue-600 px-4 py-1 rounded hover:text-blue-800 transition-colors duration-300 flex items-center"
+                  >
+                    <LogIn size={16} className="mr-1" />
+                    Sign in
+                  </Link>
+                  <Link
+                    to="/auth/signup"
+                    className="bg-[#FFB71C] text-white px-4 py-1 rounded hover:bg-yellow-400 hover:text-[#0D47A1] font-medium transition-colors duration-300"
+                  >
+                    Sign up
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </nav>
@@ -802,20 +839,44 @@ const Navbar = () => {
           {/* Mobile menu footer with auth buttons */}
           <div className="border-t p-4 bg-gray-50">
             <div className="flex flex-col space-y-2">
-              <Link
-                to="/auth/login"
-                className="bg-gray-200 font-medium text-blue-600 py-1 px-4 rounded hover:text-blue-800 transition-colors duration-300 text-center"
-                onClick={toggleMobileMenu}
-              >
-                Login
-              </Link>
-              <Link
-                to="/auth/signup"
-                className="bg-[#FFB71C] text-white py-2 px-4 rounded-md hover:bg-yellow-500 hover:text-[#0D47A1] font-medium transition-colors duration-300 text-center"
-                onClick={toggleMobileMenu}
-              >
-                Sign up
-              </Link>
+              {isAuthenticated ? (
+                <>
+                  {user && (
+                    <div className="text-gray-700 text-center mb-2">
+                      Welcome, {user.name ? user.name.split(' ')[0] : 'User'}
+                    </div>
+                  )}
+                  <a
+                    href="#"
+                    onClick={(e) => {
+                      handleLogout(e);
+                      toggleMobileMenu();
+                    }}
+                    className="bg-gray-200 font-medium text-blue-600 py-2 px-4 rounded hover:text-blue-800 transition-colors duration-300 text-center flex items-center justify-center"
+                  >
+                    <LogOut size={16} className="mr-1" />
+                    Sign out
+                  </a>
+                </>
+              ) : (
+                <>
+                  <Link
+                    to="/auth/login"
+                    className="bg-gray-200 font-medium text-blue-600 py-2 px-4 rounded hover:text-blue-800 transition-colors duration-300 text-center flex items-center justify-center"
+                    onClick={toggleMobileMenu}
+                  >
+                    <LogIn size={16} className="mr-1" />
+                    Sign in
+                  </Link>
+                  <Link
+                    to="/auth/signup"
+                    className="bg-[#FFB71C] text-white py-2 px-4 rounded-md hover:bg-yellow-500 hover:text-[#0D47A1] font-medium transition-colors duration-300 text-center"
+                    onClick={toggleMobileMenu}
+                  >
+                    Sign up
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>

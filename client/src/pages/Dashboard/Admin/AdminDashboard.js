@@ -260,7 +260,7 @@ const AdminDashboard = () => {
               <div className="w-full">
                 <div className="flex flex-col xl:flex-row xl:justify-between">
                   <h1 className="text-2xl md:text-3xl lg:text-4xl font-semibold text-[#1976D2]">
-                    Welcome Back, {user && user.name ? user.name.split(' ')[0] : 'Admin'}!
+                    Welcome Back, Admin!
                   </h1>
                   <div className="mt-4 xl:mt-0">
                     <DateDisplay />
