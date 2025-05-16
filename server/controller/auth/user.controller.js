@@ -295,9 +295,51 @@ export const verifyOTPAndRegister = async (req, res) => {
             // Continue execution even if email fails
         }
 
+        // Generate JWT token for automatic login after registration
+        const token = jwt.sign(
+            {
+                userId: newUser._id.toString(),
+                role: newUser.role,
+                email: newUser.email,
+                uniqueSignature: Date.now().toString()
+            },
+            process.env.SECRET_KEY,
+            {
+                expiresIn: '24h',
+                algorithm: 'HS256'
+            }
+        );
+
+        // Set cookie with token
+        const cookieDomain = process.env.NODE_ENV === 'production'
+            ? process.env.COOKIE_DOMAIN || '.preplings.com' // Use .preplings.com to work on both www and non-www
+            : 'localhost';
+
+        res.cookie('access_token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax', // Less strict than 'strict'
+            maxAge: 24 * 60 * 60 * 1000, // 24 hours
+            path: '/',
+            domain: cookieDomain
+        });
+
+        // Update user status
+        newUser.isOnline = true;
+        newUser.lastActive = new Date();
+        await newUser.save();
+
+        // Include token in response for clients that can't access cookies
         return res.status(201).json({
             success: true,
-            message: "Account created successfully. You can now login."
+            message: "Account created successfully. You are now logged in.",
+            token: token, // Include token in response
+            user: {
+                id: newUser._id,
+                name: newUser.name,
+                email: newUser.email,
+                role: newUser.role
+            }
         });
     } catch (error) {
         console.log(error);
