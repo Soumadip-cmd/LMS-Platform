@@ -1,8 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ChevronDown, Globe, Image, BarChart, Users } from "lucide-react";
+import { ChevronDown, Globe, Image, BarChart, Users, LogOut, User } from "lucide-react";
+import { authContext } from "../../context/auth/authContext";
 
 const Navbar = () => {
+  // Get auth context
+  const { isAuthenticated, user, logout } = useContext(authContext);
   // State to track if mobile menu is open
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   // Track which dropdown is open in the mobile menu
@@ -63,6 +66,22 @@ const Navbar = () => {
       setSecondaryDropdown(null);
     } else {
       setSecondaryDropdown(item);
+    }
+  };
+
+  // Handle logout
+  const handleLogout = async () => {
+    try {
+      await logout();
+      // Clear any stored tokens
+      localStorage.removeItem('authToken');
+      sessionStorage.removeItem('authToken');
+      document.cookie = "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+
+      // Redirect to home page
+      navigate('/');
+    } catch (error) {
+      console.error('Logout error:', error);
     }
   };
 
@@ -510,19 +529,36 @@ const Navbar = () => {
             </div>
 
             {/* Auth buttons for desktop */}
-            <div className="flex space-x-3">
-              <Link
-                to="/auth/login"
-                className="bg-gray-200 font-medium text-blue-600 px-4 py-1 rounded hover:text-blue-800 transition-colors duration-300"
-              >
-                Login
-              </Link>
-              <Link
-                to="/auth/signup"
-                className="bg-[#FFB71C] text-white px-4 py-1 rounded hover:bg-yellow-400 hover:text-[#0D47A1] font-medium transition-colors duration-300"
-              >
-                Sign up
-              </Link>
+            <div className="flex space-x-3 items-center">
+              {isAuthenticated && user ? (
+                <>
+                  <div className="flex items-center mr-3">
+                    <span className="text-gray-700 mr-2">Welcome, {user.name}</span>
+                  </div>
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center bg-gray-200 font-medium text-blue-600 px-4 py-1 rounded hover:text-blue-800 transition-colors duration-300"
+                  >
+                    <LogOut size={16} className="mr-1" />
+                    Sign out
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    to="/auth/login"
+                    className="bg-gray-200 font-medium text-blue-600 px-4 py-1 rounded hover:text-blue-800 transition-colors duration-300"
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    to="/auth/signup"
+                    className="bg-[#FFB71C] text-white px-4 py-1 rounded hover:bg-yellow-400 hover:text-[#0D47A1] font-medium transition-colors duration-300"
+                  >
+                    Sign up
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </nav>
@@ -801,22 +837,41 @@ const Navbar = () => {
 
           {/* Mobile menu footer with auth buttons */}
           <div className="border-t p-4 bg-gray-50">
-            <div className="flex flex-col space-y-2">
-              <Link
-                to="/auth/login"
-                className="bg-gray-200 font-medium text-blue-600 py-1 px-4 rounded hover:text-blue-800 transition-colors duration-300 text-center"
-                onClick={toggleMobileMenu}
-              >
-                Login
-              </Link>
-              <Link
-                to="/auth/signup"
-                className="bg-[#FFB71C] text-white py-2 px-4 rounded-md hover:bg-yellow-500 hover:text-[#0D47A1] font-medium transition-colors duration-300 text-center"
-                onClick={toggleMobileMenu}
-              >
-                Sign up
-              </Link>
-            </div>
+            {isAuthenticated && user ? (
+              <div className="flex flex-col space-y-2">
+                <div className="flex items-center justify-center mb-2">
+                  <User size={18} className="text-gray-700 mr-2" />
+                  <span className="text-gray-700">Welcome, {user.name}</span>
+                </div>
+                <button
+                  onClick={() => {
+                    handleLogout();
+                    toggleMobileMenu();
+                  }}
+                  className="flex items-center justify-center bg-gray-200 font-medium text-blue-600 py-2 px-4 rounded hover:text-blue-800 transition-colors duration-300"
+                >
+                  <LogOut size={16} className="mr-2" />
+                  Sign out
+                </button>
+              </div>
+            ) : (
+              <div className="flex flex-col space-y-2">
+                <Link
+                  to="/auth/login"
+                  className="bg-gray-200 font-medium text-blue-600 py-1 px-4 rounded hover:text-blue-800 transition-colors duration-300 text-center"
+                  onClick={toggleMobileMenu}
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/auth/signup"
+                  className="bg-[#FFB71C] text-white py-2 px-4 rounded-md hover:bg-yellow-500 hover:text-[#0D47A1] font-medium transition-colors duration-300 text-center"
+                  onClick={toggleMobileMenu}
+                >
+                  Sign up
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </div>

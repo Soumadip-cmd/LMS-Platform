@@ -72,7 +72,28 @@ const ScrollToTop = () => {
 const AppContent = () => {
   const location = useLocation();
   const authContext = useContext(AuthContext);
-  const { userType } = authContext; // Assuming your auth context tracks user type
+  const { userType, loadUser, isAuthenticated, user } = authContext;
+
+  // Load user on component mount
+  useEffect(() => {
+    // Check if we have a token in localStorage
+    const token = localStorage.getItem('authToken');
+
+    if (token) {
+      // Try to load the user
+      const loadUserData = async () => {
+        try {
+          console.log('App.js: Loading user data...');
+          await loadUser();
+          console.log('App.js: User loaded successfully');
+        } catch (err) {
+          console.error('App.js: Failed to load user:', err);
+        }
+      };
+
+      loadUserData();
+    }
+  }, [loadUser]);
 
   // Check if current path is a resources page
   const isResourcesPage = location.pathname.startsWith("/support/resources") || location.pathname.startsWith("/support/community");
