@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useContext, useEffect, forwardRef, useImperativeHandle } from "react";
 import { Plus, FileText, Video, Calendar, Edit, Trash2, CheckCircle, ChevronRight } from "lucide-react";
 import toast from "react-hot-toast";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import AdminSidebar from "../../../AdminSidebar";
 import AdminNavbar from "../../../../../../components/Header/AdminNavbar";
 import AddSection from "./AddSection";
@@ -9,15 +9,130 @@ import AddLesson from "./AddLesson";
 import AddLiveLesson from "./AddLiveLesson";
 import AddAssignment from "./AddAssignment";
 import AddQuiz from "./AddQuiz";
+import CourseContext from "../../../../../../context/course/courseContext";
 
-const CourseMaterial = () => {
+const CourseMaterial = forwardRef(({ courseId }, ref) => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const params = useParams();
+
+  // Get courseId from props, params, or location state
+  const currentCourseId = courseId || params.courseId || (location.state && location.state.courseId);
+
   const [sections, setSections] = useState([]);
   const [activeModal, setActiveModal] = useState(null);
   const [activeSectionIndex, setActiveSectionIndex] = useState(null);
   const [autoSaveEnabled, setAutoSaveEnabled] = useState(true);
   const [sectionTitle, setSectionTitle] = useState("");
   const [sectionSummary, setSectionSummary] = useState("");
+
+  // Get course context
+  const courseContext = useContext(CourseContext);
+  const {
+    createCourseSection,
+    getCourseSections,
+    addLessonToSection,
+    addQuizToSection,
+    addAssignmentToSection,
+    addLiveLessonToSection,
+    courseSections,
+    error,
+    clearErrors
+  } = courseContext;
+
+  // Load sections when component mounts
+  useEffect(() => {
+    if (currentCourseId) {
+      getCourseSections(currentCourseId);
+    }
+  }, [currentCourseId]);
+
+  // Update local sections state when courseSections changes
+  useEffect(() => {
+    if (courseSections && courseSections.length > 0) {
+      setSections(courseSections);
+    }
+  }, [courseSections]);
+
+  // Handle errors
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+      clearErrors();
+    }
+  }, [error, clearErrors]);
+
+  // Expose methods to parent component
+  useImperativeHandle(ref, () => ({
+    // Method to save all local sections to the backend
+    saveLocalSections: async (newCourseId) => {
+      if (!newCourseId) return;
+
+      const localSections = sections.filter(section => section.isLocal);
+      if (localSections.length === 0) return;
+
+      const savedSections = [];
+
+      // Show loading toast
+      const loadingToast = toast.loading("Saving course materials...");
+
+      try {
+        // Save each local section
+        for (const section of localSections) {
+          const sectionData = {
+            title: section.title,
+            summary: section.summary,
+            order: sections.indexOf(section) + 1
+          };
+
+          const savedSection = await createCourseSection(newCourseId, sectionData);
+
+          if (savedSection && section.items && section.items.length > 0) {
+            // Save each item in the section
+            for (const item of section.items) {
+              switch (item.type) {
+                case "lesson":
+                  await addLessonToSection(newCourseId, savedSection._id, item);
+                  break;
+                case "quiz":
+                  await addQuizToSection(newCourseId, savedSection._id, item);
+                  break;
+                case "assignment":
+                  await addAssignmentToSection(newCourseId, savedSection._id, item);
+                  break;
+                case "liveLesson":
+                  await addLiveLessonToSection(newCourseId, savedSection._id, item);
+                  break;
+              }
+            }
+          }
+
+          savedSections.push(savedSection);
+        }
+
+        // Update sections state to replace local sections with saved ones
+        const updatedSections = sections.map(section => {
+          if (section.isLocal) {
+            const savedSection = savedSections.shift();
+            return savedSection || section;
+          }
+          return section;
+        });
+
+        setSections(updatedSections);
+
+        toast.dismiss(loadingToast);
+        toast.success("Course materials saved successfully");
+
+        return true;
+      } catch (err) {
+        console.error("Error saving local sections:", err);
+        toast.dismiss(loadingToast);
+        toast.error("Error saving course materials: " + (err.message || "Please try again"));
+        return false;
+      }
+    }
+  }));
 
   // Handle adding a new section
   const handleAddSection = () => {
@@ -26,31 +141,84 @@ const CourseMaterial = () => {
   };
 
   // Handle saving a new section
-  const handleSaveSection = () => {
+  const handleSaveSection = async () => {
     if (!sectionTitle.trim()) {
       toast.error("Section title is required");
       return;
     }
 
-    setSections([...sections, {
-      title: sectionTitle,
-      summary: sectionSummary,
-      items: []
-    }]);
+    if (!currentCourseId) {
+      // Instead of showing error, store section in local state only
+      // This will be saved to the backend when the course is saved
+      const newSection = {
+        title: sectionTitle,
+        summary: sectionSummary,
+        items: [],
+        isLocal: true // Flag to indicate this is stored locally only
+      };
 
-    // Clear the form
-    setSectionTitle("");
-    setSectionSummary("");
+      setSections([...sections, newSection]);
 
-    // Show auto-save toast
-    if (autoSaveEnabled) {
-      toast.success("Section auto-saved", {
+      // Clear the form
+      setSectionTitle("");
+      setSectionSummary("");
+
+      // Show auto-save toast
+      toast.success("Section saved locally. It will be uploaded when the course is saved.", {
         icon: <CheckCircle size={18} className="text-green-500" />,
         style: {
           background: "#10B981",
           color: "#FFFFFF",
         },
       });
+
+      return;
+    }
+
+    // Show loading toast
+    const loadingToast = toast.loading("Saving section...");
+
+    try {
+      // Create section data
+      const sectionData = {
+        title: sectionTitle,
+        summary: sectionSummary,
+        order: sections.length + 1
+      };
+
+      // Call API to create section
+      const newSection = await createCourseSection(currentCourseId, sectionData);
+
+      if (newSection) {
+        // Add to local state if not already added by the reducer
+        if (!sections.find(section => section._id === newSection._id)) {
+          setSections([...sections, {
+            ...newSection,
+            items: []
+          }]);
+        }
+
+        // Clear the form
+        setSectionTitle("");
+        setSectionSummary("");
+
+        // Show success toast
+        toast.dismiss(loadingToast);
+        toast.success("Section saved successfully", {
+          icon: <CheckCircle size={18} className="text-green-500" />,
+          style: {
+            background: "#10B981",
+            color: "#FFFFFF",
+          },
+        });
+      } else {
+        toast.dismiss(loadingToast);
+        toast.error("Failed to save section");
+      }
+    } catch (err) {
+      console.error("Error saving section:", err);
+      toast.dismiss(loadingToast);
+      toast.error("Error saving section: " + (err.message || "Please try again"));
     }
   };
 
@@ -62,28 +230,121 @@ const CourseMaterial = () => {
   };
 
   // Handle saving a new item
-  const handleSaveItem = (itemData) => {
-    const updatedSections = [...sections];
-    const itemType = activeModal;
+  const handleSaveItem = async (itemData) => {
+    if (!currentCourseId) {
+      // If no course ID, store the item in local state only
+      const updatedSections = [...sections];
+      const itemType = activeModal;
 
-    updatedSections[activeSectionIndex].items.push({
-      type: itemType,
-      ...itemData,
-    });
+      if (!updatedSections[activeSectionIndex].items) {
+        updatedSections[activeSectionIndex].items = [];
+      }
 
-    setSections(updatedSections);
-    setActiveModal(null);
-    setActiveSectionIndex(null);
+      updatedSections[activeSectionIndex].items.push({
+        type: itemType,
+        ...itemData,
+        isLocal: true // Flag to indicate this is stored locally only
+      });
 
-    // Show auto-save toast
-    if (autoSaveEnabled) {
-      toast.success(`${itemType.charAt(0).toUpperCase() + itemType.slice(1)} auto-saved`, {
+      setSections(updatedSections);
+      setActiveModal(null);
+      setActiveSectionIndex(null);
+
+      // Show success toast
+      toast.success(`${itemType.charAt(0).toUpperCase() + itemType.slice(1)} saved locally. It will be uploaded when the course is saved.`, {
         icon: <CheckCircle size={18} className="text-green-500" />,
         style: {
           background: "#10B981",
           color: "#FFFFFF",
         },
       });
+
+      return;
+    }
+
+    const itemType = activeModal;
+    // If we have a courseId, we need a sectionId from the backend
+    if (currentCourseId) {
+      const sectionId = sections[activeSectionIndex]._id;
+      if (!sectionId) {
+        toast.error("Section ID is required. Please save the section first.");
+        return;
+      }
+    }
+
+    // Show loading toast
+    const loadingToast = toast.loading(`Saving ${itemType}...`);
+
+    try {
+      let savedItem;
+
+      // If we have a courseId, call the API
+      if (currentCourseId) {
+        const sectionId = sections[activeSectionIndex]._id;
+
+        // Call the appropriate API based on item type
+        switch (itemType) {
+          case "lesson":
+            savedItem = await addLessonToSection(currentCourseId, sectionId, itemData);
+            break;
+          case "quiz":
+            savedItem = await addQuizToSection(currentCourseId, sectionId, itemData);
+            break;
+          case "assignment":
+            savedItem = await addAssignmentToSection(currentCourseId, sectionId, itemData);
+            break;
+          case "liveLesson":
+            savedItem = await addLiveLessonToSection(currentCourseId, sectionId, itemData);
+            break;
+          default:
+            toast.dismiss(loadingToast);
+            toast.error(`Unknown item type: ${itemType}`);
+            return;
+        }
+      } else {
+        // If no courseId, we're just storing locally, so create a placeholder item
+        savedItem = {
+          ...itemData,
+          _id: 'local_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9)
+        };
+      }
+
+      if (savedItem) {
+        // Update local state
+        const updatedSections = [...sections];
+
+        if (!updatedSections[activeSectionIndex].items) {
+          updatedSections[activeSectionIndex].items = [];
+        }
+
+        updatedSections[activeSectionIndex].items.push({
+          type: itemType,
+          ...savedItem,
+        });
+
+        setSections(updatedSections);
+
+        // Close modal and reset state
+        setActiveModal(null);
+        setActiveSectionIndex(null);
+
+        // Show success toast
+        toast.dismiss(loadingToast);
+        toast.success(`${itemType.charAt(0).toUpperCase() + itemType.slice(1)} saved successfully`, {
+          icon: <CheckCircle size={18} className="text-green-500" />,
+          style: {
+            background: "#10B981",
+            color: "#FFFFFF",
+          },
+        });
+      } else {
+        toast.dismiss(loadingToast);
+        toast.error(`Failed to save ${itemType}`);
+      }
+    } catch (err) {
+      console.error(`Error saving ${itemType}:`, err);
+      toast.dismiss(loadingToast);
+      toast.error(`Error saving ${itemType}: ` + (err.message || "Please try again"));
     }
   };
 
@@ -228,6 +489,24 @@ const CourseMaterial = () => {
         <div className="fixed top-0 left-0 right-0 bg-green-500 text-white py-2 px-4 flex items-center justify-center z-50">
           <CheckCircle size={18} className="mr-2" />
           <span>Auto Save ON</span>
+        </div>
+      )}
+
+      {/* Course ID warning - only show if no courseId and there are no sections yet */}
+      {!currentCourseId && sections.length === 0 && (
+        <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-blue-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-blue-700">
+                You can add course materials now, but they will be saved locally until the course is saved.
+              </p>
+            </div>
+          </div>
         </div>
       )}
 
@@ -473,6 +752,6 @@ const CourseMaterial = () => {
       )}
     </div>
   );
-};
+});
 
 export default CourseMaterial;

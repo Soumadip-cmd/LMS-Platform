@@ -47,6 +47,9 @@ const AddCourse = () => {
   const [introVideo, setIntroVideo] = useState(null);
   const [introVideoUrl, setIntroVideoUrl] = useState("");
 
+  // Course ID
+  const [createdCourseId, setCreatedCourseId] = useState(null);
+
   // Options
   const [activeOption, setActiveOption] = useState("General");
   const [language, setLanguage] = useState("");
@@ -70,7 +73,7 @@ const AddCourse = () => {
   const navigate = useNavigate();
 
   const CourseContext = useContext(courseContext);
-  const { createCourse, updateLiveCourseSettings, error, clearErrors } = CourseContext;
+  const { createCourse, updateLiveCourseSettings, error, clearErrors, currentCourse } = CourseContext;
 
   useEffect(() => {
     if (error) {
@@ -150,6 +153,14 @@ const AddCourse = () => {
         throw new Error("Failed to create course");
       }
 
+      // Set the created course ID
+      setCreatedCourseId(course._id);
+
+      // Save any local sections if we're on the course material step
+      if (currentStep === 2 && window.courseMaterialRef && window.courseMaterialRef.saveLocalSections) {
+        await window.courseMaterialRef.saveLocalSections(course._id);
+      }
+
       // If it's a live course, update the live settings
       if (isLiveCourse && course && course._id) {
         await updateLiveCourseSettings(course._id, {
@@ -187,7 +198,17 @@ const AddCourse = () => {
   };
 
   // Handle next step
-  const handleNextStep = () => {
+  const handleNextStep = async () => {
+    // If moving from step 1 to step 2 and no course ID exists, save the course first
+    if (currentStep === 1 && !createdCourseId && !currentCourse?._id) {
+      // Show confirmation dialog
+      if (window.confirm("To add course materials, the course needs to be saved first. Would you like to save the course now?")) {
+        await handleSubmit("draft");
+      } else {
+        return; // Don't proceed if user cancels
+      }
+    }
+
     if (currentStep < steps.length) {
       setCurrentStep(currentStep + 1);
     }
@@ -321,7 +342,10 @@ const AddCourse = () => {
               )}
 
               {currentStep === 2 && (
-                <CourseMaterial />
+                <CourseMaterial
+                  courseId={createdCourseId || currentCourse?._id}
+                  ref={(ref) => { window.courseMaterialRef = ref; }}
+                />
               )}
 
               {currentStep === 3 && (

@@ -7,7 +7,12 @@ import {
     GET_COURSE_DASHBOARD_STATS,
     CREATE_COURSE,
     UPDATE_COURSE,
-    SET_LOADING
+    SET_LOADING,
+    ADD_COURSE_SECTION,
+    ADD_COURSE_LESSON,
+    ADD_COURSE_QUIZ,
+    ADD_COURSE_ASSIGNMENT,
+    GET_COURSE_SECTIONS
   } from '../types';
 
   const courseReducer = (state, action) => {
@@ -66,6 +71,36 @@ case UPDATE_COURSE:
         return {
           ...state,
           error: null
+        };
+      case GET_COURSE_SECTIONS:
+        return {
+          ...state,
+          courseSections: action.payload,
+          loading: false
+        };
+      case ADD_COURSE_SECTION:
+        return {
+          ...state,
+          courseSections: [...state.courseSections, action.payload],
+          loading: false
+        };
+      case ADD_COURSE_LESSON:
+        return {
+          ...state,
+          courseLessons: [...state.courseLessons, action.payload],
+          loading: false
+        };
+      case ADD_COURSE_QUIZ:
+        return {
+          ...state,
+          courseQuizzes: [...state.courseQuizzes, action.payload],
+          loading: false
+        };
+      case ADD_COURSE_ASSIGNMENT:
+        return {
+          ...state,
+          courseAssignments: [...state.courseAssignments, action.payload],
+          loading: false
         };
       default:
         return state;

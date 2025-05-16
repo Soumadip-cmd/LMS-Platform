@@ -6,6 +6,7 @@ import languageRouter from "./language/language.route.js";
 import blogRouter from "./blog/blog.route.js";
 import Socialrouter from "./auth/social.route.js";
 import courseRouter from "./course/course.route.js";
+import courseSectionRouter from "./course/courseSection.route.js";
 import Lecturerouter from "./lectures/lecture.route.js";
 import courseProgressRouter from "./progress/course-progress.route.js";
 import Mockrouter from "./mock-exam/mock-exam.route.js";
@@ -22,6 +23,7 @@ mainRouter.use('/users', userRouter);
 mainRouter.use('/admin', adminRouter);
 mainRouter.use('/languages', languageRouter);
 mainRouter.use('/courses',courseRouter)
+mainRouter.use('/courses',courseSectionRouter)
 mainRouter.use('/live-course', LiveCourserouter);
 mainRouter.use('/lectures',Lecturerouter)
 mainRouter.use('/progress',courseProgressRouter)
