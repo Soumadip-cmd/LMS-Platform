@@ -159,11 +159,26 @@ const OTPVerificationModal = ({ isOpen, onClose, email, activationToken, onVerif
       } else {
         // Regular email/password verification
         console.log('Calling regular verification with:', { email, otpString, activationToken });
-        if (typeof onVerifySuccess === 'function') {
-          await onVerifySuccess(email, otpString, activationToken);
-        } else {
-          console.error('onVerifySuccess is not a function');
-          setError('Verification failed. Please try again or contact support.');
+        try {
+          if (typeof onVerifySuccess === 'function') {
+            const result = await onVerifySuccess(email, otpString, activationToken);
+            console.log('Verification successful:', result);
+
+            // Close modal and show success notification
+            onClose();
+
+            // Show success toast and redirect to login page
+            toast.success('Registration successful! Please login with your credentials.');
+            setTimeout(() => {
+              window.location.href = '/auth/login'; // Redirect to login page
+            }, 2000);
+          } else {
+            console.error('onVerifySuccess is not a function');
+            setError('Verification failed. Please try again or contact support.');
+          }
+        } catch (error) {
+          console.error('Error in verification:', error);
+          throw error; // Re-throw to be caught by the outer catch block
         }
       }
     } catch (err) {

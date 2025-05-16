@@ -189,12 +189,8 @@ const Signup = () => {
       const response = await auth.verifyOTPAndRegister({ email, otp, activationToken });
       console.log('OTP verification successful:', response);
 
-      // Show success toast
-      toast.success("Registration successful! You can now login.");
-
-      // Close the modal and redirect to login page on success
-      setIsOtpModalOpen(false);
-      navigate("/auth/login");
+      // Return the response to the modal component
+      return response;
     } catch (err) {
       console.error('OTP verification error in Signup.js:', err);
 
@@ -204,11 +200,17 @@ const Signup = () => {
         errorMessage = 'Verification code has expired. Please request a new code.';
       } else if (err.response?.status === 400 && err.response?.data?.message?.includes('invalid')) {
         errorMessage = 'Invalid verification code. Please check and try again.';
+      } else if (err.response?.status === 401) {
+        // This is expected after registration since we don't have a token yet
+        errorMessage = null; // Don't show an error for this case
       } else {
         errorMessage = err.response?.data?.message || "OTP verification failed. Please try again.";
       }
 
-      toast.error(errorMessage);
+      if (errorMessage) {
+        toast.error(errorMessage);
+      }
+
       throw err; // Rethrow error to be handled in the OTP modal component
     }
   };

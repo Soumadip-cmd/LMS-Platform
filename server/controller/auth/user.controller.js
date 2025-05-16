@@ -152,6 +152,12 @@ export const initiateRegistration = async (req, res) => {
 
         // Generate OTP and activation token
         const otp = generateOTP();
+
+        // Log the OTP prominently for testing
+        console.log('=================================================');
+        console.log(`🔑 INITIAL REGISTRATION OTP: ${otp} for ${email}`);
+        console.log('=================================================');
+
         // Use a fallback secret key if environment variable is not set
         const secretKey = process.env.ACTIVATION_SECRET_KEY || 'preplings-activation-secret-key';
         const activationToken = generateJWT(
@@ -168,17 +174,22 @@ export const initiateRegistration = async (req, res) => {
             userData // Store user data for potential token regeneration
         });
 
-        // Send OTP via email
-        await sendEmail(
-            email,
-            "Verify Your Account | Preplings",
-            "verification",
-            {
-                name,
-                otp,
-                websiteUrl: process.env.CLIENT_URL || "http://localhost:5173"
-            }
-        );
+        // Send OTP via email - catch errors to prevent the registration from failing
+        try {
+            await sendEmail(
+                email,
+                "Verify Your Account | Preplings",
+                "verification",
+                {
+                    name,
+                    otp,
+                    websiteUrl: process.env.CLIENT_URL || "http://localhost:5173"
+                }
+            );
+        } catch (emailError) {
+            console.error("Failed to send verification email:", emailError);
+            // Continue execution even if email fails
+        }
 
         // Send OTP via SMS if phone number provided
         if (phoneNumber && twilioClient) {
@@ -188,10 +199,12 @@ export const initiateRegistration = async (req, res) => {
             );
         }
 
+        // In development mode, include the OTP in the response
         return res.status(200).json({
             success: true,
             message: "OTP sent to your email" + (phoneNumber ? " and phone number" : "") + " for verification.",
-            activationToken
+            activationToken,
+            otp: process.env.NODE_ENV === 'development' ? otp : undefined // Only include OTP in development
         });
     } catch (error) {
         console.log(error);
@@ -224,6 +237,11 @@ export const verifyOTPAndRegister = async (req, res) => {
             });
         }
 
+        // Log the expected OTP for verification
+        console.log('=================================================');
+        console.log(`🔑 EXPECTED OTP: ${otpData.otp}, RECEIVED OTP: ${otp}`);
+        console.log('=================================================');
+
         // Verify OTP
         if (otpData.otp !== otp) {
             return res.status(400).json({
@@ -231,6 +249,10 @@ export const verifyOTPAndRegister = async (req, res) => {
                 message: "Invalid OTP. Please try again."
             });
         }
+
+        console.log('=================================================');
+        console.log(`✅ OTP VERIFICATION SUCCESSFUL for ${email}`);
+        console.log('=================================================');
 
         // Verify activation token
         let decodedToken;
@@ -257,16 +279,21 @@ export const verifyOTPAndRegister = async (req, res) => {
         // Remove OTP from store
         otpStore.delete(email);
 
-        // Send welcome email
-        await sendEmail(
-            email,
-            "Welcome to Preplings!",
-            "welcome",
-            {
-                name: userData.name,
-                websiteUrl: process.env.CLIENT_URL || "http://localhost:5173"
-            }
-        );
+        // Send welcome email - catch errors to prevent the registration from failing
+        try {
+            await sendEmail(
+                email,
+                "Welcome to Preplings!",
+                "welcome",
+                {
+                    name: userData.name,
+                    websiteUrl: process.env.CLIENT_URL || "http://localhost:5173"
+                }
+            );
+        } catch (emailError) {
+            console.error("Failed to send welcome email:", emailError);
+            // Continue execution even if email fails
+        }
 
         return res.status(201).json({
             success: true,
@@ -369,6 +396,11 @@ export const resendOTP = async (req, res) => {
         // Generate new OTP
         const otp = generateOTP();
 
+        // Log the OTP prominently for testing
+        console.log('=================================================');
+        console.log(`🔑 RESENT REGISTRATION OTP: ${otp} for ${email}`);
+        console.log('=================================================');
+
         // Update OTP store with new data
         otpStore.set(email, {
             otp,
@@ -377,19 +409,22 @@ export const resendOTP = async (req, res) => {
             userData // Store user data for potential future token regeneration
         });
 
-        console.log(`New OTP generated for ${email}: ${otp}`);
-
-        // Send OTP via email
-        await sendEmail(
-            email,
-            "Your New Verification Code | Preplings",
-            "verification",
-            {
-                name: userData.name,
-                otp,
-                websiteUrl: process.env.CLIENT_URL || "http://localhost:5173"
-            }
-        );
+        // Send OTP via email - catch errors to prevent the registration from failing
+        try {
+            await sendEmail(
+                email,
+                "Your New Verification Code | Preplings",
+                "verification",
+                {
+                    name: userData.name,
+                    otp,
+                    websiteUrl: process.env.CLIENT_URL || "http://localhost:5173"
+                }
+            );
+        } catch (emailError) {
+            console.error("Failed to send verification email:", emailError);
+            // Continue execution even if email fails
+        }
 
         // Send OTP via SMS if phone number provided
         if (userData.phoneNumber && twilioClient) {
@@ -399,10 +434,12 @@ export const resendOTP = async (req, res) => {
             );
         }
 
+        // In development mode, include the OTP in the response
         return res.status(200).json({
             success: true,
             message: "OTP resent successfully.",
-            activationToken: newActivationToken // Return the new token if it was regenerated
+            activationToken: newActivationToken, // Return the new token if it was regenerated
+            otp: process.env.NODE_ENV === 'development' ? otp : undefined // Only include OTP in development
         });
     } catch (error) {
         console.log("Resend OTP error:", error);

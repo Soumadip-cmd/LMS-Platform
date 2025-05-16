@@ -422,6 +422,13 @@ const AuthState = (props) => {
 
       const res = await axios.post(`/auth/register`, formData, config);
       console.log('Registration response:', res.data);
+
+      // Log the OTP if it's included in the response (development mode)
+      if (res.data.otp) {
+        console.log('=================================================');
+        console.log(`🔑 REGISTRATION OTP FROM RESPONSE: ${res.data.otp}`);
+        console.log('=================================================');
+      }
       return res.data;
     } catch (err) {
       console.error('Registration error:', err.response?.data || err.message);
@@ -462,13 +469,21 @@ const AuthState = (props) => {
         payload: res.data
       });
 
-      // If we have a token in the response, store it
+      // If we have a token in the response, store it and load the user
       if (res.data.token) {
         localStorage.setItem('authToken', res.data.token);
         axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
-      }
 
-      await loadUser();
+        // Only try to load the user if we have a token
+        try {
+          await loadUser();
+        } catch (loadError) {
+          console.warn('Could not load user after registration:', loadError);
+          // Continue anyway - the registration was successful
+        }
+      } else {
+        console.log('No token in response - user will need to login separately');
+      }
       return res.data;
     } catch (err) {
       console.error('OTP verification error:', err.response?.data || err.message);
@@ -685,6 +700,13 @@ const AuthState = (props) => {
 
       const res = await axios.post(`/auth/resend-otp`, data, config);
       console.log('Resend OTP response:', res.data);
+
+      // Log the OTP if it's included in the response (development mode)
+      if (res.data.otp) {
+        console.log('=================================================');
+        console.log(`🔑 RESENT REGISTRATION OTP FROM RESPONSE: ${res.data.otp}`);
+        console.log('=================================================');
+      }
 
       // If we received a new activation token, return it
       if (res.data.activationToken) {
