@@ -23,6 +23,7 @@ import ForgotPassword from "./pages/Authentication/ForgotPass/ForgotPassword";
 import TermsService from "./pages/Terms&condition/TermsService/TermsService";
 import StudentDashboard from "./pages/Dashboard/Student/StudentDashboard";
 import InstructorDashboard from "./pages/Dashboard/Instructor/InstructorDashboard";
+import InstructorPending from "./pages/Dashboard/Instructor/InstructorPending";
 import AdminDashboard from "./pages/Dashboard/Admin/AdminDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminCourse from "./pages/Dashboard/Admin/courses/AdminCourse";
@@ -218,6 +219,15 @@ const AppContent = () => {
               element={
                 <ProtectedRoute allowedRoles={["student"]}>
                   <BecomeAnInstructor />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/instructor-pending"
+              element={
+                <ProtectedRoute allowedRoles={["instructor", "student"]}>
+                  <InstructorPending />
                 </ProtectedRoute>
               }
             />

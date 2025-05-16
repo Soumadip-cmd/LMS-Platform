@@ -87,14 +87,22 @@ app.use(express.urlencoded({ extended: true }));
 
 // Special CORS handling for file upload routes
 app.use('/api/v1/auth/upload-resume', (req, res, next) => {
+    console.log("Server.js CORS middleware for file upload triggered:", {
+        method: req.method,
+        origin: req.headers.origin,
+        contentType: req.headers['content-type']
+    });
+
     // Set CORS headers specifically for file uploads
     res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
     res.header('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, Origin, X-Requested-With');
     res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Max-Age', '86400'); // 24 hours
 
     // Handle preflight requests
     if (req.method === 'OPTIONS') {
+        console.log("Handling OPTIONS preflight request in server.js");
         return res.status(200).end();
     }
 

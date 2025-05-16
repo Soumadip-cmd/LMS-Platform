@@ -59,6 +59,13 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
         return <Navigate to="/auth/login" />;
     }
 
+    // Check if user has a pending instructor application
+    if (user && user.instructorProfile && user.instructorProfile.applicationStatus === 'pending' &&
+        allowedRoles && allowedRoles.includes('instructor')) {
+        console.log('User with pending instructor application trying to access instructor dashboard');
+        return <Navigate to="/instructor-pending" />;
+    }
+
     // Explicit role-based redirection
     if (allowedRoles && user && user.role && !allowedRoles.includes(user.role)) {
         console.log(`User role (${user.role}) not in allowed roles (${allowedRoles})`);

@@ -66,6 +66,12 @@ const BecomeAnInstructor = () => {
     if (e.target.files[0]) {
       const resumeFile = e.target.files[0];
 
+      console.log("Selected file:", {
+        name: resumeFile.name,
+        type: resumeFile.type,
+        size: resumeFile.size
+      });
+
       // Update local state to show the filename
       setFormData({
         ...formData,
@@ -90,15 +96,20 @@ const BecomeAnInstructor = () => {
         // Get token from localStorage
         const token = localStorage.getItem('authToken');
 
+        // Set headers based on file type
+        const headers = {
+          'Authorization': token ? `Bearer ${token}` : undefined
+        };
+
+        // Don't set Content-Type for FormData - browser will set it with boundary
+        // This is especially important for DOCX files
+
         // Using both token and cookie-based authentication for file upload
         const response = await axios.post(
           `${SERVER_URI}/auth/upload-resume`,
           formDataForUpload,
           {
-            headers: {
-              'Content-Type': 'multipart/form-data',
-              'Authorization': token ? `Bearer ${token}` : undefined
-            },
+            headers: headers,
             withCredentials: true // This will send the cookies
           }
         );
@@ -109,11 +120,32 @@ const BecomeAnInstructor = () => {
         }
       } catch (error) {
         console.error("Resume upload failed:", error);
+
+        // Log detailed error information
+        if (error.response) {
+          console.error("Error response:", {
+            status: error.response.status,
+            headers: error.response.headers,
+            data: error.response.data
+          });
+        } else if (error.request) {
+          console.error("Error request:", error.request);
+        }
+
+        // Set appropriate error message
+        let errorMessage = "Failed to upload resume";
+        if (error.response?.data?.message) {
+          errorMessage = error.response.data.message;
+        } else if (error.message.includes("Network Error")) {
+          errorMessage = "Network error - CORS issue may be preventing file upload";
+        }
+
         setErrors({
           ...errors,
-          resume: error.response?.data?.message || "Failed to upload resume"
+          resume: errorMessage
         });
-        setUploadStatus("Resume upload failed!");
+
+        setUploadStatus("Resume upload failed! " + errorMessage);
       }
     }
   };

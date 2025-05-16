@@ -2,6 +2,7 @@ import { User } from "../../models/user.model.js";
 import { Course } from "../../models/course.model.js";
 import { CourseProgress } from "../../models/courseprogress.model.js";
 import mongoose from "mongoose";
+import { sendEmail } from "../../utils/sendEmail.js";
 
 /**
  * Get admin dashboard statistics
@@ -424,8 +425,32 @@ export const approveInstructor = async (req, res) => {
             });
         }
 
+        // Update user role to instructor
         user.role = "instructor";
+
+        // Update application status if instructor profile exists
+        if (user.instructorProfile) {
+            user.instructorProfile.applicationStatus = "approved";
+        }
+
         await user.save();
+
+        // Send approval email to the instructor
+        try {
+            await sendEmail(
+                user.email,
+                "Instructor Application Approved | Preplings",
+                "instructor-application-approved",
+                {
+                    name: user.name,
+                    dashboardUrl: `${process.env.CLIENT_URL || "http://localhost:5173"}/dashboard/instructor`,
+                    websiteUrl: process.env.CLIENT_URL || "http://localhost:5173"
+                }
+            );
+        } catch (emailError) {
+            console.error("Failed to send approval email:", emailError);
+            // Continue execution even if email fails
+        }
 
         return res.status(200).json({
             success: true,

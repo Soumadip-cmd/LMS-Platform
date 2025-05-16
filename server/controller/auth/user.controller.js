@@ -906,9 +906,31 @@ export const getUserProfile = async (req, res) => {
             });
         }
 
+        // Create a user object with only the necessary fields
+        const userResponse = {
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            photoUrl: user.photoUrl,
+            languageToLearn: user.languageToLearn,
+            learningGoal: user.learningGoal,
+            preferredLearningStyle: user.preferredLearningStyle,
+            enrolledCourses: user.enrolledCourses,
+            wishlist: user.wishlist
+        };
+
+        // Add instructorProfile if it exists
+        if (user.instructorProfile) {
+            userResponse.instructorProfile = {
+                applicationStatus: user.instructorProfile.applicationStatus,
+                applicationDate: user.instructorProfile.applicationDate
+            };
+        }
+
         return res.status(200).json({
             success: true,
-            user
+            user: userResponse
         });
     } catch (error) {
         console.log(error);
@@ -1225,8 +1247,8 @@ export const becomeInstructor = async (req, res) => {
             console.log("Error fetching language: ", error);
         }
 
-        // Update user role to instructor
-        user.role = "instructor";
+        // Don't update user role to instructor yet - wait for admin approval
+        // Instead, just create the instructor profile with pending status
 
         // Create instructor profile
         user.instructorProfile = {

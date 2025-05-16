@@ -40,12 +40,23 @@ const fileFilter = (req, file, cb) => {
         // Other
         '.zip', '.txt'
     ];
-    
+
+    console.log("File upload request:", {
+        originalname: file.originalname,
+        mimetype: file.mimetype,
+        fieldname: file.fieldname,
+        size: file.size
+    });
+
     const ext = path.extname(file.originalname).toLowerCase();
-    
+
     if (allowedFileTypes.includes(ext)) {
+        // Log accepted file
+        console.log(`File type accepted: ${ext}`);
         cb(null, true);
     } else {
+        // Log rejected file
+        console.log(`File type rejected: ${ext}`);
         cb(new Error(`Unsupported file type. Allowed types: ${allowedFileTypes.join(', ')}`), false);
     }
 };
@@ -58,6 +69,16 @@ const upload = multer({
         fileSize: 100 * 1024 * 1024, // 100MB max file size
     }
 });
+
+// Special handling for DOCX files
+const handleDocxMimeType = (req, res, next) => {
+    if (req.file && req.file.originalname.toLowerCase().endsWith('.docx')) {
+        // Ensure proper MIME type for DOCX files
+        req.file.mimetype = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+        console.log("DOCX file detected, setting correct MIME type");
+    }
+    next();
+};
 
 // Error handling middleware for multer
 const handleMulterError = (err, req, res, next) => {
@@ -83,4 +104,4 @@ const handleMulterError = (err, req, res, next) => {
     next();
 };
 
-export { upload, handleMulterError };
+export { upload, handleMulterError, handleDocxMimeType };
