@@ -167,7 +167,22 @@ const AuthState = (props) => {
 
       return res.data.user;
     } catch (err) {
-      console.error('Error loading user:', err.response || err);
+      console.error('Error loading user:', err.response?.data || err);
+
+      // Check for specific error types
+      if (err.response?.status === 401) {
+        // Token is missing or invalid - clear any existing tokens
+        document.cookie = "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        localStorage.removeItem('authToken');
+        sessionStorage.removeItem('authToken');
+
+        console.log('Authentication tokens cleared due to 401 error');
+      } else if (err.response?.status === 403) {
+        console.error('Access forbidden. User may not have required permissions.');
+      } else if (err.response?.status === 429) {
+        console.error('Rate limit exceeded. Too many requests.');
+      }
+
       dispatch({ type: AUTH_ERROR });
       throw err;
     }

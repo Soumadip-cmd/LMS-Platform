@@ -80,42 +80,73 @@ const Login = () => {
     try {
       const auth = getAuth();
       const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
 
-      // Get user information
-      const user = result.user;
-      const userData = {
-        name: user.displayName,
-        email: user.email,
-        uid: user.uid,
-        provider: 'google',
-        photoURL: user.photoURL
-      };
+      // Add custom parameters to the Google provider
+      provider.setCustomParameters({
+        prompt: 'select_account'
+      });
 
-      // Call socialLogin function
-      const loginResponse = await socialLogin(userData);
+      try {
+        const result = await signInWithPopup(auth, provider);
 
-      // Check if user is existing
-      if (loginResponse.existingUser) {
-        toast.info('Welcome back! You logged in with your existing Google account.');
-      } else if (loginResponse.needsPhoneVerification) {
-        setTempUserId(loginResponse.tempUserId);
-        setUserEmail(loginResponse.email || userData.email);
-        setShowOtpModal(true);
-        toast.info('Please verify your phone number to complete registration');
-      } else {
-        toast.success('Successfully signed in with Google!');
+        // Get user information
+        const user = result.user;
+        const userData = {
+          name: user.displayName,
+          email: user.email,
+          uid: user.uid,
+          provider: 'google',
+          photoURL: user.photoURL
+        };
+
+        // Call socialLogin function
+        try {
+          const loginResponse = await socialLogin(userData);
+
+          // Check if user is existing
+          if (loginResponse.existingUser) {
+            toast.success('Welcome back! You logged in with your existing Google account.');
+          } else if (loginResponse.needsPhoneVerification) {
+            setTempUserId(loginResponse.tempUserId);
+            setUserEmail(loginResponse.email || userData.email);
+            setShowOtpModal(true);
+            toast.info('Please verify your phone number to complete registration');
+          } else {
+            toast.success('Successfully signed in with Google!');
+          }
+        } catch (apiError) {
+          console.error('API login error:', apiError);
+
+          if (apiError.response?.status === 403) {
+            toast.error('Verification required to continue. Please complete the verification process.');
+          } else if (apiError.response?.status === 400) {
+            toast.error('Invalid information provided. Please try again.');
+          } else if (apiError.response?.status === 401) {
+            toast.error('Authentication failed. Please try again or use email/password login.');
+          } else if (apiError.response?.status === 429) {
+            toast.error('Too many requests. Please try again later.');
+          } else {
+            toast.error(apiError.response?.data?.message || 'Server error. Please try again later.');
+          }
+        }
+      } catch (firebaseError) {
+        console.error('Firebase auth error:', firebaseError);
+
+        if (firebaseError.code === 'auth/unauthorized-domain') {
+          toast.error('This domain is not authorized for authentication. Please use preplings.com instead.');
+        } else if (firebaseError.code === 'auth/popup-closed-by-user') {
+          toast.info('Sign-in popup was closed. Please try again when ready.');
+        } else if (firebaseError.code === 'auth/cancelled-popup-request') {
+          // This is normal when multiple popups are attempted, no need to show error
+        } else if (firebaseError.code === 'auth/popup-blocked') {
+          toast.error('Sign-in popup was blocked by your browser. Please allow popups for this site.');
+        } else {
+          toast.error('Google sign-in failed: ' + (firebaseError.message || 'Unknown error'));
+        }
       }
     } catch (error) {
-      console.error('Google login error:', error);
-
-      if (error.response?.status === 403) {
-        toast.error('Verification required to continue. Please complete the verification process.');
-      } else if (error.response?.status === 400) {
-        toast.error('Invalid information provided. Please try again.');
-      } else {
-        toast.error('Google sign in failed. Please try again.');
-      }
+      console.error('Unexpected error during Google login:', error);
+      toast.error('An unexpected error occurred. Please try again later.');
     }
   };
 

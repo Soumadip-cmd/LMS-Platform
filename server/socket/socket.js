@@ -2,7 +2,7 @@
 // utils/socket.js
 import { Server } from "socket.io";
 import { User } from "../models/user.model.js";
-import { Notification } from "../models/notification.model.js"; 
+import { Notification } from "../models/notification.model.js";
 let io;
 const userSocketMap = new Map(); // Maps userId to socketId
 const studySessionMap = new Map(); // Maps userId to study session data
@@ -22,14 +22,14 @@ export const sendAchievementNotification = async (userId, notification) => {
       type: 'achievement',
       relatedAchievement: notification.achievementId
     });
-    
+
     // Send real-time notification if user is online
     if (io && isUserOnline(userId)) {
       const achievementNotification = {
         ...notification,
         timestamp: new Date()
       };
-      
+
       io.to(`user:${userId}`).emit("achievementNotification", achievementNotification);
       io.to(`user:${userId}`).emit("notification", achievementNotification);
     }
@@ -39,9 +39,14 @@ export const sendAchievementNotification = async (userId, notification) => {
 };
 
 export const initializeSocket = (server) => {
+  // Configure CORS with multiple origins support
+  const allowedOrigins = process.env.CLIENT_URL
+    ? process.env.CLIENT_URL.split(',')
+    : ['http://localhost:3000', 'https://preplings.com', 'https://www.preplings.com'];
+
   io = new Server(server, {
     cors: {
-      origin: process.env.CLIENT_URL || "*",
+      origin: allowedOrigins,
       methods: ["GET", "POST"],
       credentials: true
     }
@@ -55,7 +60,7 @@ export const initializeSocket = (server) => {
     socket.on("authenticate", async (userId) => {
       try {
         if (!userId) return;
-        
+
         // Store socket mapping
         userSocketMap.set(userId, socket.id);
         socket.userId = userId;
@@ -64,7 +69,7 @@ export const initializeSocket = (server) => {
         socket.join(`user:${userId}`);
 
         // Update user's online status in database
-        await User.findByIdAndUpdate(userId, { 
+        await User.findByIdAndUpdate(userId, {
           isOnline: true,
           lastActive: new Date()
         });
@@ -75,7 +80,7 @@ export const initializeSocket = (server) => {
         // Send currently online users to the newly connected user
         const onlineUsers = Array.from(userSocketMap.keys());
         socket.emit("onlineUsers", onlineUsers);
-        
+
         console.log(`User ${userId} authenticated, online users: ${onlineUsers.length}`);
       } catch (error) {
         console.error("Socket authentication error:", error);
@@ -85,57 +90,57 @@ export const initializeSocket = (server) => {
     // Handle private messaging
     socket.on("privateMessage", ({ recipientId, message }) => {
       if (!socket.userId) return;
-      
+
       const messageData = {
         senderId: socket.userId,
         message,
         timestamp: new Date()
       };
-      
+
       io.to(`user:${recipientId}`).emit("privateMessage", messageData);
     });
     socket.on("studySession:start", async ({ userId, courseId }) => {
       try {
         if (!userId || !courseId) return;
-        
+
         const startTime = new Date();
-        
+
         // Store session info
         studySessionMap.set(userId, {
           courseId,
           startTime,
           lastHeartbeat: startTime
         });
-        
+
         console.log(`User ${userId} started studying course ${courseId}`);
-        
+
         // Emit event to acknowledge session start
-        socket.emit("studySession:started", { 
-          courseId, 
-          startTime 
+        socket.emit("studySession:started", {
+          courseId,
+          startTime
         });
       } catch (error) {
         console.error("Error starting study session:", error);
       }
     });
-    
+
     // Handle heartbeat to update study time
     socket.on("studySession:heartbeat", async ({ userId }) => {
       try {
         if (!userId || !studySessionMap.has(userId)) return;
-        
+
         const now = new Date();
         const sessionData = studySessionMap.get(userId);
         const elapsed = Math.floor((now - sessionData.lastHeartbeat) / 1000);
-        
+
         // Only count if elapsed time is reasonable (less than 5 minutes)
         if (elapsed < 300) {
           // Update the last heartbeat time
           sessionData.lastHeartbeat = now;
           studySessionMap.set(userId, sessionData);
-          
+
           // Acknowledge heartbeat
-          socket.emit("studySession:heartbeatAck", { 
+          socket.emit("studySession:heartbeatAck", {
             elapsed,
             totalSession: Math.floor((now - sessionData.startTime) / 1000)
           });
@@ -144,26 +149,26 @@ export const initializeSocket = (server) => {
         console.error("Error processing heartbeat:", error);
       }
     });
-    
+
     // Handle study session end
     socket.on("studySession:end", async ({ userId }) => {
       try {
         if (!userId || !studySessionMap.has(userId)) return;
-        
+
         const sessionData = studySessionMap.get(userId);
         const now = new Date();
         const sessionDuration = Math.floor((now - sessionData.startTime) / 1000);
-        
+
         // Import required models
         const { CourseProgress } = await import("../models/courseprogress.model.js");
         const { checkAndAwardAchievements } = await import("../utils/achievement.service.js");
-        
+
         // Update course progress
         let courseProgress = await CourseProgress.findOne({
           userId,
           courseId: sessionData.courseId
         });
-        
+
         if (!courseProgress) {
           // Create new progress record if it doesn't exist
           courseProgress = new CourseProgress({
@@ -189,25 +194,25 @@ export const initializeSocket = (server) => {
             duration: sessionDuration
           });
         }
-        
+
         await courseProgress.save();
-        
+
         // Check for achievements
         const newAchievements = await checkAndAwardAchievements(userId);
-        
+
         // Clear session data
         studySessionMap.delete(userId);
-        
+
         // Send session summary to client
         socket.emit("studySession:ended", {
           duration: sessionDuration,
           totalStudyTime: courseProgress.studyTime,
-          newAchievements: newAchievements.map(a => ({ 
-            title: a.title, 
-            description: a.description 
+          newAchievements: newAchievements.map(a => ({
+            title: a.title,
+            description: a.description
           }))
         });
-        
+
         console.log(`User ${userId} ended study session. Duration: ${sessionDuration} seconds`);
       } catch (error) {
         console.error("Error ending study session:", error);
@@ -220,19 +225,19 @@ export const initializeSocket = (server) => {
     //   try {
     //     const userId = socket.userId;
     //     if (!userId) return;
-        
+
     //     // Remove from socket mapping
     //     userSocketMap.delete(userId);
-        
+
     //     // Update user's online status in database
-    //     await User.findByIdAndUpdate(userId, { 
+    //     await User.findByIdAndUpdate(userId, {
     //       isOnline: false,
     //       lastActive: new Date()
     //     });
-        
+
     //     // Broadcast user's offline status to all clients
     //     io.emit("userStatus", { userId, status: false });
-        
+
     //     console.log(`User ${userId} disconnected, remaining online users: ${userSocketMap.size}`);
     //   } catch (error) {
     //     console.error("Socket disconnection error:", error);
@@ -242,22 +247,22 @@ export const initializeSocket = (server) => {
       try {
         const userId = socket.userId;
         if (!userId) return;
-        
+
         // Handle active study session if it exists
         if (studySessionMap.has(userId)) {
           const sessionData = studySessionMap.get(userId);
           const now = new Date();
           const sessionDuration = Math.floor((now - sessionData.startTime) / 1000);
-          
+
           // Import required models
           const { CourseProgress } = await import("../models/courseprogress.model.js");
-          
+
           // Update course progress
           let courseProgress = await CourseProgress.findOne({
             userId,
             courseId: sessionData.courseId
           });
-          
+
           if (courseProgress) {
             courseProgress.lastAccessedAt = now;
             courseProgress.studyTime += sessionDuration;
@@ -266,51 +271,51 @@ export const initializeSocket = (server) => {
               endTime: now,
               duration: sessionDuration
             });
-            
+
             await courseProgress.save();
           }
-          
+
           // Clear session data
           studySessionMap.delete(userId);
-          
+
           console.log(`User ${userId} disconnected during study session. Duration: ${sessionDuration} seconds`);
         }
-        
+
         // Remove from socket mapping
         userSocketMap.delete(userId);
-        
+
         // Update user's online status in database
-        await User.findByIdAndUpdate(userId, { 
+        await User.findByIdAndUpdate(userId, {
           isOnline: false,
           lastActive: new Date()
         });
-        
+
         // Broadcast user's offline status to all clients
         io.emit("userStatus", { userId, status: false });
-        
+
         console.log(`User ${userId} disconnected, remaining online users: ${userSocketMap.size}`);
       } catch (error) {
         console.error("Socket disconnection error:", error);
       }
     });
-    
+
     // Handle explicit logout
     socket.on("logout", async (userId) => {
       try {
         if (!userId) return;
-        
+
         // Remove from socket mapping
         userSocketMap.delete(userId);
-        
+
         // Update user's online status in database
-        await User.findByIdAndUpdate(userId, { 
+        await User.findByIdAndUpdate(userId, {
           isOnline: false,
           lastActive: new Date()
         });
-        
+
         // Broadcast user's offline status to all clients
         io.emit("userStatus", { userId, status: false });
-        
+
         console.log(`User ${userId} logged out`);
       } catch (error) {
         console.error("Socket logout error:", error);
@@ -351,7 +356,7 @@ export const sendUserNotification = (userId, notification) => {
 
 /**
  * Send course-related notification to a specific user
- * @param {string} userId - Target user ID 
+ * @param {string} userId - Target user ID
  * @param {object} notification - Notification data containing course information
  */
 export const sendCourseNotification = async (userId, notification) => {
@@ -365,7 +370,7 @@ export const sendCourseNotification = async (userId, notification) => {
       relatedCourse: notification.courseId,
       relatedLecture: notification.lectureId
     });
-    
+
     // Send real-time notification if user is online
     if (io && isUserOnline(userId)) {
       const courseNotification = {
@@ -373,7 +378,7 @@ export const sendCourseNotification = async (userId, notification) => {
         type: 'course',
         timestamp: new Date()
       };
-      
+
       io.to(`user:${userId}`).emit("courseNotification", courseNotification);
       io.to(`user:${userId}`).emit("notification", courseNotification);
     }

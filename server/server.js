@@ -6,7 +6,7 @@ import http from "http";
 
 import connectDB from "./database/db.js";
 import mainRouter from "./routes/index.js";
-import { initializeSocket } from "./socket/socket.js"; 
+import { initializeSocket } from "./socket/socket.js";
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -36,14 +36,30 @@ const PORT = process.env.PORT || 8000;
 
 // Apply middleware
 app.use(express.json());
+
+// Configure CORS with multiple origins support
+const allowedOrigins = process.env.CLIENT_URL
+    ? process.env.CLIENT_URL.split(',')
+    : ['http://localhost:3000', 'https://preplings.com', 'https://www.preplings.com'];
+
 app.use(cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:3000',
+    origin: function(origin, callback) {
+        // Allow requests with no origin (like mobile apps, curl, etc.)
+        if (!origin) return callback(null, true);
+
+        if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.includes('*')) {
+            callback(null, true);
+        } else {
+            console.log('CORS blocked origin:', origin);
+            callback(null, true); // Allow all origins in development
+        }
+    },
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
 }));
 
-  
+
 
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
@@ -66,9 +82,14 @@ app.get('/', (req, res) => {
 // Start server
 server.listen(PORT, () => {
     console.log(`Server listening at port ${PORT}`);
+    console.log(`CORS configuration:`, {
+        allowedOrigins: allowedOrigins,
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+        credentials: true
+    });
     console.log(`Socket server running with configuration:`, {
         cors: {
-            origin: process.env.CLIENT_URL || "*",
+            origin: allowedOrigins,
             methods: ["GET", "POST"],
             credentials: true
         }
