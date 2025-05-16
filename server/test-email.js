@@ -23,7 +23,7 @@ const testConfigurations = [
             secure: true,
             auth: {
                 user: process.env.EMAIL_USER || 'care@preplings.com',
-                pass: process.env.EMAIL_PASSWORD || 'AWMA4KAjFaep'
+                pass: process.env.EMAIL_PASSWORD || 'VELQXEEps10B'
             }
         }
     },
@@ -35,7 +35,7 @@ const testConfigurations = [
             secure: true,
             auth: {
                 user: process.env.EMAIL_USER || 'care@preplings.com',
-                pass: process.env.EMAIL_PASSWORD || 'AWMA4KAjFaep',
+                pass: process.env.EMAIL_PASSWORD || 'VELQXEEps10B',
                 type: 'login'
             }
         }
@@ -46,7 +46,7 @@ const testConfigurations = [
             service: 'Zoho',
             auth: {
                 user: process.env.EMAIL_USER || 'care@preplings.com',
-                pass: process.env.EMAIL_PASSWORD || 'AWMA4KAjFaep'
+                pass: process.env.EMAIL_PASSWORD || 'VELQXEEps10B'
             }
         }
     },
@@ -58,7 +58,7 @@ const testConfigurations = [
             secure: false,
             auth: {
                 user: process.env.EMAIL_USER || 'care@preplings.com',
-                pass: process.env.EMAIL_PASSWORD || 'AWMA4KAjFaep'
+                pass: process.env.EMAIL_PASSWORD || 'VELQXEEps10B'
             }
         }
     },
@@ -70,7 +70,7 @@ const testConfigurations = [
             secure: true,
             auth: {
                 user: process.env.EMAIL_USER || 'care@preplings.com',
-                pass: process.env.EMAIL_PASSWORD || 'AWMA4KAjFaep'
+                pass: process.env.EMAIL_PASSWORD || 'VELQXEEps10B'
             }
         }
     }
