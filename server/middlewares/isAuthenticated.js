@@ -15,12 +15,20 @@ const isAuthenticated = async (req, res, next) => {
       token = req.cookies.access_token;
     }
 
+    // If still no token, check query parameter (for special cases like WebSocket connections)
+    if (!token && req.query.token) {
+      token = req.query.token;
+    }
+
+    // Log token debug info
     console.log('Token Debug:', {
       authHeader: !!authHeader,
       cookieToken: !!req.cookies.access_token,
+      queryToken: !!req.query.token,
       tokenPresent: !!token
     });
 
+    // If token is still missing, return 401
     if (!token) {
       return res.status(401).json({
         message: "Authentication token is missing",
@@ -52,14 +60,14 @@ const isAuthenticated = async (req, res, next) => {
             success: false,
             error: 'TokenExpired'
           });
-        
+
         case 'JsonWebTokenError':
           return res.status(401).json({
             message: "Invalid token signature",
             success: false,
             error: 'InvalidSignature'
           });
-        
+
         default:
           return res.status(401).json({
             message: "Authentication failed",

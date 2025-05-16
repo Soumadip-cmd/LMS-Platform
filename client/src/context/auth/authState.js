@@ -153,7 +153,27 @@ const AuthState = (props) => {
   const loadUser = async () => {
     try {
       console.log('Loading user profile...');
-      const res = await axios.get(`/users/profile`);
+
+      // Check if we have a token in localStorage
+      const token = localStorage.getItem('authToken');
+
+      // Create config with token if available
+      const config = {
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        withCredentials: true // Always send cookies
+      };
+
+      // Add token to headers if available
+      if (token) {
+        config.headers['Authorization'] = `Bearer ${token}`;
+        console.log('Using token from localStorage for profile request');
+      } else {
+        console.log('No token in localStorage, relying on cookies');
+      }
+
+      const res = await axios.get(`/users/profile`, config);
 
       console.log('User profile loaded:', res.data.user);
 
@@ -175,6 +195,9 @@ const AuthState = (props) => {
         document.cookie = "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
         localStorage.removeItem('authToken');
         sessionStorage.removeItem('authToken');
+
+        // Also clear the Authorization header
+        delete axios.defaults.headers.common['Authorization'];
 
         console.log('Authentication tokens cleared due to 401 error');
       } else if (err.response?.status === 403) {
@@ -227,23 +250,46 @@ const AuthState = (props) => {
     const config = {
       headers: {
         "Content-Type": "application/json"
-      }
+      },
+      withCredentials: true // Ensure cookies are sent/received
     };
 
     try {
+      console.log('Attempting login with credentials...');
       const res = await axios.post(
         `/auth/login`,
         { email, password },
         config
       );
 
+      console.log('Login response received:', res.data);
+
+      // Check if token is in the response
+      if (res.data.token) {
+        // Store token in localStorage as a backup
+        localStorage.setItem('authToken', res.data.token);
+
+        // Set Authorization header for future requests
+        axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
+
+        console.log('Token stored in localStorage and set in axios headers');
+      } else {
+        console.log('No token in response - relying on cookies');
+      }
+
       // Dispatch login success
       dispatch({
-        type: LOGIN_SUCCESS
+        type: LOGIN_SUCCESS,
+        payload: res.data
       });
 
       // Load user after successful login
-      await loadUser();
+      try {
+        await loadUser();
+      } catch (userError) {
+        console.error('Error loading user after login:', userError);
+        // Continue anyway - we're already logged in
+      }
 
       return res.data;
     } catch (err) {
@@ -261,19 +307,37 @@ const AuthState = (props) => {
     const config = {
       headers: {
         "Content-Type": "application/json"
-      }
+      },
+      withCredentials: true // Ensure cookies are sent/received
     };
 
     try {
+      console.log('Attempting social login with:', userData.provider);
       const res = await axios.post(
         `/social/social-login`,
         userData,
         config
       );
 
+      console.log('Social login response received:', res.data);
+
       // Check if additional verification is needed
       if (res.data.needsPhoneVerification) {
+        console.log('Phone verification needed for social login');
         return res.data; // Return data for phone verification
+      }
+
+      // Check if token is in the response
+      if (res.data.token) {
+        // Store token in localStorage as a backup
+        localStorage.setItem('authToken', res.data.token);
+
+        // Set Authorization header for future requests
+        axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
+
+        console.log('Social login token stored in localStorage and set in axios headers');
+      } else {
+        console.log('No token in social login response - relying on cookies');
       }
 
       dispatch({
@@ -281,7 +345,13 @@ const AuthState = (props) => {
         payload: res.data
       });
 
-      await loadUser();
+      try {
+        await loadUser();
+      } catch (userError) {
+        console.error('Error loading user after social login:', userError);
+        // Continue anyway - we're already logged in
+      }
+
       return res.data;
     } catch (err) {
       console.error('Social login error:', err.response?.data || err);

@@ -25,10 +25,10 @@ const transporter = nodemailer.createTransport({
     port: 465,
     secure: true,
     auth: {
-        user: 'preplings@zohomail.in', 
+        user: 'preplings@zohomail.in',
         pass: 'EvGdpzjJprNs'
     },
-    debug: true 
+    debug: true
 });
 
 /**
@@ -49,10 +49,10 @@ const sendEmail = async (to, subject, template, data) => {
     try {
         // Get template path
         const templatePath = path.join(process.cwd(), 'mails', 'templates', `${template}.ejs`);
-        
+
         // Render template with data
         const html = await ejs.renderFile(templatePath, data);
-        
+
         // Send email
         await transporter.sendMail({
             from: `"Preplings" <${process.env.EMAIL_USER}>`,
@@ -60,7 +60,7 @@ const sendEmail = async (to, subject, template, data) => {
             subject,
             html
         });
-        
+
         console.log(`Email sent to ${to}`);
     } catch (error) {
         console.error("Email sending failed:", error);
@@ -79,13 +79,13 @@ const sendSMS = async (to, body) => {
             console.warn("Twilio client not configured. SMS not sent.");
             return;
         }
-        
+
         await twilioClient.messages.create({
             body,
             from: process.env.TWILIO_PHONE_NUMBER,
             to
         });
-        
+
         console.log(`SMS sent to ${to}`);
     } catch (error) {
         console.error("SMS sending failed:", error);
@@ -97,7 +97,7 @@ const sendSMS = async (to, body) => {
 export const initiateRegistration = async (req, res) => {
     try {
         const { name, email, password, phoneNumber, languageId, learningGoal } = req.body;
-        
+
         // Validate required fields
         if(!name || !email || !password){
             return res.status(400).json({
@@ -139,7 +139,7 @@ export const initiateRegistration = async (req, res) => {
 
         // Hash password
         const hashedPassword = await bcrypt.hash(password, 10);
-        
+
         // Create user data object
         const userData = {
             name,
@@ -157,14 +157,14 @@ export const initiateRegistration = async (req, res) => {
             process.env.ACTIVATION_SECRET_KEY ,
             "15m"
         );
-        
+
         // Store OTP and token
         otpStore.set(email, {
             otp,
             activationToken,
             createdAt: new Date()
         });
-        
+
         // Send OTP via email
         await sendEmail(
             email,
@@ -203,24 +203,24 @@ export const initiateRegistration = async (req, res) => {
 export const verifyOTPAndRegister = async (req, res) => {
     try {
         const { email, otp, activationToken } = req.body;
-        
+
         if (!email || !otp || !activationToken) {
             return res.status(400).json({
                 success: false,
                 message: "Email, OTP and activation token are required."
             });
         }
-        
+
         // Check if OTP exists and is valid
         const otpData = otpStore.get(email);
-        
+
         if (!otpData) {
             return res.status(400).json({
                 success: false,
                 message: "OTP expired or not found. Please request a new OTP."
             });
         }
-        
+
         // Verify OTP
         if (otpData.otp !== otp) {
             return res.status(400).json({
@@ -228,13 +228,13 @@ export const verifyOTPAndRegister = async (req, res) => {
                 message: "Invalid OTP. Please try again."
             });
         }
-        
+
         // Verify activation token
         let decodedToken;
         try {
             decodedToken = jwt.verify(
                 activationToken,
-                process.env.ACTIVATION_SECRET_KEY 
+                process.env.ACTIVATION_SECRET_KEY
             );
         } catch (error) {
             return res.status(400).json({
@@ -242,16 +242,16 @@ export const verifyOTPAndRegister = async (req, res) => {
                 message: "Invalid or expired activation token."
             });
         }
-        
+
         // Create new user
         const userData = decodedToken.userData;
         userData.isVerified = true;
-        
+
         const newUser = await User.create(userData);
-        
+
         // Remove OTP from store
         otpStore.delete(email);
-        
+
         // Send welcome email
         await sendEmail(
             email,
@@ -262,7 +262,7 @@ export const verifyOTPAndRegister = async (req, res) => {
                 websiteUrl: process.env.CLIENT_URL || "http://localhost:5173"
             }
         );
-        
+
         return res.status(201).json({
             success: true,
             message: "Account created successfully. You can now login."
@@ -280,20 +280,20 @@ export const verifyOTPAndRegister = async (req, res) => {
 export const resendOTP = async (req, res) => {
     try {
         const { email, activationToken } = req.body;
-        
+
         if (!email || !activationToken) {
             return res.status(400).json({
                 success: false,
                 message: "Email and activation token are required."
             });
         }
-        
+
         // Verify activation token
         let decodedToken;
         try {
             decodedToken = jwt.verify(
                 activationToken,
-                process.env.ACTIVATION_SECRET_KEY 
+                process.env.ACTIVATION_SECRET_KEY
             );
         } catch (error) {
             return res.status(400).json({
@@ -301,19 +301,19 @@ export const resendOTP = async (req, res) => {
                 message: "Invalid or expired activation token."
             });
         }
-        
+
         const userData = decodedToken.userData;
-        
+
         // Generate new OTP
         const otp = generateOTP();
-        
+
         // Update OTP store
         otpStore.set(email, {
             otp,
             activationToken,
             createdAt: new Date()
         });
-        
+
         // Send OTP via email
         await sendEmail(
             email,
@@ -325,7 +325,7 @@ export const resendOTP = async (req, res) => {
                 websiteUrl: process.env.CLIENT_URL || "http://localhost:5173"
             }
         );
-        
+
         // Send OTP via SMS if phone number provided
         if (userData.phoneNumber && twilioClient) {
             await sendSMS(
@@ -333,7 +333,7 @@ export const resendOTP = async (req, res) => {
                 `Your new Preplings verification code is: ${otp}. This code expires in 15 minutes.`
             );
         }
-        
+
         return res.status(200).json({
             success: true,
             message: "OTP resent successfully."
@@ -351,7 +351,7 @@ export const resendOTP = async (req, res) => {
 export const login = async (req, res) => {
     try {
       const { email, password } = req.body;
-  
+
       // Find user
       const user = await User.findOne({ email });
       if (!user) {
@@ -360,7 +360,7 @@ export const login = async (req, res) => {
           message: "Invalid credentials"
         });
       }
-  
+
       // Verify password
       const isPasswordMatch = await bcrypt.compare(password, user.password);
       if (!isPasswordMatch) {
@@ -369,7 +369,7 @@ export const login = async (req, res) => {
           message: "Invalid credentials"
         });
       }
-  
+
       // Check user verification
       if (!user.isVerified) {
         return res.status(403).json({
@@ -377,40 +377,47 @@ export const login = async (req, res) => {
           message: "Please verify your account"
         });
       }
-  
+
       // Generate JWT token
       const token = jwt.sign(
-        { 
-          userId: user._id.toString(), 
+        {
+          userId: user._id.toString(),
           role: user.role,
           email: user.email,
           uniqueSignature: Date.now().toString()
-        }, 
-        process.env.SECRET_KEY, 
-        { 
+        },
+        process.env.SECRET_KEY,
+        {
           expiresIn: '24h',
           algorithm: 'HS256'
         }
       );
-  
- 
+
+
+    // Set cookie with token
+    const cookieDomain = process.env.NODE_ENV === 'production'
+      ? process.env.COOKIE_DOMAIN || '.preplings.com' // Use .preplings.com to work on both www and non-www
+      : 'localhost';
+
     res.cookie('access_token', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax', // Less strict than 'strict'
         maxAge: 24 * 60 * 60 * 1000, // 24 hours
-        path: '/', 
-        domain: 'localhost' // For local development
+        path: '/',
+        domain: cookieDomain
       });
-      
+
       // Update user status
       user.isOnline = true;
       user.lastActive = new Date();
       await user.save();
-  
+
+      // Include token in response for clients that can't access cookies
       return res.status(200).json({
         success: true,
         message: `Welcome back, ${user.name}`,
+        token: token, // Include token in response
         user: {
           id: user._id,
           name: user.name,
@@ -435,15 +442,15 @@ export const login = async (req, res) => {
           user.isOnline = false;
           user.lastActive = new Date();
           await user.save();
-          
+
           // Broadcast user offline status
           updateUserStatus(user._id.toString(), false);
         }
       }
-  
+
       // Clear the access_token cookie
       return res.status(200)
-        .cookie("access_token", "", { 
+        .cookie("access_token", "", {
           maxAge: 0,
           httpOnly: true,
           secure: process.env.NODE_ENV === 'production',
@@ -467,51 +474,51 @@ export const login = async (req, res) => {
 export const forgotPassword = async (req, res) => {
     try {
         const { emailOrPhone } = req.body;
-        
+
         if (!emailOrPhone) {
             return res.status(400).json({
                 success: false,
                 message: "Email or phone number is required."
             });
         }
-        
+
         // Check if it's an email or phone number
         const isEmail = emailOrPhone.includes('@');
-        
+
         // Find user by email or phone
-        const user = isEmail 
+        const user = isEmail
             ? await User.findOne({ email: emailOrPhone })
             : await User.findOne({ phoneNumber: emailOrPhone });
-        
+
         if (!user) {
             return res.status(404).json({
                 success: false,
                 message: "No account found with that email or phone number."
             });
         }
-        
+
         // Generate reset token
         const resetToken = crypto.randomBytes(32).toString('hex');
         const otp = generateOTP();
-        
+
         // Hash token and store it
         const hashedToken = crypto
             .createHash('sha256')
             .update(resetToken)
             .digest('hex');
-        
+
         // Set token and expiry in user model
         user.resetPasswordToken = hashedToken;
         user.resetPasswordExpires = Date.now() + 15 * 60 * 1000; // 15 minutes
         await user.save();
-        
+
         // Store OTP
         otpStore.set(user.email, {
             otp,
             resetToken,
             createdAt: new Date()
         });
-        
+
         // Send password reset email
         if (isEmail || user.email) {
             await sendEmail(
@@ -525,7 +532,7 @@ export const forgotPassword = async (req, res) => {
                 }
             );
         }
-        
+
         // Send SMS if it's a phone number or user has phone
         if ((!isEmail || user.phoneNumber) && twilioClient) {
             await sendSMS(
@@ -533,7 +540,7 @@ export const forgotPassword = async (req, res) => {
                 `Your Preplings password reset code is: ${otp}. This code expires in 15 minutes.`
             );
         }
-        
+
         return res.status(200).json({
             success: true,
             message: `Password reset code sent to your ${isEmail ? 'email' : 'phone number'}.`,
@@ -552,24 +559,24 @@ export const forgotPassword = async (req, res) => {
 export const verifyResetOTP = async (req, res) => {
     try {
         const { email, otp, resetToken } = req.body;
-        
+
         if (!email || !otp || !resetToken) {
             return res.status(400).json({
                 success: false,
                 message: "Email, OTP and reset token are required."
             });
         }
-        
+
         // Check if OTP exists and is valid
         const otpData = otpStore.get(email);
-        
+
         if (!otpData || otpData.resetToken !== resetToken) {
             return res.status(400).json({
                 success: false,
                 message: "Invalid or expired reset request."
             });
         }
-        
+
         // Verify OTP
         if (otpData.otp !== otp) {
             return res.status(400).json({
@@ -577,26 +584,26 @@ export const verifyResetOTP = async (req, res) => {
                 message: "Invalid reset code. Please try again."
             });
         }
-        
+
         // Find user
         const hashedToken = crypto
             .createHash('sha256')
             .update(resetToken)
             .digest('hex');
-        
+
         const user = await User.findOne({
             email,
             resetPasswordToken: hashedToken,
             resetPasswordExpires: { $gt: Date.now() }
         });
-        
+
         if (!user) {
             return res.status(400).json({
                 success: false,
                 message: "Password reset request is invalid or has expired."
             });
         }
-        
+
         return res.status(200).json({
             success: true,
             message: "OTP verified successfully. You can now reset your password.",
@@ -615,36 +622,36 @@ export const verifyResetOTP = async (req, res) => {
 export const resetPassword = async (req, res) => {
     try {
         const { userId, password } = req.body;
-        
+
         if (!userId || !password) {
             return res.status(400).json({
                 success: false,
                 message: "User ID and new password are required."
             });
         }
-        
+
         // Find user
         const user = await User.findById(userId);
-        
+
         if (!user || !user.resetPasswordToken || user.resetPasswordExpires < Date.now()) {
             return res.status(400).json({
                 success: false,
                 message: "Password reset request is invalid or has expired."
             });
         }
-        
+
         // Hash new password
         const hashedPassword = await bcrypt.hash(password, 10);
-        
+
         // Update user's password and clear reset fields
         user.password = hashedPassword;
         user.resetPasswordToken = undefined;
         user.resetPasswordExpires = undefined;
         await user.save();
-        
+
         // Remove OTP from store
         otpStore.delete(user.email);
-        
+
         // Send password changed confirmation
         await sendEmail(
             user.email,
@@ -655,7 +662,7 @@ export const resetPassword = async (req, res) => {
                 websiteUrl: process.env.CLIENT_URL || "http://localhost:5173"
             }
         );
-        
+
         return res.status(200).json({
             success: true,
             message: "Password has been reset successfully. You can now login with your new password."
@@ -671,47 +678,47 @@ export const resetPassword = async (req, res) => {
 
 /**
  * Change password (when logged in)
- 
+
  */
 export const changePassword = async (req, res) => {
     try {
         const userId = req.id;
         const { currentPassword, newPassword } = req.body;
-        
+
         if (!currentPassword || !newPassword) {
             return res.status(400).json({
                 success: false,
                 message: "Current password and new password are required."
             });
         }
-        
+
         // Find user
         const user = await User.findById(userId);
-        
+
         if (!user) {
             return res.status(404).json({
                 success: false,
                 message: "User not found."
             });
         }
-        
+
         // Verify current password
         const isPasswordMatch = await bcrypt.compare(currentPassword, user.password);
-        
+
         if (!isPasswordMatch) {
             return res.status(400).json({
                 success: false,
                 message: "Current password is incorrect."
             });
         }
-        
+
         // Hash new password
         const hashedPassword = await bcrypt.hash(newPassword, 10);
-        
+
         // Update password
         user.password = hashedPassword;
         await user.save();
-        
+
         // Send password changed confirmation
         await sendEmail(
             user.email,
@@ -722,7 +729,7 @@ export const changePassword = async (req, res) => {
                 websiteUrl: process.env.CLIENT_URL || "http://localhost:5173"
             }
         );
-        
+
         return res.status(200).json({
             success: true,
             message: "Password changed successfully."
@@ -744,14 +751,14 @@ export const getUserProfile = async (req, res) => {
             .populate("enrolledCourses")
             .populate("languageToLearn")
             .populate("wishlist");
-            
+
         if(!user){
             return res.status(404).json({
                 message: "Profile not found",
                 success: false
             });
         }
-        
+
         return res.status(200).json({
             success: true,
             user
@@ -769,13 +776,13 @@ export const getUserProfile = async (req, res) => {
 export const updateProfile = async (req, res) => {
     try {
         const userId = req.id;
-        const { 
-            name, 
-            languageId, 
-            learningGoal, 
-            preferredLearningStyle 
+        const {
+            name,
+            languageId,
+            learningGoal,
+            preferredLearningStyle
         } = req.body;
-        
+
         const profilePhoto = req.file;
 
         const user = await User.findById(userId);
@@ -817,10 +824,10 @@ export const updateProfile = async (req, res) => {
             const cloudResponse = await uploadMedia(profilePhoto.path);
             updatedData.photoUrl = cloudResponse.secure_url;
         }
-        
+
         const updatedUser = await User.findByIdAndUpdate(
-            userId, 
-            updatedData, 
+            userId,
+            updatedData,
             { new: true }
         )
         .select("-password")
@@ -955,21 +962,21 @@ export const submitFeedback = async (req, res) => {
 export const getPurchaseHistory = async (req, res) => {
     try {
         const userId = req.id;
-        
+
         const user = await User.findById(userId)
             .select("purchaseHistory")
             .populate({
                 path: "purchaseHistory.course",
                 select: "title level thumbnailUrl"
             });
-        
+
         if (!user) {
             return res.status(404).json({
                 success: false,
                 message: "User not found."
             });
         }
-        
+
         return res.status(200).json({
             success: true,
             purchaseHistory: user.purchaseHistory
@@ -994,24 +1001,24 @@ export const uploadResume = upload.single('resume');
 // Update the becomeInstructor function to work with either a file or a resumeUrl
 export const becomeInstructor = async (req, res) => {
     try {
-        const userId = req.id; 
-        const { 
-            teachLanguage, 
-            qualification, 
-            name, 
-            linkedin, 
-            dob, 
-            address, 
-            gender, 
-            country, 
-            email, 
+        const userId = req.id;
+        const {
+            teachLanguage,
+            qualification,
+            name,
+            linkedin,
+            dob,
+            address,
+            gender,
+            country,
+            email,
             contactNumber,
             resumeUrl // Accept resumeUrl from the request body
         } = req.body;
 
         // Get resume URL (either from uploaded file or from the provided URL)
         let finalResumeUrl;
-        
+
         if (req.file) {
             // If a file was uploaded with this request
             finalResumeUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
@@ -1173,7 +1180,7 @@ export const handleResumeUpload = async (req, res) => {
 export const getExamHistory = async (req, res) => {
     try {
         const userId = req.id;
-        
+
         const user = await User.findById(userId)
             .select("examAttempts")
             .populate({
@@ -1184,14 +1191,14 @@ export const getExamHistory = async (req, res) => {
                     select: "title"
                 }
             });
-        
+
         if (!user) {
             return res.status(404).json({
                 success: false,
                 message: "User not found."
             });
         }
-        
+
         return res.status(200).json({
             success: true,
             examAttempts: user.examAttempts
@@ -1213,17 +1220,17 @@ export const getExamHistory = async (req, res) => {
 export const getUserNotifications = async (req, res) => {
     try {
         const userId = req.id;
-        
+
         const user = await User.findById(userId)
             .select("notifications");
-        
+
         if (!user) {
             return res.status(404).json({
                 success: false,
                 message: "User not found."
             });
         }
-        
+
         return res.status(200).json({
             success: true,
             notifications: user.notifications || []
@@ -1242,12 +1249,12 @@ export const getUserNotifications = async (req, res) => {
  * @route PUT /api/users/notifications/:notificationId
  * @access Private
  */
-//not needed for now as per mvp draft 
+//not needed for now as per mvp draft
 // export const markNotificationAsRead = async (req, res) => {
 //     try {
 //         const userId = req.id;
 //         const { notificationId } = req.params;
-        
+
 //         const user = await User.findById(userId);
 //         if (!user) {
 //             return res.status(404).json({
@@ -1255,27 +1262,27 @@ export const getUserNotifications = async (req, res) => {
 //                 message: "User not found."
 //             });
 //         }
-        
+
 //         // Find notification in user's notifications array
 //         if (!user.notifications) {
 //             user.notifications = [];
 //         }
-        
+
 //         const notificationIndex = user.notifications.findIndex(
 //             notification => notification._id.toString() === notificationId
 //         );
-        
+
 //         if (notificationIndex === -1) {
 //             return res.status(404).json({
 //                 success: false,
 //                 message: "Notification not found."
 //             });
 //         }
-        
+
 //         // Mark notification as read
 //         user.notifications[notificationIndex].isRead = true;
 //         await user.save();
-        
+
 //         return res.status(200).json({
 //             success: true,
 //             message: "Notification marked as read."
@@ -1297,19 +1304,19 @@ export const getUserNotifications = async (req, res) => {
 export const updateLearningPreferences = async (req, res) => {
     try {
         const userId = req.id;
-        const { 
-            preferredLearningStyle, 
-            learningGoal, 
-            languageId 
+        const {
+            preferredLearningStyle,
+            learningGoal,
+            languageId
         } = req.body;
-        
+
         if (!preferredLearningStyle && !learningGoal && !languageId) {
             return res.status(400).json({
                 success: false,
                 message: "At least one preference must be provided."
             });
         }
-        
+
         // Check if language exists if provided
         if (languageId) {
             const language = await Language.findById(languageId);
@@ -1320,14 +1327,14 @@ export const updateLearningPreferences = async (req, res) => {
                 });
             }
         }
-        
+
         // Create updatedData object with provided fields
         const updatedData = {
             ...(preferredLearningStyle && { preferredLearningStyle }),
             ...(learningGoal && { learningGoal }),
             ...(languageId && { languageToLearn: languageId })
         };
-        
+
         const updatedUser = await User.findByIdAndUpdate(
             userId,
             updatedData,
@@ -1335,14 +1342,14 @@ export const updateLearningPreferences = async (req, res) => {
         )
         .select("preferredLearningStyle learningGoal languageToLearn")
         .populate("languageToLearn");
-        
+
         if (!updatedUser) {
             return res.status(404).json({
                 success: false,
                 message: "User not found."
             });
         }
-        
+
         return res.status(200).json({
             success: true,
             preferences: {
@@ -1366,7 +1373,7 @@ export const updateLearningPreferences = async (req, res) => {
 export const getItNow = async (req, res) => {
     try {
       const { fullName, email, phone } = req.body;
-      
+
       // Validate required fields
       if (!fullName || !email) {
         return res.status(400).json({
@@ -1374,10 +1381,10 @@ export const getItNow = async (req, res) => {
           message: "Full name and email are required."
         });
       }
-  
+
       // Check if user already exists
       const existingUser = await User.findOne({ email });
-      
+
       if (existingUser) {
         // User exists, send them the resource directly
         await sendEmail(
@@ -1390,19 +1397,19 @@ export const getItNow = async (req, res) => {
             resourceLink: `${process.env.CLIENT_URL || "http://localhost:5173"}/resources/german-beginner-guide.pdf`
           }
         );
-  
+
         return res.status(200).json({
           success: true,
           message: "Resource has been sent to your email!",
           resourceLink: "/resources/german-beginner-guide.pdf"
         });
       }
-      
+
       // Create new lightweight user entry
       // Generate a random password they can reset later if they want to convert to full account
       const tempPassword = crypto.randomBytes(16).toString('hex');
       const hashedPassword = await bcrypt.hash(tempPassword, 10);
-      
+
       const newUser = new User({
         name: fullName,
         email: email,
@@ -1419,9 +1426,9 @@ export const getItNow = async (req, res) => {
           courseUpdates: true
         }
       });
-      
+
       await newUser.save();
-      
+
       // Send the free resource
       await sendEmail(
         email,
@@ -1433,13 +1440,13 @@ export const getItNow = async (req, res) => {
           resourceLink: `${process.env.CLIENT_URL || "http://localhost:5173"}/resources/german-beginner-guide.pdf`
         }
       );
-  
+
       return res.status(201).json({
         success: true,
         message: "Thank you for signing up! Your free resources have been sent to your email.",
         resourceLink: "/resources/german-beginner-guide.pdf"
       });
-      
+
     } catch (error) {
       console.log(error);
       return res.status(500).json({
