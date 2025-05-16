@@ -179,16 +179,17 @@ const OTPVerificationModal = ({ isOpen, onClose, email, activationToken, onVerif
         isSocialSignup
       });
 
+      let response;
       if (isSocialSignup) {
         // Social login resend
-        const response = await auth.resendGooglePhoneOTP({
+        response = await auth.resendGooglePhoneOTP({
           tempUserId: activationToken,
           phoneNumber: email
         });
         console.log('Social OTP resend response:', response);
       } else {
         // Regular registration resend
-        const response = await onResendOTP(email, activationToken);
+        response = await onResendOTP(email, activationToken);
         console.log('Regular OTP resend response:', response);
       }
 
@@ -199,10 +200,20 @@ const OTPVerificationModal = ({ isOpen, onClose, email, activationToken, onVerif
       if (inputRefs.current[0]) {
         inputRefs.current[0].focus();
       }
+
+      // Show success message
+      setError(''); // Clear any previous errors
     } catch (err) {
       console.error('Resend OTP error:', err);
-      const errorMessage = err.response?.data?.message || 'Failed to resend OTP. Please try again.';
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to resend OTP. Please try again.';
       setError(errorMessage);
+
+      // If the error indicates session expiry, close the modal
+      if (errorMessage.includes('start registration again')) {
+        setTimeout(() => {
+          onClose(); // Close the modal
+        }, 3000);
+      }
     } finally {
       setIsLoading(false);
     }

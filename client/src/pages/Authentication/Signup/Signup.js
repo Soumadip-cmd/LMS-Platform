@@ -217,9 +217,9 @@ const Signup = () => {
     try {
       console.log('Attempting to resend OTP for:', { email, activationToken });
 
-      // Validate inputs
-      if (!email || !activationToken) {
-        const errorMsg = 'Missing email or activation token';
+      // Validate email
+      if (!email) {
+        const errorMsg = 'Missing email address';
         console.error(errorMsg);
         toast.error(errorMsg);
         throw new Error(errorMsg);
@@ -227,6 +227,12 @@ const Signup = () => {
 
       // Call resendOTP from auth context
       const response = await auth.resendOTP({ email, activationToken });
+
+      // If we received a new activation token, update it
+      if (response.activationToken) {
+        console.log('Updating activation token:', response.activationToken);
+        setActivationToken(response.activationToken);
+      }
 
       // Show success message
       toast.success('Verification code resent successfully!');
@@ -237,6 +243,24 @@ const Signup = () => {
       const errorMsg = err.response?.data?.message || err.message || 'Failed to resend verification code';
       console.error('Resend OTP error:', err);
       toast.error(errorMsg);
+
+      // If the error indicates we need to restart registration, redirect to signup
+      if (errorMsg.includes('start registration again')) {
+        toast.info('Please start the registration process again.');
+        setTimeout(() => {
+          setIsOtpModalOpen(false);
+          // Clear form data to start fresh
+          setFormData({
+            name: '',
+            email: '',
+            password: '',
+            phoneNumber: '',
+            languageId: '',
+            learningGoal: ''
+          });
+        }, 2000);
+      }
+
       throw err;
     }
   };

@@ -22,8 +22,8 @@ const transporter = nodemailer.createTransport({
     port: 465,
     secure: true,
     auth: {
-        user: 'preplings@zohomail.in',
-        pass: 'EvGdpzjJprNs'
+        user: 'care@preplings.com',
+        pass: 'AWMA4KAjFaep'
     },
     debug: true
 });

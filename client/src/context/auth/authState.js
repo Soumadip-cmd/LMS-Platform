@@ -595,13 +595,19 @@ const AuthState = (props) => {
     try {
       console.log('Resending OTP with data:', data);
 
-      // Make sure we have the correct data format
-      if (!data.email || !data.activationToken) {
-        throw new Error('Missing email or activation token for OTP resend');
+      // Make sure we have the email
+      if (!data.email) {
+        throw new Error('Missing email for OTP resend');
       }
 
       const res = await axios.post(`/auth/resend-otp`, data, config);
       console.log('Resend OTP response:', res.data);
+
+      // If we received a new activation token, return it
+      if (res.data.activationToken) {
+        console.log('Received new activation token:', res.data.activationToken);
+      }
+
       return res.data;
     } catch (err) {
       console.error('Resend OTP error:', err.response?.data || err);

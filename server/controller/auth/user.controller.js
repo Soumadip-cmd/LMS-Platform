@@ -25,8 +25,8 @@ const transporter = nodemailer.createTransport({
     port: 465,
     secure: true,
     auth: {
-        user: process.env.EMAIL_USER || 'preplings@zohomail.in',
-        pass: process.env.EMAIL_PASSWORD || 'EvGdpzjJprNs'
+        user: process.env.EMAIL_USER || 'care@preplings.com',
+        pass: process.env.EMAIL_PASSWORD || 'AWMA4KAjFaep'
     },
     debug: true
 });
@@ -158,11 +158,12 @@ export const initiateRegistration = async (req, res) => {
             "15m"
         );
 
-        // Store OTP and token
+        // Store OTP, token and user data
         otpStore.set(email, {
             otp,
             activationToken,
-            createdAt: new Date()
+            createdAt: new Date(),
+            userData // Store user data for potential token regeneration
         });
 
         // Send OTP via email
@@ -281,38 +282,92 @@ export const resendOTP = async (req, res) => {
     try {
         const { email, activationToken } = req.body;
 
-        if (!email || !activationToken) {
+        if (!email) {
             return res.status(400).json({
                 success: false,
-                message: "Email and activation token are required."
+                message: "Email is required."
             });
         }
 
-        // Verify activation token
-        let decodedToken;
-        try {
-            decodedToken = jwt.verify(
-                activationToken,
-                process.env.ACTIVATION_SECRET_KEY
-            );
-        } catch (error) {
-            return res.status(400).json({
-                success: false,
-                message: "Invalid or expired activation token."
-            });
-        }
+        // Try to verify the activation token if provided
+        let userData = null;
+        let newActivationToken = activationToken;
 
-        const userData = decodedToken.userData;
+        if (activationToken) {
+            try {
+                const decodedToken = jwt.verify(
+                    activationToken,
+                    process.env.ACTIVATION_SECRET_KEY
+                );
+                userData = decodedToken.userData;
+                console.log("Successfully decoded token:", userData);
+            } catch (error) {
+                console.log("Token verification failed, checking for user data in database");
+                // Token expired, try to find user data from previous registration attempt
+                const existingUser = await User.findOne({ email, isVerified: false });
+
+                if (existingUser) {
+                    // User exists but not verified, create new token with existing data
+                    userData = {
+                        name: existingUser.name,
+                        email: existingUser.email,
+                        password: existingUser.password, // Already hashed
+                        ...(existingUser.phoneNumber && { phoneNumber: existingUser.phoneNumber }),
+                        ...(existingUser.languageToLearn && { languageToLearn: existingUser.languageToLearn }),
+                        ...(existingUser.learningGoal && { learningGoal: existingUser.learningGoal })
+                    };
+                } else {
+                    // Check if we have data in the OTP store
+                    const otpData = otpStore.get(email);
+                    if (otpData && otpData.userData) {
+                        userData = otpData.userData;
+                    } else {
+                        return res.status(400).json({
+                            success: false,
+                            message: "Registration session expired. Please start registration again."
+                        });
+                    }
+                }
+
+                // Generate new activation token
+                newActivationToken = generateJWT(
+                    { userData },
+                    process.env.ACTIVATION_SECRET_KEY,
+                    "15m"
+                );
+                console.log("Generated new token for expired session");
+            }
+        } else {
+            // No token provided, check if we have user data in OTP store
+            const otpData = otpStore.get(email);
+            if (otpData && otpData.userData) {
+                userData = otpData.userData;
+                // Generate new activation token
+                newActivationToken = generateJWT(
+                    { userData },
+                    process.env.ACTIVATION_SECRET_KEY,
+                    "15m"
+                );
+            } else {
+                return res.status(400).json({
+                    success: false,
+                    message: "Registration session not found. Please start registration again."
+                });
+            }
+        }
 
         // Generate new OTP
         const otp = generateOTP();
 
-        // Update OTP store
+        // Update OTP store with new data
         otpStore.set(email, {
             otp,
-            activationToken,
-            createdAt: new Date()
+            activationToken: newActivationToken,
+            createdAt: new Date(),
+            userData // Store user data for potential future token regeneration
         });
+
+        console.log(`New OTP generated for ${email}: ${otp}`);
 
         // Send OTP via email
         await sendEmail(
@@ -336,13 +391,14 @@ export const resendOTP = async (req, res) => {
 
         return res.status(200).json({
             success: true,
-            message: "OTP resent successfully."
+            message: "OTP resent successfully.",
+            activationToken: newActivationToken // Return the new token if it was regenerated
         });
     } catch (error) {
-        console.log(error);
+        console.log("Resend OTP error:", error);
         return res.status(500).json({
             success: false,
-            message: "Failed to resend OTP"
+            message: "Failed to resend OTP. Please try again."
         });
     }
 };
