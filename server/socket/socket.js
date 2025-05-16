@@ -46,9 +46,34 @@ export const initializeSocket = (server) => {
 
   io = new Server(server, {
     cors: {
-      origin: allowedOrigins,
-      methods: ["GET", "POST"],
-      credentials: true
+      origin: function(origin, callback) {
+        // Allow requests with no origin
+        if (!origin) return callback(null, true);
+
+        // Log the origin for debugging
+        console.log('Socket origin:', origin);
+
+        // Check if the origin is in the allowed list
+        if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.includes('*')) {
+          callback(null, true);
+        } else {
+          // Special case for preplings.com domains
+          if (origin.includes('preplings.com')) {
+            console.log('Allowing preplings.com socket domain:', origin);
+            callback(null, true);
+          } else {
+            // In development, allow all origins
+            if (process.env.NODE_ENV !== 'production') {
+              callback(null, true);
+            } else {
+              callback(new Error('Not allowed by CORS'));
+            }
+          }
+        }
+      },
+      methods: ["GET", "POST", "OPTIONS"],
+      credentials: true,
+      allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'Accept', 'Origin', 'X-Requested-With']
     }
   });
 

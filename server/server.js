@@ -52,21 +52,32 @@ app.use(cors({
         // Allow requests with no origin (like mobile apps, curl, etc.)
         if (!origin) return callback(null, true);
 
+        // Log the origin for debugging
+        console.log('Request origin:', origin);
+        console.log('Allowed origins:', allowedOrigins);
+
+        // Check if the origin is in the allowed list
         if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.includes('*')) {
             callback(null, true);
         } else {
-            console.log('CORS blocked origin:', origin);
-            // In development, allow all origins
-            if (process.env.NODE_ENV !== 'production') {
+            // Special case for preplings.com and www.preplings.com
+            if (origin.includes('preplings.com')) {
+                console.log('Allowing preplings.com domain:', origin);
                 callback(null, true);
             } else {
-                callback(new Error('Not allowed by CORS'));
+                console.log('CORS blocked origin:', origin);
+                // In development, allow all origins
+                if (process.env.NODE_ENV !== 'production') {
+                    callback(null, true);
+                } else {
+                    callback(new Error('Not allowed by CORS'));
+                }
             }
         }
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'Accept', 'Origin', 'X-Requested-With']
 }));
 
 
@@ -86,6 +97,22 @@ app.use('/api/v1', mainRouter);
 
 app.get('/', (req, res) => {
     res.send("API Working..");
+});
+
+// Global error handler
+app.use((err, req, res, next) => {
+    console.error('Global error handler caught:', {
+        message: err.message,
+        stack: err.stack,
+        url: req.originalUrl,
+        method: req.method
+    });
+
+    res.status(err.statusCode || 500).json({
+        success: false,
+        message: err.message || "Internal Server Error",
+        error: process.env.NODE_ENV === 'development' ? err.stack : undefined
+    });
 });
 
 
