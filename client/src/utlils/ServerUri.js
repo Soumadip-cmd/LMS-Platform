@@ -10,4 +10,7 @@
  * const response = await axios.get(`${SERVER_URI}/endpoint`);
  */
 
-export const SERVER_URI = "http://localhost:8000/api/v1";
+export const SERVER_URI =
+  window.location.hostname === "localhost"
+    ? "http://localhost:8000/api/v1"
+    : "http://195.35.6.169:8000/api/v1";
