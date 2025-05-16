@@ -13,4 +13,4 @@
 export const SERVER_URI =
   window.location.hostname === "localhost"
     ? "http://localhost:8000/api/v1"
-    : "http://195.35.6.169:8000/api/v1";
+    : "https://api.preplings.com/api/v1";
