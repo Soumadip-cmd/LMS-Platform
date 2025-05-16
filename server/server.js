@@ -58,6 +58,11 @@ app.use('/lecture-attachments', express.static(path.join(__dirname, 'public/lect
 // Routes
 app.use('/api/v1', mainRouter);
 
+app.get('/', (req, res) => {
+    res.json({ message: "API Working.." });
+});
+
+
 // Start server
 server.listen(PORT, () => {
     console.log(`Server listening at port ${PORT}`);
