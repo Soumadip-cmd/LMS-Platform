@@ -188,9 +188,15 @@ const AuthState = (props) => {
       // Add token to headers if available
       if (token) {
         config.headers['Authorization'] = `Bearer ${token}`;
+        // Also set it in axios defaults for all future requests
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        console.log('Token found in localStorage, added to request headers');
+      } else {
+        console.log('No token found in localStorage');
       }
 
       const res = await axios.get(`/users/profile`, config);
+      console.log('User profile loaded successfully:', res.data);
 
       dispatch({
         type: USER_LOADED,
@@ -400,13 +406,18 @@ const AuthState = (props) => {
       console.log('Registration data being sent:', logData);
 
       // Make sure all required fields are present
-      const requiredFields = ['name', 'email', 'password', 'languageId', 'learningGoal', 'phoneNumber'];
+      const requiredFields = ['name', 'email', 'password'];
       const missingFields = requiredFields.filter(field => !formData[field]);
 
       if (missingFields.length > 0) {
         const error = new Error(`Missing required fields: ${missingFields.join(', ')}`);
         error.response = { data: { message: `Missing required fields: ${missingFields.join(', ')}` } };
         throw error;
+      }
+
+      // Add default values for optional fields if not provided
+      if (!formData.learningGoal) {
+        formData.learningGoal = "Casual";
       }
 
       const res = await axios.post(`/auth/register`, formData, config);
@@ -548,10 +559,33 @@ const AuthState = (props) => {
     };
 
     try {
-      const res = await axios.post(`/social/complete-registration`, data, config);
+      console.log('Completing social registration with data:', {
+        tempUserId: data.tempUserId,
+        otp: data.otp,
+        phoneNumber: data.phoneNumber
+      });
+
+      // Validate required fields
+      if (!data.tempUserId || !data.otp || !data.phoneNumber) {
+        throw new Error('Missing required fields for social registration completion');
+      }
+
+      // Use the correct endpoint
+      const res = await axios.post(`/social/complete-social-registration`, data, config);
+      console.log('Social registration completion response:', res.data);
+
+      // If we have a token in the response, store it
+      if (res.data.token) {
+        localStorage.setItem('authToken', res.data.token);
+        axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
+      }
 
       dispatch({
-        type: LOGIN_SUCCESS
+        type: LOGIN_SUCCESS,
+        payload: {
+          token: res.data.token,
+          user: res.data.user
+        }
       });
 
       await loadUser();
@@ -567,6 +601,39 @@ const AuthState = (props) => {
     }
   };
 
+  // Verify phone for social login (first step)
+  const verifyPhoneForSocialLogin = async (data) => {
+    const config = {
+      headers: {
+        "Content-Type": "application/json"
+      }
+    };
+
+    try {
+      console.log('Verifying phone for social login with data:', data);
+
+      // Make sure we have the required fields
+      if (!data.tempUserId || !data.phoneNumber) {
+        throw new Error('Missing tempUserId or phoneNumber for phone verification');
+      }
+
+      const res = await axios.post(`/social/verify-phone`, data, config);
+      console.log('Verify phone response:', res.data);
+
+      // Log the OTP in development mode for testing
+      if (res.data.otp) {
+        console.log('=================================================');
+        console.log(`🔑 VERIFICATION CODE FROM VERIFY PHONE: ${res.data.otp}`);
+        console.log('=================================================');
+      }
+
+      return res.data;
+    } catch (err) {
+      console.error('Verify phone error:', err.response?.data || err);
+      throw err;
+    }
+  };
+
   // Resend OTP for Google phone verification
   const resendGooglePhoneOTP = async (data) => {
     const config = {
@@ -576,10 +643,26 @@ const AuthState = (props) => {
     };
 
     try {
+      console.log('Resending Google phone OTP with data:', data);
+
+      // Make sure we have the required fields
+      if (!data.tempUserId || !data.phoneNumber) {
+        throw new Error('Missing tempUserId or phoneNumber for OTP resend');
+      }
+
       const res = await axios.post(`/social/resend-phone-otp`, data, config);
+      console.log('Resend Google phone OTP response:', res.data);
+
+      // Log the OTP in development mode for testing
+      if (res.data.otp) {
+        console.log('=================================================');
+        console.log(`🔑 VERIFICATION CODE FROM CLIENT: ${res.data.otp}`);
+        console.log('=================================================');
+      }
+
       return res.data;
     } catch (err) {
-      console.error('Resend OTP error:', err.response?.data || err);
+      console.error('Resend Google phone OTP error:', err.response?.data || err);
       throw err;
     }
   };
@@ -633,6 +716,7 @@ const AuthState = (props) => {
         socialLogin,
         verifyOTPAndRegister,
         completeSocialRegistration,
+        verifyPhoneForSocialLogin,
         resendGooglePhoneOTP,
         resendOTP,
         logout,

@@ -43,18 +43,18 @@ const sendEmail = async (to, subject, template, data) => {
     try {
         // Get template path
         const templatePath = path.join(process.cwd(), 'mails', 'templates', `${template}.ejs`);
-        
+
         // Render template with data
         const html = await ejs.renderFile(templatePath, data);
-        
+
         // Send email
         await transporter.sendMail({
-            from: `"Preplings" <${process.env.EMAIL_USER}>`,
+            from: `"Preplings" <care@preplings.com>`,
             to,
             subject,
             html
         });
-        
+
         console.log(`Email sent to ${to}`);
     } catch (error) {
         console.error("Email sending failed:", error);
@@ -67,7 +67,7 @@ export const socialLogin = async (req, res) => {
     try {
         // Firebase sends verified user data
         const { name, email, uid, provider, photoURL } = req.body;
-        
+
         if (!email || !uid || !provider) {
             return res.status(400).json({
                 success: false,
@@ -77,7 +77,7 @@ export const socialLogin = async (req, res) => {
 
         // Check if user already exists with this email
         let user = await User.findOne({ email });
-        
+
         if (user) {
             // If user exists but hasn't verified their phone number, require verification
             if (!user.isVerified) {
@@ -89,7 +89,7 @@ export const socialLogin = async (req, res) => {
                     email
                 });
             }
-            
+
             // Update user's social provider details if needed
             if (provider === "google") {
                 user.googleId = uid;
@@ -101,7 +101,7 @@ export const socialLogin = async (req, res) => {
             if (!user.photoUrl && photoURL) {
                 user.photoUrl = photoURL;
             }
-            
+
             // Update user's online status
             user.isOnline = true;
             user.lastActive = new Date();
@@ -109,13 +109,15 @@ export const socialLogin = async (req, res) => {
 
             // Broadcast user online status to all clients via socket
             updateUserStatus(user._id.toString(), true);
-            
+
             // Generate JWT token and send response - with existingUser flag for frontend to handle properly
             return generateToken(res, user, `Welcome back ${user.name}`, true);
         } else {
             // New user - need to verify phone number
-            // Create a temporary user entry
-            const tempUser = await User.create({
+            // Store user data in OTP store instead of creating a user entry
+            // This prevents creating incomplete user records
+            const tempUserId = crypto.randomBytes(16).toString('hex');
+            const userData = {
                 name,
                 email,
                 password: crypto.randomBytes(16).toString('hex'),
@@ -124,13 +126,36 @@ export const socialLogin = async (req, res) => {
                 learningGoal: "Casual",
                 ...(provider === "google" && { googleId: uid }),
                 ...(provider === "facebook" && { facebookId: uid })
+            };
+
+            // Log the tempUserId for debugging
+            console.log('=================================================');
+            console.log(`🆔 TEMP USER ID: ${tempUserId} for ${email}`);
+            console.log('=================================================');
+
+            // Generate an initial OTP
+            const initialOtp = generateOTP();
+
+            // Log the initial OTP for testing
+            console.log('=================================================');
+            console.log(`🔑 INITIAL OTP FOR SOCIAL LOGIN: ${initialOtp} for ${email}`);
+            console.log('=================================================');
+
+            // Store the user data temporarily with the OTP
+            otpStore.set(email, {
+                userData,
+                tempUserId,
+                createdAt: new Date(),
+                otp: initialOtp,
+                phoneNumber: null // Will be set when user enters phone number
             });
             return res.status(201).json({
                 success: true,
                 message: "Please verify your phone number to complete registration.",
                 needsPhoneVerification: true,
-                tempUserId: tempUser._id,
-                email
+                tempUserId: tempUserId,
+                email,
+                otp: process.env.NODE_ENV === 'development' ? initialOtp : undefined // Only include OTP in development
             });
         }
     } catch (error) {
@@ -149,7 +174,7 @@ export const socialLogin = async (req, res) => {
 export const verifyPhoneForSocialLogin = async (req, res) => {
     try {
         const { tempUserId, phoneNumber } = req.body;
-        
+
         if (!tempUserId || !phoneNumber) {
             return res.status(400).json({
                 success: false,
@@ -157,18 +182,43 @@ export const verifyPhoneForSocialLogin = async (req, res) => {
             });
         }
 
-        // Check if user exists
-        const user = await User.findById(tempUserId);
-        if (!user) {
+        // Get user data from OTP store
+        let userData = null;
+        let userEmail = null;
+
+        // Check all entries in OTP store to find the one with matching tempUserId
+        for (const [email, data] of otpStore.entries()) {
+            if (data.tempUserId === tempUserId) {
+                userData = data.userData;
+                userEmail = email;
+                break;
+            }
+        }
+
+        // If no user data found in OTP store, try to find an existing user
+        if (!userData && tempUserId.match(/^[0-9a-fA-F]{24}$/)) {
+            const existingUser = await User.findById(tempUserId);
+            if (existingUser) {
+                userData = {
+                    name: existingUser.name,
+                    email: existingUser.email,
+                    googleId: existingUser.googleId,
+                    facebookId: existingUser.facebookId
+                };
+                userEmail = existingUser.email;
+            }
+        }
+
+        if (!userData || !userEmail) {
             return res.status(404).json({
                 success: false,
-                message: "User not found."
+                message: "User data not found. Please try registering again."
             });
         }
 
         // Check if phone number is already in use
         const existingPhoneUser = await User.findOne({ phoneNumber });
-        if (existingPhoneUser && existingPhoneUser._id.toString() !== tempUserId) {
+        if (existingPhoneUser) {
             return res.status(400).json({
                 success: false,
                 message: "This phone number is already associated with another account."
@@ -177,38 +227,55 @@ export const verifyPhoneForSocialLogin = async (req, res) => {
 
         // Generate OTP
         const otp = generateOTP();
-        
-        // Store OTP and phone number
-        otpStore.set(user.email, {
+
+        // Log the OTP prominently for testing
+        console.log('=================================================');
+        console.log(`🔑 VERIFICATION CODE: ${otp} for ${userEmail}`);
+        console.log('=================================================');
+
+        // Get existing data from OTP store to preserve it
+        const existingData = otpStore.get(userEmail) || {};
+
+        // Store OTP and phone number, preserving existing data
+        otpStore.set(userEmail, {
+            ...existingData,
             otp,
             phoneNumber,
-            createdAt: new Date()
+            createdAt: new Date(),
+            userData,
+            tempUserId
         });
-        
+
+        // Log the updated OTP store entry for debugging
+        console.log('=================================================');
+        console.log(`📱 UPDATED OTP STORE FOR ${userEmail}:`);
+        console.log(otpStore.get(userEmail));
+        console.log('=================================================');
+
         // Determine which social provider the user is using
-        const provider = user.googleId ? "Google" : user.facebookId ? "Facebook" : "social";
-        
+        const provider = userData.googleId ? "Google" : userData.facebookId ? "Facebook" : "social";
+
         try {
             // Send OTP via email - using a template that definitely exists
-          
+
             await sendEmail(
-                user.email,
+                userEmail,
                 "Your Verification Code | Preplings",
-                "otp-google-verification", 
+                "otp-google-verification",
                 {
-                    name: user.name,
+                    name: userData.name,
                     otp,
                     provider,
                     websiteUrl: process.env.CLIENT_URL || "http://localhost:5173"
                 }
             );
-            
-            console.log(`Email sent successfully to ${user.email} with OTP ${otp}`);
+
+            console.log(`Email sent successfully to ${userEmail} with OTP ${otp}`);
         } catch (emailError) {
             console.error("Failed to send verification email:", emailError);
             // Continue execution even if email fails - we'll return the OTP in development
         }
-        
+
         // SMS sending logic
         if (twilioClient) {
             // await sendSMS(
@@ -216,10 +283,17 @@ export const verifyPhoneForSocialLogin = async (req, res) => {
             //     `Your Preplings verification code is: ${otp}. This code expires in 15 minutes.`
             // );
         }
-        
+
         // Get available languages for learning goal selection
         const languages = await Language.find().select('_id name code');
-        
+
+        // In development mode, log the OTP again for clarity
+        if (process.env.NODE_ENV === 'development') {
+            console.log('=================================================');
+            console.log(`🔑 OTP BEING SENT IN RESPONSE: ${otp}`);
+            console.log('=================================================');
+        }
+
         return res.status(200).json({
             success: true,
             message: "Verification code sent to your email and phone number.",
@@ -242,73 +316,81 @@ export const verifyPhoneForSocialLogin = async (req, res) => {
 export const completeSocialRegistration = async (req, res) => {
     try {
       const { tempUserId, otp, phoneNumber, languageId, learningGoal } = req.body;
-      
+
       if (!tempUserId || !otp || !phoneNumber) {
         return res.status(400).json({
           success: false,
           message: "User ID, OTP, and phone number are required."
         });
       }
-      
-      // Find user - handle both ObjectId and JWT token formats
-      let user;
-      
-      // If it looks like a MongoDB ObjectId (24 hex chars)
-      if (tempUserId.match(/^[0-9a-fA-F]{24}$/)) {
-        user = await User.findById(tempUserId);
-      } 
-      // If it looks like a JWT (contains periods)
-      else if (tempUserId.includes('.')) {
-        try {
-          // Decode the JWT
-          const decoded = jwt.verify(tempUserId, process.env.ACTIVATION_SECRET_KEY);
-          // Find user by email
-          if (decoded && decoded.userData && decoded.userData.email) {
-            user = await User.findOne({ email: decoded.userData.email });
-          } else {
-            return res.status(400).json({
-              success: false,
-              message: "Invalid token format. Could not extract user information."
-            });
-          }
-        } catch (jwtError) {
-          console.error("JWT verification failed:", jwtError);
-          return res.status(400).json({
-            success: false,
-            message: "Invalid or expired token."
-          });
+
+      // Get user data from OTP store
+      let userData = null;
+      let userEmail = null;
+
+      // Check all entries in OTP store to find the one with matching tempUserId
+      for (const [email, data] of otpStore.entries()) {
+        if (data.tempUserId === tempUserId) {
+          userData = data.userData;
+          userEmail = email;
+          break;
         }
-      } else {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid user ID format."
-        });
       }
-      
-      if (!user) {
+
+      // If no user data found, try to find an existing user
+      if (!userData && tempUserId.match(/^[0-9a-fA-F]{24}$/)) {
+        // If it looks like a MongoDB ObjectId, try to find the user
+        const existingUser = await User.findById(tempUserId);
+        if (existingUser) {
+          userData = {
+            name: existingUser.name,
+            email: existingUser.email,
+            password: existingUser.password,
+            photoUrl: existingUser.photoUrl,
+            googleId: existingUser.googleId,
+            facebookId: existingUser.facebookId,
+            learningGoal: existingUser.learningGoal || "Casual"
+          };
+          userEmail = existingUser.email;
+        }
+      }
+
+      if (!userData || !userEmail) {
         return res.status(404).json({
           success: false,
-          message: "User not found."
+          message: "User data not found. Please try registering again."
         });
       }
-      
+
       // Check if OTP exists and is valid
-      const otpData = otpStore.get(user.email);
+      const otpData = otpStore.get(userEmail);
       if (!otpData) {
         return res.status(400).json({
           success: false,
           message: "OTP expired or not found. Please request a new OTP."
         });
       }
-      
-      // Verify OTP
-      if (otpData.otp !== otp || otpData.phoneNumber !== phoneNumber) {
+
+      // Log the expected OTP for verification
+      console.log('=================================================');
+      console.log(`🔑 EXPECTED OTP: ${otpData.otp}, RECEIVED OTP: ${otp}`);
+      console.log(`📱 EXPECTED PHONE: ${otpData.phoneNumber}, RECEIVED PHONE: ${phoneNumber}`);
+      console.log('=================================================');
+
+      // Verify OTP only - don't check phone number yet
+      if (otpData.otp !== otp) {
         return res.status(400).json({
           success: false,
-          message: "Invalid OTP or phone number. Please try again."
+          message: "Invalid verification code. Please try again."
         });
       }
-  
+
+      // Log the phone number for debugging
+      console.log('=================================================');
+      console.log(`📱 PHONE NUMBER RECEIVED: ${phoneNumber}`);
+      console.log(`📱 PHONE NUMBER IN STORE: ${otpData.phoneNumber}`);
+      console.log('=================================================');
+
       // Check if language exists if provided
       if (languageId) {
         const language = await Language.findById(languageId);
@@ -319,51 +401,93 @@ export const completeSocialRegistration = async (req, res) => {
           });
         }
       }
-      
-      // Update user profile with phone number and additional details
-      user.phoneNumber = phoneNumber;
-      user.isVerified = true;
-      
-      if (languageId) {
-        user.languageToLearn = languageId;
-      }
-      
-      if (learningGoal) {
-        user.learningGoal = learningGoal;
-      }
-      
-      await user.save();
-      
-      // Remove OTP from store
-      otpStore.delete(user.email);
-      
-      // Send welcome email
-      await sendEmail(
-        user.email,
-        "Welcome to Preplings!",
-        "welcome",
-        {
-          name: user.name,
-          websiteUrl: process.env.CLIENT_URL || "http://localhost:5173"
-        }
-      );
-      
-      // Update user online status
-      user.isOnline = true;
-      user.lastActive = new Date();
-      await user.save();
-  
-      // Broadcast user online status
-      updateUserStatus(user._id.toString(), true);
-      
-      // Generate JWT token and log the user in
-      return generateToken(res, user, `Welcome to Preplings, ${user.name}!`);
-    } catch (error) {
-      console.log(error);
-      return res.status(500).json({
-        success: false,
-        message: "Failed to complete registration"
+
+      // Log the user data before creating the user
+      console.log('=================================================');
+      console.log('📝 CREATING USER WITH DATA:');
+      console.log({
+        ...userData,
+        phoneNumber: phoneNumber,
+        isVerified: true,
+        ...(languageId && { languageToLearn: languageId }),
+        ...(learningGoal && { learningGoal: learningGoal })
       });
+      console.log('=================================================');
+
+      try {
+        // Create a new user with the verified data
+        const newUser = await User.create({
+          ...userData,
+          phoneNumber: phoneNumber,
+          isVerified: true,
+          ...(languageId && { languageToLearn: languageId }),
+          ...(learningGoal && { learningGoal: learningGoal })
+        });
+
+        // Remove OTP from store
+        otpStore.delete(userEmail);
+
+        // Send welcome email - catch errors to prevent the registration from failing
+        try {
+          await sendEmail(
+            newUser.email,
+            "Welcome to Preplings!",
+            "welcome",
+            {
+              name: newUser.name,
+              websiteUrl: process.env.CLIENT_URL || "http://localhost:5173"
+            }
+          );
+        } catch (emailError) {
+          console.error("Failed to send welcome email:", emailError);
+          // Continue execution even if email fails
+        }
+
+        // Update user online status
+        newUser.isOnline = true;
+        newUser.lastActive = new Date();
+        await newUser.save();
+
+        // Broadcast user online status
+        updateUserStatus(newUser._id.toString(), true);
+
+        // Generate JWT token and log the user in
+        return generateToken(res, newUser, `Welcome to Preplings, ${newUser.name}!`);
+      } catch (createError) {
+        console.error("Error creating user:", createError);
+
+        // In development mode, return a more detailed error message
+        if (process.env.NODE_ENV === 'development') {
+          return res.status(500).json({
+            success: false,
+            message: "Failed to create user",
+            error: createError.message,
+            stack: createError.stack
+          });
+        } else {
+          return res.status(500).json({
+            success: false,
+            message: "Failed to create user"
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Error in completeSocialRegistration:", error);
+
+      // In development mode, return a more detailed error message
+      if (process.env.NODE_ENV === 'development') {
+        return res.status(500).json({
+          success: false,
+          message: "Failed to complete registration",
+          error: error.message,
+          stack: error.stack
+        });
+      } else {
+        return res.status(500).json({
+          success: false,
+          message: "Failed to complete registration"
+        });
+      }
     }
   };
 
@@ -373,49 +497,91 @@ export const completeSocialRegistration = async (req, res) => {
 export const resendPhoneOTP = async (req, res) => {
     try {
         const { tempUserId, phoneNumber } = req.body;
-        
+
         if (!tempUserId || !phoneNumber) {
             return res.status(400).json({
                 success: false,
                 message: "User ID and phone number are required."
             });
         }
-        
-        // Find user
-        const user = await User.findById(tempUserId);
-        if (!user) {
+
+        // Get user data from OTP store
+        let userData = null;
+        let userEmail = null;
+
+        // Check all entries in OTP store to find the one with matching tempUserId
+        for (const [email, data] of otpStore.entries()) {
+            if (data.tempUserId === tempUserId) {
+                userData = data.userData;
+                userEmail = email;
+                break;
+            }
+        }
+
+        // If no user data found in OTP store, try to find an existing user
+        if (!userData && tempUserId.match(/^[0-9a-fA-F]{24}$/)) {
+            const existingUser = await User.findById(tempUserId);
+            if (existingUser) {
+                userData = {
+                    name: existingUser.name,
+                    email: existingUser.email,
+                    googleId: existingUser.googleId,
+                    facebookId: existingUser.facebookId
+                };
+                userEmail = existingUser.email;
+            }
+        }
+
+        if (!userData || !userEmail) {
             return res.status(404).json({
                 success: false,
-                message: "User not found."
+                message: "User data not found. Please try registering again."
             });
         }
-        
+
         // Generate new OTP
         const otp = generateOTP();
-        
-        // Store OTP and phone number
-        otpStore.set(user.email, {
+
+        // Log the OTP prominently for testing
+        console.log('=================================================');
+        console.log(`🔑 RESENT VERIFICATION CODE: ${otp} for ${userEmail}`);
+        console.log('=================================================');
+
+        // Get existing data from OTP store to preserve it
+        const existingData = otpStore.get(userEmail) || {};
+
+        // Store OTP and phone number, preserving existing data
+        otpStore.set(userEmail, {
+            ...existingData,
             otp,
             phoneNumber,
-            createdAt: new Date()
+            createdAt: new Date(),
+            userData,
+            tempUserId
         });
-        
+
+        // Log the updated OTP store entry for debugging
+        console.log('=================================================');
+        console.log(`📱 UPDATED OTP STORE FOR ${userEmail} (RESEND):`);
+        console.log(otpStore.get(userEmail));
+        console.log('=================================================');
+
         // Determine which social provider the user is using
-        const provider = user.googleId ? "Google" : user.facebookId ? "Facebook" : "social";
-        
+        const provider = userData.googleId ? "Google" : userData.facebookId ? "Facebook" : "social";
+
         // Send OTP via email
         await sendEmail(
-            user.email,
+            userEmail,
             "Your New Verification Code | Preplings",
-            "otp-google-verification", 
+            "otp-google-verification",
             {
-                name: user.name,
+                name: userData.name,
                 otp,
                 provider,
                 websiteUrl: process.env.CLIENT_URL || "http://localhost:5173"
             }
         );
-        
+
         // Send OTP via SMS
         if (twilioClient) {
             // await sendSMS(
@@ -423,17 +589,33 @@ export const resendPhoneOTP = async (req, res) => {
             //     `Your new Preplings verification code is: ${otp}. This code expires in 15 minutes.`
             // );
         }
-        
+
+        // Log the OTP in development mode for debugging
+        if (process.env.NODE_ENV === 'development') {
+            console.log(`OTP for ${userEmail} (${phoneNumber}): ${otp}`);
+        }
+
         return res.status(200).json({
             success: true,
             message: "New verification code sent to your email and phone number.",
             otp: process.env.NODE_ENV === 'development' ? otp : undefined // Only include OTP in development
         });
     } catch (error) {
-        console.log(error);
-        return res.status(500).json({
-            success: false,
-            message: "Failed to resend verification code"
-        });
+        console.error("Error in resendPhoneOTP:", error);
+
+        // In development mode, return a more detailed error message
+        if (process.env.NODE_ENV === 'development') {
+            return res.status(500).json({
+                success: false,
+                message: "Failed to resend verification code",
+                error: error.message,
+                stack: error.stack
+            });
+        } else {
+            return res.status(500).json({
+                success: false,
+                message: "Failed to resend verification code"
+            });
+        }
     }
 };

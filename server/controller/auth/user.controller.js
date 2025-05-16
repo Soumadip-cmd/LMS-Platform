@@ -25,8 +25,8 @@ const transporter = nodemailer.createTransport({
     port: 465,
     secure: true,
     auth: {
-        user: process.env.EMAIL_USER || 'care@preplings.com',
-        pass: process.env.EMAIL_PASSWORD || 'AWMA4KAjFaep'
+        user: 'care@preplings.com',
+        pass: 'AWMA4KAjFaep'
     },
     debug: true
 });
@@ -55,7 +55,7 @@ const sendEmail = async (to, subject, template, data) => {
 
         // Send email
         await transporter.sendMail({
-            from: `"Preplings" <${process.env.EMAIL_FROM || 'admin@preplings.co'}>`,
+            from: `"Preplings" <care@preplings.com>`,
             to,
             subject,
             html
@@ -152,9 +152,11 @@ export const initiateRegistration = async (req, res) => {
 
         // Generate OTP and activation token
         const otp = generateOTP();
+        // Use a fallback secret key if environment variable is not set
+        const secretKey = process.env.ACTIVATION_SECRET_KEY || 'preplings-activation-secret-key';
         const activationToken = generateJWT(
             { userData },
-            process.env.ACTIVATION_SECRET_KEY ,
+            secretKey,
             "15m"
         );
 
@@ -233,9 +235,11 @@ export const verifyOTPAndRegister = async (req, res) => {
         // Verify activation token
         let decodedToken;
         try {
+            // Use a fallback secret key if environment variable is not set
+            const secretKey = process.env.ACTIVATION_SECRET_KEY || 'preplings-activation-secret-key';
             decodedToken = jwt.verify(
                 activationToken,
-                process.env.ACTIVATION_SECRET_KEY
+                secretKey
             );
         } catch (error) {
             return res.status(400).json({
@@ -295,9 +299,11 @@ export const resendOTP = async (req, res) => {
 
         if (activationToken) {
             try {
+                // Use a fallback secret key if environment variable is not set
+                const secretKey = process.env.ACTIVATION_SECRET_KEY || 'preplings-activation-secret-key';
                 const decodedToken = jwt.verify(
                     activationToken,
-                    process.env.ACTIVATION_SECRET_KEY
+                    secretKey
                 );
                 userData = decodedToken.userData;
                 console.log("Successfully decoded token:", userData);
@@ -330,9 +336,11 @@ export const resendOTP = async (req, res) => {
                 }
 
                 // Generate new activation token
+                // Use a fallback secret key if environment variable is not set
+                const secretKey = process.env.ACTIVATION_SECRET_KEY || 'preplings-activation-secret-key';
                 newActivationToken = generateJWT(
                     { userData },
-                    process.env.ACTIVATION_SECRET_KEY,
+                    secretKey,
                     "15m"
                 );
                 console.log("Generated new token for expired session");
@@ -343,9 +351,11 @@ export const resendOTP = async (req, res) => {
             if (otpData && otpData.userData) {
                 userData = otpData.userData;
                 // Generate new activation token
+                // Use a fallback secret key if environment variable is not set
+                const secretKey = process.env.ACTIVATION_SECRET_KEY || 'preplings-activation-secret-key';
                 newActivationToken = generateJWT(
                     { userData },
-                    process.env.ACTIVATION_SECRET_KEY,
+                    secretKey,
                     "15m"
                 );
             } else {

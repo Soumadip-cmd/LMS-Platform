@@ -40,7 +40,12 @@ app.use(express.json());
 // Configure CORS with multiple origins support
 const allowedOrigins = process.env.CLIENT_URL
     ? process.env.CLIENT_URL.split(',')
-    : ['http://localhost:3000', 'https://preplings.com', 'https://www.preplings.com'];
+    : ['http://localhost:3000', 'http://localhost:5173', 'https://preplings.com', 'https://www.preplings.com'];
+
+// Add development origins if in development mode
+if (process.env.NODE_ENV !== 'production') {
+    allowedOrigins.push('http://localhost:3000', 'http://localhost:5173');
+}
 
 app.use(cors({
     origin: function(origin, callback) {
@@ -51,7 +56,12 @@ app.use(cors({
             callback(null, true);
         } else {
             console.log('CORS blocked origin:', origin);
-            callback(null, true); // Allow all origins in development
+            // In development, allow all origins
+            if (process.env.NODE_ENV !== 'production') {
+                callback(null, true);
+            } else {
+                callback(new Error('Not allowed by CORS'));
+            }
         }
     },
     credentials: true,
