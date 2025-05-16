@@ -117,23 +117,50 @@ const OTPVerificationModal = ({ isOpen, onClose, email, activationToken, onVerif
     setError('');
 
     try {
+      console.log('Verifying OTP:', {
+        email,
+        otpString,
+        activationToken,
+        isSocialSignup
+      });
+
       if (isSocialSignup) {
         // Social login verification (Google)
-        await auth.completeSocialRegistration({
+        const response = await auth.completeSocialRegistration({
           tempUserId: activationToken,
           otp: otpString,
           phoneNumber: email // The email field is used for phone in social signup
         });
+
+        console.log('Social verification response:', response);
 
         // Close modal and show success notification
         onClose();
         onVerifySuccess && onVerifySuccess();
       } else {
         // Regular email/password verification
+        console.log('Calling regular verification with:', { email, otpString, activationToken });
         await onVerifySuccess(email, otpString, activationToken);
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to verify OTP. Please try again.');
+      console.error('OTP verification error:', err);
+
+      // Handle specific error cases
+      if (err.response?.status === 400 && err.response?.data?.message?.includes('expired')) {
+        setError('Verification code has expired. Please request a new code.');
+      } else if (err.response?.status === 400 && err.response?.data?.message?.includes('invalid')) {
+        setError('Invalid verification code. Please check and try again.');
+      } else {
+        setError(err.response?.data?.message || 'Failed to verify OTP. Please try again.');
+      }
+
+      // Clear the OTP fields on error for better UX
+      setOtp(['', '', '', '', '', '']);
+
+      // Focus on first input field
+      if (inputRefs.current[0]) {
+        inputRefs.current[0].focus();
+      }
     } finally {
       setIsLoading(false);
     }
@@ -143,20 +170,41 @@ const OTPVerificationModal = ({ isOpen, onClose, email, activationToken, onVerif
   const handleResendOTP = async () => {
     setTimer(60);
     setError('');
+    setIsLoading(true);
 
     try {
+      console.log('Resending OTP for:', {
+        email,
+        activationToken,
+        isSocialSignup
+      });
+
       if (isSocialSignup) {
         // Social login resend
-        await auth.resendGooglePhoneOTP({
+        const response = await auth.resendGooglePhoneOTP({
           tempUserId: activationToken,
           phoneNumber: email
         });
+        console.log('Social OTP resend response:', response);
       } else {
         // Regular registration resend
-        await onResendOTP(email, activationToken);
+        const response = await onResendOTP(email, activationToken);
+        console.log('Regular OTP resend response:', response);
+      }
+
+      // Clear any existing OTP input
+      setOtp(['', '', '', '', '', '']);
+
+      // Focus on first input field
+      if (inputRefs.current[0]) {
+        inputRefs.current[0].focus();
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to resend OTP. Please try again.');
+      console.error('Resend OTP error:', err);
+      const errorMessage = err.response?.data?.message || 'Failed to resend OTP. Please try again.';
+      setError(errorMessage);
+    } finally {
+      setIsLoading(false);
     }
   };
 

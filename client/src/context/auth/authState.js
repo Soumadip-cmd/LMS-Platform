@@ -394,9 +394,26 @@ const AuthState = (props) => {
     };
 
     try {
+      // Log the form data being sent (without password for security)
+      const logData = { ...formData };
+      delete logData.password;
+      console.log('Registration data being sent:', logData);
+
+      // Make sure all required fields are present
+      const requiredFields = ['name', 'email', 'password', 'languageId', 'learningGoal', 'phoneNumber'];
+      const missingFields = requiredFields.filter(field => !formData[field]);
+
+      if (missingFields.length > 0) {
+        const error = new Error(`Missing required fields: ${missingFields.join(', ')}`);
+        error.response = { data: { message: `Missing required fields: ${missingFields.join(', ')}` } };
+        throw error;
+      }
+
       const res = await axios.post(`/auth/register`, formData, config);
+      console.log('Registration response:', res.data);
       return res.data;
     } catch (err) {
+      console.error('Registration error:', err.response?.data || err.message);
       dispatch({
         type: REGISTER_FAIL,
         payload: err.response?.data?.message || "Registration failed"
@@ -414,16 +431,36 @@ const AuthState = (props) => {
     };
 
     try {
+      console.log('Verifying OTP with data:', data);
+
+      // Validate required fields
+      if (!data.email || !data.otp || !data.activationToken) {
+        const error = new Error('Missing required fields for OTP verification');
+        error.response = {
+          status: 400,
+          data: { message: 'Missing email, OTP, or activation token' }
+        };
+        throw error;
+      }
+
       const res = await axios.post(`/auth/verify-otp`, data, config);
+      console.log('OTP verification response:', res.data);
 
       dispatch({
         type: REGISTER_SUCCESS,
         payload: res.data
       });
 
+      // If we have a token in the response, store it
+      if (res.data.token) {
+        localStorage.setItem('authToken', res.data.token);
+        axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
+      }
+
       await loadUser();
       return res.data;
     } catch (err) {
+      console.error('OTP verification error:', err.response?.data || err.message);
       dispatch({
         type: REGISTER_FAIL,
         payload: err.response?.data?.message || "OTP verification failed"
@@ -556,7 +593,15 @@ const AuthState = (props) => {
     };
 
     try {
+      console.log('Resending OTP with data:', data);
+
+      // Make sure we have the correct data format
+      if (!data.email || !data.activationToken) {
+        throw new Error('Missing email or activation token for OTP resend');
+      }
+
       const res = await axios.post(`/auth/resend-otp`, data, config);
+      console.log('Resend OTP response:', res.data);
       return res.data;
     } catch (err) {
       console.error('Resend OTP error:', err.response?.data || err);

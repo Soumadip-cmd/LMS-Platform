@@ -122,9 +122,24 @@ const Signup = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.name || !formData.email || !formData.password) {
+    if (!formData.name || !formData.email || !formData.password || !formData.languageId || !formData.learningGoal || !formData.phoneNumber) {
       setError("Please fill in all required fields");
       toast.error("Please fill in all required fields");
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setError("Please enter a valid email address");
+      toast.error("Please enter a valid email address");
+      return;
+    }
+
+    // Validate password length
+    if (formData.password.length < 6) {
+      setError("Password must be at least 6 characters long");
+      toast.error("Password must be at least 6 characters long");
       return;
     }
 
@@ -159,8 +174,19 @@ const Signup = () => {
 
   const handleVerifyOTP = async (email, otp, activationToken) => {
     try {
+      console.log('Verifying OTP in Signup.js:', { email, otp, activationToken });
+
+      // Validate inputs
+      if (!email || !otp || !activationToken) {
+        const errorMsg = 'Missing required verification information';
+        console.error(errorMsg);
+        toast.error(errorMsg);
+        throw new Error(errorMsg);
+      }
+
       // Call verifyOTPAndRegister from auth context
-      await auth.verifyOTPAndRegister({ email, otp, activationToken });
+      const response = await auth.verifyOTPAndRegister({ email, otp, activationToken });
+      console.log('OTP verification successful:', response);
 
       // Show success toast
       toast.success("Registration successful! You can now login.");
@@ -169,9 +195,18 @@ const Signup = () => {
       setIsOtpModalOpen(false);
       navigate("/auth/login");
     } catch (err) {
-      const errorMessage =
-        err.response?.data?.message ||
-        "OTP verification failed. Please try again.";
+      console.error('OTP verification error in Signup.js:', err);
+
+      // Handle specific error cases
+      let errorMessage;
+      if (err.response?.status === 400 && err.response?.data?.message?.includes('expired')) {
+        errorMessage = 'Verification code has expired. Please request a new code.';
+      } else if (err.response?.status === 400 && err.response?.data?.message?.includes('invalid')) {
+        errorMessage = 'Invalid verification code. Please check and try again.';
+      } else {
+        errorMessage = err.response?.data?.message || "OTP verification failed. Please try again.";
+      }
+
       toast.error(errorMessage);
       throw err; // Rethrow error to be handled in the OTP modal component
     }
@@ -180,9 +215,28 @@ const Signup = () => {
   // Function to handle resend OTP
   const handleResendOTP = async (email, activationToken) => {
     try {
+      console.log('Attempting to resend OTP for:', { email, activationToken });
+
+      // Validate inputs
+      if (!email || !activationToken) {
+        const errorMsg = 'Missing email or activation token';
+        console.error(errorMsg);
+        toast.error(errorMsg);
+        throw new Error(errorMsg);
+      }
+
       // Call resendOTP from auth context
-      await auth.resendOTP({ email, activationToken });
+      const response = await auth.resendOTP({ email, activationToken });
+
+      // Show success message
+      toast.success('Verification code resent successfully!');
+      console.log('OTP resent successfully:', response);
+
+      return response;
     } catch (err) {
+      const errorMsg = err.response?.data?.message || err.message || 'Failed to resend verification code';
+      console.error('Resend OTP error:', err);
+      toast.error(errorMsg);
       throw err;
     }
   };
@@ -427,12 +481,12 @@ const Signup = () => {
 
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Which language do you want to learn?
+              Which language do you want to learn? <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <button
                 type="button"
-                className="w-full text-left bg-white border border-gray-300 rounded-md py-2 px-3 focus:outline-none"
+                className={`w-full text-left bg-white border ${!formData.languageId && error ? 'border-red-500' : 'border-gray-300'} rounded-md py-2 px-3 focus:outline-none`}
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               >
                 <span
@@ -446,6 +500,9 @@ const Signup = () => {
                   <ChevronDown className="h-5 w-5 text-gray-400" />
                 </span>
               </button>
+              {!formData.languageId && error && (
+                <p className="text-red-500 text-xs mt-1">Please select a language</p>
+              )}
 
               {isDropdownOpen && (
                 <div className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base overflow-auto focus:outline-none sm:text-sm">
@@ -471,13 +528,12 @@ const Signup = () => {
                 htmlFor="lgoal"
                 className="block text-sm font-medium text-gray-700 mb-2"
               >
-                Learning Goal
+                Learning Goal <span className="text-red-500">*</span>
               </label>
               <div className="relative">
-                {/* // Replace this button code in your learning goal dropdown */}
                 <button
                   type="button"
-                  className="w-full text-left bg-white border border-gray-300 rounded-md py-2 px-3 focus:outline-none"
+                  className={`w-full text-left bg-white border ${!formData.learningGoal && error ? 'border-red-500' : 'border-gray-300'} rounded-md py-2 px-3 focus:outline-none`}
                   onClick={() => setIsGoalDropdownOpen(!isGoalDropdownOpen)}
                 >
                   <span
@@ -491,6 +547,9 @@ const Signup = () => {
                     <ChevronDown className="h-5 w-5 text-gray-400" />
                   </span>
                 </button>
+                {!formData.learningGoal && error && (
+                  <p className="text-red-500 text-xs mt-1">Please select a learning goal</p>
+                )}
 
                 {isGoalDropdownOpen && (
                   <div className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base overflow-auto focus:outline-none sm:text-sm">
@@ -579,7 +638,7 @@ const Signup = () => {
                 htmlFor="name"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
-                Full Name
+                Full Name <span className="text-red-500">*</span>
               </label>
               <input
                 id="name"
@@ -589,6 +648,7 @@ const Signup = () => {
                 value={formData.name}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
                 placeholder="Enter your full name"
+                required
               />
             </div>
             <div className="mb-4">
@@ -596,7 +656,7 @@ const Signup = () => {
                 htmlFor="email"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
-                Email address
+                Email address <span className="text-red-500">*</span>
               </label>
               <input
                 id="email"
@@ -606,6 +666,7 @@ const Signup = () => {
                 value={formData.email}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
                 placeholder="Enter your email"
+                required
               />
             </div>
 
@@ -627,7 +688,7 @@ const Signup = () => {
                 htmlFor="password"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
-                Password
+                Password <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <input
@@ -638,6 +699,8 @@ const Signup = () => {
                   value={formData.password}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
                   placeholder="Enter your password"
+                  required
+                  minLength="6"
                 />
                 <button
                   type="button"
@@ -708,7 +771,7 @@ const Signup = () => {
                 htmlFor="phoneNumber"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
-                Mobile Number
+                Mobile Number <span className="text-red-500">*</span>
               </label>
               <div className="flex">
                 {/* Country code dropdown */}
@@ -812,6 +875,7 @@ const Signup = () => {
                   onChange={onChange}
                   className="w-2/3 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
                   placeholder="Enter phone number"
+                  required
                 />
               </div>
             </div>
