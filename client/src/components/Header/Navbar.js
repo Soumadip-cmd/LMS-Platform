@@ -542,9 +542,14 @@ const Navbar = () => {
             <div className="flex space-x-3 items-center">
               {(isAuthenticated && user) ? (
                 <>
-                  <div className="flex items-center mr-3">
-                    <span className="text-gray-700 mr-2">Welcome, {user.name || 'User'}</span>
-                  </div>
+                  <Link
+                    to={user.role === 'student' ? '/courses' :
+                        user.role === 'instructor' ? '/dashboard/instructor' :
+                        user.role === 'admin' ? '/dashboard/admin' : '/'}
+                    className="flex items-center mr-3 bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700 transition-colors duration-300"
+                  >
+                    <span className="mr-1">Dashboard</span>
+                  </Link>
                   <button
                     onClick={handleLogout}
                     className="flex items-center bg-gray-200 font-medium text-blue-600 px-4 py-1 rounded hover:text-blue-800 transition-colors duration-300"
@@ -849,10 +854,15 @@ const Navbar = () => {
           <div className="border-t p-4 bg-gray-50">
             {(isAuthenticated && user) ? (
               <div className="flex flex-col space-y-2">
-                <div className="flex items-center justify-center mb-2">
-                  <User size={18} className="text-gray-700 mr-2" />
-                  <span className="text-gray-700">Welcome, {user.name || 'User'}</span>
-                </div>
+                <Link
+                  to={user.role === 'student' ? '/courses' :
+                      user.role === 'instructor' ? '/dashboard/instructor' :
+                      user.role === 'admin' ? '/dashboard/admin' : '/'}
+                  className="flex items-center justify-center bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition-colors duration-300"
+                  onClick={toggleMobileMenu}
+                >
+                  <span>Dashboard</span>
+                </Link>
                 <button
                   onClick={() => {
                     handleLogout();

@@ -28,7 +28,7 @@ const Login = () => {
 
       switch(user.role) {
         case 'student':
-          navigate('/dashboard/student');
+          navigate('/courses');
           break;
         case 'instructor':
           navigate('/dashboard/instructor');

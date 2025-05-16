@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useContext } from "react";
 import {
   Search,
   User,
@@ -15,7 +15,9 @@ import {
   Bell,
   Users,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import AuthContext from "../../context/auth/authContext";
+import toast from "react-hot-toast";
 
 const InstructorNavbar = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -25,6 +27,11 @@ const InstructorNavbar = () => {
   const [screenHeightType, setScreenHeightType] = useState('normal');
   const dropdownRef = useRef(null);
   const sidebarRef = useRef(null);
+  const navigate = useNavigate();
+
+  // Get auth context
+  const authContext = useContext(AuthContext);
+  const { user, logout } = authContext;
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -46,10 +53,10 @@ const InstructorNavbar = () => {
         setScreenHeightType('small');
       }
     };
-    
+
     checkScreenHeight();
     window.addEventListener('resize', checkScreenHeight);
-    
+
     return () => {
       window.removeEventListener('resize', checkScreenHeight);
     };
@@ -86,11 +93,29 @@ const InstructorNavbar = () => {
     };
   }, [isSidebarOpen]);
 
+  // Handle logout
+  const handleLogout = async () => {
+    try {
+      await logout();
+      // Clear any stored tokens
+      localStorage.removeItem('authToken');
+      sessionStorage.removeItem('authToken');
+      document.cookie = "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+
+      toast.success("Logged out successfully!");
+      // Redirect to home page
+      navigate('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+      toast.error("Logout failed. Please try again.");
+    }
+  };
+
   // Sign out positioning logic - Only fixed for medium height screens (between 642px and 740px)
-  const signOutClass = screenHeightType === 'medium' 
+  const signOutClass = screenHeightType === 'medium'
     ? 'fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-1'
     : 'border-t border-gray-200 py-4';
-  
+
   // Only show bottom spacing when sign out is fixed
   const showBottomSpace = screenHeightType === 'medium';
 
@@ -202,7 +227,7 @@ const InstructorNavbar = () => {
 
                   {/* Desktop Dropdown Menu with Animation */}
                   <div
-                    className={`absolute right-0 mt-2 w-48 bg-white rounded-md shadow-md ring-1 ring-black ring-opacity-5 py-1 transition-all duration-200 ease-in-out origin-top-right z-10 
+                    className={`absolute right-0 mt-2 w-48 bg-white rounded-md shadow-md ring-1 ring-black ring-opacity-5 py-1 transition-all duration-200 ease-in-out origin-top-right z-10
                       ${
                         isProfileOpen
                           ? "transform scale-100 opacity-100"
@@ -233,6 +258,10 @@ const InstructorNavbar = () => {
                     </a>
                     <a
                       href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleLogout();
+                      }}
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
                     >
                       <LogOut size={16} className="mr-2" />
@@ -374,7 +403,7 @@ const InstructorNavbar = () => {
             </div>
             <span className="font-medium">Dashboard</span>
           </a>
-          
+
           {/* Courses */}
           <a
             href="#"
@@ -398,7 +427,7 @@ const InstructorNavbar = () => {
             <Users size={20} className="text-blue-600 mr-3" />
             <span>Instructors</span>
           </a>
-          
+
           {/* Assignments */}
           <a
             href="#"
@@ -407,7 +436,7 @@ const InstructorNavbar = () => {
             <FileText size={20} className="text-blue-600 mr-3" />
             <span>Assignments</span>
           </a>
-          
+
           {/* Mock Tests */}
           <a
             href="#"
@@ -433,7 +462,7 @@ const InstructorNavbar = () => {
             </div>
             <span>Mock Tests</span>
           </a>
-          
+
           {/* Analytics */}
           <a
             href="#"
@@ -442,7 +471,7 @@ const InstructorNavbar = () => {
             <BarChart size={20} className="text-blue-600 mr-3" />
             <span>Analytics</span>
           </a>
-          
+
           {/* Messages */}
           <a
             href="#"
@@ -451,7 +480,7 @@ const InstructorNavbar = () => {
             <MessageSquare size={20} className="text-blue-600 mr-3" />
             <span>Messages</span>
           </a>
-          
+
           {/* Settings */}
           <a
             href="#"
@@ -460,21 +489,26 @@ const InstructorNavbar = () => {
             <Settings size={20} className="text-blue-600 mr-3" />
             <span>Settings</span>
           </a>
-          
+
           {/* "Become an Instructor" button has been removed */}
         </div>
-        
+
         {/* Sign Out - With conditional positioning */}
         <div className={signOutClass}>
           <a
             href="#"
-            className="block px-4  text-gray-700 hover:bg-blue-50 flex items-center"
+            onClick={(e) => {
+              e.preventDefault();
+              handleLogout();
+              setIsSidebarOpen(false);
+            }}
+            className="block px-4 py-2 text-gray-700 hover:bg-blue-50 flex items-center"
           >
             <LogOut size={20} className="text-red-500 mr-3" />
             <span>Sign out</span>
           </a>
         </div>
-        
+
         {/* Space at bottom for medium screens to prevent content hiding behind fixed sign out */}
         {showBottomSpace && <div className="h-16"></div>}
       </div>

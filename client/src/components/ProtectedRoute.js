@@ -55,8 +55,8 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
         console.log(`User role (${user.role}) not in allowed roles (${allowedRoles})`);
         switch(user.role) {
             case 'student':
-                console.log('Redirecting to student dashboard');
-                return <Navigate to="/dashboard/student" />;
+                console.log('Redirecting to courses page');
+                return <Navigate to="/courses" />;
             case 'instructor':
                 console.log('Redirecting to instructor dashboard');
                 return <Navigate to="/dashboard/instructor" />;
