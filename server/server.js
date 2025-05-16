@@ -59,7 +59,7 @@ app.use('/lecture-attachments', express.static(path.join(__dirname, 'public/lect
 app.use('/api/v1', mainRouter);
 
 app.get('/', (req, res) => {
-    res.json({ message: "API Working.." });
+    res.send("API Working..");
 });
 
 
