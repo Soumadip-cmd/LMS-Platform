@@ -2,6 +2,7 @@ import React, { useReducer } from 'react';
 import axios from 'axios';
 import CourseContext from './courseContext';
 import courseReducer from './courseReducer';
+import { SERVER_URI } from '../../utlils/ServerUri';
 import {
   GET_COURSES,
   GET_COURSE,
@@ -34,7 +35,7 @@ const CourseState = (props) => {
   };
 
   const [state, dispatch] = useReducer(courseReducer, initialState);
-  axios.defaults.baseURL = 'http://localhost:8000/api/v1';
+  axios.defaults.baseURL = SERVER_URI;
 
 
 

@@ -2,6 +2,7 @@ import React, { useReducer } from 'react';
 import axios from 'axios';
 import InstructorContext from './instructorContext';
 import instructorReducer from './instructorReducer';
+import { SERVER_URI } from '../../utlils/ServerUri';
 import {
   GET_INSTRUCTORS,
   GET_INSTRUCTOR,
@@ -25,18 +26,21 @@ const InstructorState = (props) => {
 
   const [state, dispatch] = useReducer(instructorReducer, initialState);
 
+  // Set axios base URL
+  axios.defaults.baseURL = SERVER_URI;
+
   // Set loading
   const setLoading = () => dispatch({ type: SET_INSTRUCTOR_LOADING });
 
   // Get all instructors
   const getAllInstructors = async (page = 1, limit = 10, status = 'All') => {
     setLoading();
-    
+
     try {
       const res = await axios.get('/admin/instructors', {
         params: { page, limit, status }
       });
-      
+
       if (res.data.success) {
         dispatch({
           type: GET_INSTRUCTORS,
@@ -46,7 +50,7 @@ const InstructorState = (props) => {
           }
         });
       }
-      
+
       return res.data;
     } catch (err) {
       dispatch({
@@ -60,17 +64,17 @@ const InstructorState = (props) => {
   // Get instructor by ID
   const getInstructorById = async (instructorId) => {
     setLoading();
-    
+
     try {
       const res = await axios.get(`/admin/instructors/${instructorId}`);
-      
+
       if (res.data.success) {
         dispatch({
           type: GET_INSTRUCTOR,
           payload: res.data.instructor
         });
       }
-      
+
       return res.data.instructor;
     } catch (err) {
       dispatch({
@@ -85,14 +89,14 @@ const InstructorState = (props) => {
   const updateInstructorStatus = async (instructorId, status) => {
     try {
       const res = await axios.put(`/admin/instructors/${instructorId}/status`, { status });
-      
+
       if (res.data.success) {
         dispatch({
           type: UPDATE_INSTRUCTOR_STATUS,
           payload: res.data.instructor
         });
       }
-      
+
       return res.data.instructor;
     } catch (err) {
       dispatch({

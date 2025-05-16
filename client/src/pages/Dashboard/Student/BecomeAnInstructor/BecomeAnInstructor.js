@@ -5,13 +5,14 @@ import axios from "axios";
 import DatePicker from "react-datepicker";
 import { useNavigate } from "react-router-dom";
 import "react-datepicker/dist/react-datepicker.css";
+import { SERVER_URI } from "../../../../utlils/ServerUri";
 const BecomeAnInstructor = () => {
   const [formData, setFormData] = useState({
     teachLanguage: "",
     qualification: "",
     name: "",
     linkedin: "",
-    dob: null, 
+    dob: null,
     address: "",
     gender: "",
     country: "",
@@ -31,7 +32,7 @@ const BecomeAnInstructor = () => {
     const fetchLanguages = async () => {
       setIsLoading(true);
       try {
-        const response = await axios.get('http://localhost:8000/api/v1/languages/all');
+        const response = await axios.get(`${SERVER_URI}/languages/all`);
         if (response.data.languages) {
           setLanguages(response.data.languages);
         }
@@ -41,7 +42,7 @@ const BecomeAnInstructor = () => {
         setIsLoading(false);
       }
     };
-  
+
     fetchLanguages();
   }, []);
 
@@ -59,18 +60,18 @@ const BecomeAnInstructor = () => {
       });
     }
   };
- 
+
 
   const handleFileChange = async (e) => {
     if (e.target.files[0]) {
       const resumeFile = e.target.files[0];
-      
+
       // Update local state to show the filename
-      setFormData({ 
-        ...formData, 
-        resume: resumeFile 
+      setFormData({
+        ...formData,
+        resume: resumeFile
       });
-      
+
       // Clear resume error if it exists
       if (errors.resume) {
         setErrors({
@@ -78,17 +79,17 @@ const BecomeAnInstructor = () => {
           resume: "",
         });
       }
-      
+
       // Upload the file immediately
       setUploadStatus("Uploading resume...");
-      
+
       try {
         const formDataForUpload = new FormData();
         formDataForUpload.append('resume', resumeFile);
-        
+
         // Using cookie-based authentication for file upload
         const response = await axios.post(
-          'http://localhost:8000/api/v1/auth/upload-resume', 
+          `${SERVER_URI}/auth/upload-resume`,
           formDataForUpload,
           {
             headers: {
@@ -98,7 +99,7 @@ const BecomeAnInstructor = () => {
             withCredentials: true // This will send the cookies
           }
         );
-        
+
         if (response.data.success) {
           setResumeUrl(response.data.fileUrl);
           setUploadStatus("Resume uploaded successfully!");
@@ -130,50 +131,50 @@ const BecomeAnInstructor = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Validate form
     const newErrors = {};
     const requiredFields = [
       'teachLanguage', 'qualification', 'name', 'dob',
-      'address', 'gender', 'country', 'email', 
+      'address', 'gender', 'country', 'email',
       'contactNumber', 'password'
     ];
-    
+
     requiredFields.forEach(field => {
       if (field !== 'dob' && !formData[field]) {
         newErrors[field] = "This field is required";
       }
     });
-  
+
     // Special validation for date
     if (!formData.dob) {
       newErrors.dob = "Date of birth is required";
     }
-    
+
     // Check if resume was uploaded
     if (!resumeUrl) {
       newErrors.resume = "Please upload your resume";
     }
-    
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
-    
+
     // Create the data to submit
     const submitData = {
       ...formData,
       dob: formData.dob ? formData.dob.toISOString().split('T')[0] : "",
       resumeUrl: resumeUrl
     };
-    
+
     // Remove the actual file object as it can't be sent in JSON
     delete submitData.resume;
-    
+
     try {
       // Using only cookie-based authentication
       const response = await axios.post(
-        'http://localhost:8000/api/v1/auth/instructor/become-instructor',
+        `${SERVER_URI}/auth/instructor/become-instructor`,
         submitData,
         {
           headers: {
@@ -183,16 +184,16 @@ const BecomeAnInstructor = () => {
           withCredentials: true // This will send the cookies
         }
       );
-      
+
       if (response.data.success) {
-        
+
         alert("Your instructor application has been submitted successfully! You will receive an email with the application details.");
         navigate('/')
-        
+
       }
     } catch (error) {
       console.error("Application submission failed:", error);
-      
+
       // Show appropriate error message
       if (error.response?.data?.message) {
         alert(`Error: ${error.response.data.message}`);
@@ -512,9 +513,9 @@ const BecomeAnInstructor = () => {
   )}
   {resumeUrl && (
     <div className="mt-2">
-      <a 
-        href={resumeUrl} 
-        target="_blank" 
+      <a
+        href={resumeUrl}
+        target="_blank"
         rel="noopener noreferrer"
         className="text-blue-500 text-xs hover:underline"
       >

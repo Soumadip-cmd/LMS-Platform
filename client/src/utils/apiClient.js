@@ -1,8 +1,9 @@
 import axios from 'axios';
+import { SERVER_URI } from '../utlils/ServerUri';
 
 // Create a configured instance of axios
 const apiClient = axios.create({
-  baseURL: 'http://localhost:8000/api/v1',
+  baseURL: SERVER_URI,
   withCredentials: true, // Always send cookies with requests
   timeout: 10000, // 10 seconds timeout
   headers: {
@@ -33,7 +34,7 @@ apiClient.interceptors.response.use(
       // The request was made and the server responded with a status code
       // that falls out of the range of 2xx
       console.error('API Error Response:', error.response.status, error.response.data);
-      
+
       // Handle authentication errors
       if (error.response.status === 401) {
         // Redirect to login or refresh token
@@ -46,7 +47,7 @@ apiClient.interceptors.response.use(
       // Something happened in setting up the request that triggered an Error
       console.error('API Error Setup:', error.message);
     }
-    
+
     return Promise.reject(error);
   }
 );

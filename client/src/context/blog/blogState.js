@@ -2,6 +2,7 @@ import React, { useReducer } from 'react';
 import axios from 'axios';
 import BlogContext from './blogContext.js';
 import blogReducer from './blogReducer.js';
+import { SERVER_URI } from '../../utlils/ServerUri';
 import {
   GET_BLOGS,
   GET_BLOG,
@@ -46,14 +47,14 @@ const BlogState = (props) => {
 
   // Clear errors
   const clearErrors = () => dispatch({ type: CLEAR_BLOG_ERROR });
-  const BASE_URL = 'http://localhost:8000/api/v1';
+  const BASE_URL = SERVER_URI;
   // Get all blogs
   const getBlogs = async (page = 1, limit = 10, category = '', tag = '', search = '') => {
     setLoading();
-    
+
     try {
       const res = await axios.get(`${BASE_URL}/blog/get-all?page=${page}&limit=${limit}${category ? `&category=${category}` : ''}${tag ? `&tag=${tag}` : ''}${search ? `&search=${search}` : ''}`);
-      
+
       dispatch({
         type: GET_BLOGS,
         payload: {
@@ -74,10 +75,10 @@ const BlogState = (props) => {
   // Get popular blogs
   const getPopularBlogs = async (limit = 5) => {
     setLoading();
-    
+
     try {
       const res = await axios.get(`${BASE_URL}/blog/popular?limit=${limit}`);
-      
+
       dispatch({
         type: GET_POPULAR_BLOGS,
         payload: res.data.popularPosts
@@ -93,15 +94,15 @@ const BlogState = (props) => {
   // Get a single blog
   const getBlog = async (id) => {
     setLoading();
-    
+
     try {
       const res = await axios.get(`${BASE_URL}/blog/get/${id}`);
-      
+
       dispatch({
         type: GET_BLOG,
         payload: res.data.blog
       });
-      
+
       dispatch({
         type: GET_RELATED_BLOGS,
         payload: res.data.relatedPosts
@@ -117,21 +118,21 @@ const BlogState = (props) => {
   // Create a new blog
   const createBlog = async (formData) => {
     setLoading();
-    
+
     const config = {
       headers: {
         'Content-Type': 'application/json'
       }
     };
-    
+
     try {
       const res = await axios.post(`${BASE_URL}/blog/create`, formData, config);
-      
+
       dispatch({
         type: CREATE_BLOG,
         payload: res.data.blog
       });
-      
+
       return res.data.blog;
     } catch (err) {
       dispatch({
@@ -145,21 +146,21 @@ const BlogState = (props) => {
   // Update a blog
   const updateBlog = async (id, formData) => {
     setLoading();
-    
+
     const config = {
       headers: {
         'Content-Type': 'application/json'
       }
     };
-    
+
     try {
       const res = await axios.put(`${BASE_URL}/blog/update/${id}`, formData, config);
-      
+
       dispatch({
         type: UPDATE_BLOG,
         payload: res.data.blog
       });
-      
+
       return res.data.blog;
     } catch (err) {
       dispatch({
@@ -173,10 +174,10 @@ const BlogState = (props) => {
   // Delete a blog
   const deleteBlog = async (id) => {
     setLoading();
-    
+
     try {
       await axios.delete(`${BASE_URL}/blog/delete/${id}`);
-      
+
       dispatch({
         type: DELETE_BLOG,
         payload: id
@@ -196,15 +197,15 @@ const BlogState = (props) => {
         'Content-Type': 'application/json'
       }
     };
-    
+
     try {
       const res = await axios.post(`${BASE_URL}/blog/${blogId}/comments`, { text }, config);
-      
+
       dispatch({
         type: ADD_COMMENT,
         payload: res.data.comment
       });
-      
+
       return res.data.comment;
     } catch (err) {
       dispatch({
@@ -219,7 +220,7 @@ const BlogState = (props) => {
   const toggleLike = async (blogId) => {
     try {
       const res = await axios.post(`${BASE_URL}/blog/${blogId}/like`);
-      
+
       dispatch({
         type: TOGGLE_LIKE,
         payload: {
@@ -227,7 +228,7 @@ const BlogState = (props) => {
           likes: res.data.likes
         }
       });
-      
+
       return res.data;
     } catch (err) {
       dispatch({
@@ -241,15 +242,15 @@ const BlogState = (props) => {
   // Get blog analytics
   const getBlogAnalytics = async () => {
     setLoading();
-    
+
     try {
       const res = await axios.get(`${BASE_URL}/blog/analytics/performance`);
-      
+
       dispatch({
         type: GET_BLOG_ANALYTICS,
         payload: res.data
       });
-      
+
       return res.data;
     } catch (err) {
       dispatch({
@@ -264,12 +265,12 @@ const BlogState = (props) => {
   const getTrendingTopics = async () => {
     try {
       const res = await axios.get(`${BASE_URL}/blog/analytics/trending-topics`);
-      
+
       dispatch({
         type: GET_TRENDING_TOPICS,
         payload: res.data
       });
-      
+
       return res.data;
     } catch (err) {
       dispatch({
@@ -284,12 +285,12 @@ const BlogState = (props) => {
   const getRecommendations = async () => {
     try {
       const res = await axios.get(`${BASE_URL}/blog/search/recommendations`);
-      
+
       dispatch({
         type: GET_RECOMMENDATIONS,
         payload: res.data
       });
-      
+
       return res.data;
     } catch (err) {
       dispatch({
@@ -303,24 +304,24 @@ const BlogState = (props) => {
   // Advanced search
   const advancedSearch = async (searchParams) => {
     setLoading();
-    
+
     try {
       // Build query string from search params
       const queryParams = new URLSearchParams();
-      
+
       for (const [key, value] of Object.entries(searchParams)) {
         if (value !== undefined && value !== null && value !== '') {
           queryParams.append(key, value);
         }
       }
-      
+
       const res = await axios.get(`${BASE_URL}/blog/search/advanced?${queryParams.toString()}`);
-      
+
       dispatch({
         type: SET_SEARCH_RESULTS,
         payload: res.data
       });
-      
+
       return res.data;
     } catch (err) {
       dispatch({
@@ -340,7 +341,7 @@ const BlogState = (props) => {
   const clearBlog = () => {
     dispatch({ type: CLEAR_BLOG });
   };
-  
+
   return (
     <BlogContext.Provider
       value={{

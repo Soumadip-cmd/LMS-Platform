@@ -4,6 +4,7 @@ import axios from "axios";
 import { io } from "socket.io-client";
 import AuthContext from "./authContext.js";
 import authReducer from "./authReducer.js";
+import { SERVER_URI } from '../../utlils/ServerUri';
 import {
   REGISTER_SUCCESS,
   REGISTER_FAIL,
@@ -41,8 +42,8 @@ const AuthState = (props) => {
         await loadUser();
       } catch (err) {
         // User not authenticated or token expired
-        dispatch({ 
-          type: AUTH_ERROR 
+        dispatch({
+          type: AUTH_ERROR
         });
       } finally {
         // Ensure loading is set to false
@@ -56,27 +57,26 @@ const AuthState = (props) => {
     loadInitialUser();
   }, []);
   // Configure axios base URL and credentials
-  const SERVER_URI = "http://localhost:8000/api/v1";
   axios.defaults.baseURL = SERVER_URI;
   axios.defaults.withCredentials = true; // Allow sending cookies cross-origin
 
   // Initialize socket connection
   const initializeSocket = () => {
     if (state.isAuthenticated && !state.socket) {
-      const SOCKET_URI = "http://localhost:8000"; // Socket server URI
-      
+      const SOCKET_URI = SERVER_URI.split('/api/v1')[0]; // Socket server URI (without API path)
+
       const newSocket = io(SOCKET_URI, {
         withCredentials: true
       });
 
       newSocket.on("connect", () => {
         console.log("Socket connected");
-        
+
         // Authenticate socket with user ID
         if (state.user && state.user._id) {
           newSocket.emit("authenticate", state.user._id);
         }
-        
+
         dispatch({
           type: SOCKET_CONNECTED,
           payload: newSocket
@@ -95,7 +95,7 @@ const AuthState = (props) => {
       newSocket.on("userStatus", ({ userId, status }) => {
         dispatch({
           type: UPDATE_ONLINE_USERS,
-          payload: status 
+          payload: status
             ? [...state.onlineUsers, userId]
             : state.onlineUsers.filter(id => id !== userId)
         });
@@ -144,7 +144,7 @@ const AuthState = (props) => {
       return [];
     }
   };
-  
+
   useEffect(() => {
     fetchAllLanguages();
   }, []);
@@ -154,9 +154,9 @@ const AuthState = (props) => {
     try {
       console.log('Loading user profile...');
       const res = await axios.get(`/users/profile`);
-      
+
       console.log('User profile loaded:', res.data.user);
-      
+
       dispatch({
         type: USER_LOADED,
         payload: res.data.user
@@ -187,20 +187,20 @@ const AuthState = (props) => {
   //       { email, password },
   //       config
   //     );
-      
+
   //     // Dispatch login success
   //     dispatch({
   //       type: LOGIN_SUCCESS,
   //       payload: res.data
   //     });
-      
+
   //     // Load user after successful login
   //     await loadUser();
-      
+
   //     return res.data;
   //   } catch (err) {
   //     console.error('Login error:', err.response?.data || err);
-      
+
   //     dispatch({
   //       type: LOGIN_FAIL,
   //       payload: err.response?.data?.message || "Login failed"
@@ -214,26 +214,26 @@ const AuthState = (props) => {
         "Content-Type": "application/json"
       }
     };
-  
+
     try {
       const res = await axios.post(
         `/auth/login`,
         { email, password },
         config
       );
-      
+
       // Dispatch login success
       dispatch({
         type: LOGIN_SUCCESS
       });
-      
+
       // Load user after successful login
-      const user = await loadUser();
-      
+      await loadUser();
+
       return res.data;
     } catch (err) {
       console.error('Login error:', err.response?.data || err);
-      
+
       dispatch({
         type: LOGIN_FAIL,
         payload: err.response?.data?.message || "Login failed"
@@ -241,7 +241,7 @@ const AuthState = (props) => {
       throw err;
     }
   };
-  // Social Login (Google/Facebook) 
+  // Social Login (Google/Facebook)
   const socialLogin = async (userData) => {
     const config = {
       headers: {
@@ -251,11 +251,11 @@ const AuthState = (props) => {
 
     try {
       const res = await axios.post(
-        `/social/social-login`, 
+        `/social/social-login`,
         userData,
         config
       );
-      
+
       // Check if additional verification is needed
       if (res.data.needsPhoneVerification) {
         return res.data; // Return data for phone verification
@@ -265,12 +265,12 @@ const AuthState = (props) => {
         type: LOGIN_SUCCESS,
         payload: res.data
       });
-      
+
       await loadUser();
       return res.data;
     } catch (err) {
       console.error('Social login error:', err.response?.data || err);
-      
+
       dispatch({
         type: LOGIN_FAIL,
         payload: err.response?.data?.message || "Social login failed"
@@ -309,12 +309,12 @@ const AuthState = (props) => {
 
     try {
       const res = await axios.post(`/auth/verify-otp`, data, config);
-      
+
       dispatch({
         type: REGISTER_SUCCESS,
         payload: res.data
       });
-      
+
       await loadUser();
       return res.data;
     } catch (err) {
@@ -333,13 +333,13 @@ const AuthState = (props) => {
       if (state.socket) {
         state.socket.emit("logout", state.user?._id);
       }
-      
+
       // Disconnect socket
       disconnectSocket();
-      
+
       // Call the API to logout
       await axios.post(`/auth/logout`);
-      
+
       dispatch({ type: LOGOUT });
     } catch (err) {
       console.error("Logout error:", err);
@@ -368,17 +368,17 @@ const AuthState = (props) => {
         "Content-Type": "application/json"
       }
     };
-  
+
     try {
       const res = await axios.post(`/auth/get-it-now`, formData, config);
-      
-     
-      
+
+
+
       dispatch({
         type: RESOURCE_SIGNUP_SUCCESS,
         payload: res.data
       });
-      
+
       return res.data;
     } catch (err) {
       dispatch({
@@ -395,7 +395,7 @@ const AuthState = (props) => {
       disconnectSocket();
     };
   }, []);
- 
+
   return (
     <AuthContext.Provider
       value={{
@@ -406,7 +406,7 @@ const AuthState = (props) => {
         socket: state.socket,
         onlineUsers: state.onlineUsers,
         languages,
-        
+
         // Methods
         fetchAllLanguages,
         register,
@@ -417,8 +417,8 @@ const AuthState = (props) => {
         loadUser,
         clearErrors: () => dispatch({ type: CLEAR_ERRORS }),
         forgotPassword,
-        getItNow, 
-        
+        getItNow,
+
         // Additional methods can be added here
         sendPrivateMessage: (recipientId, message) => {
           if (state.socket && state.isAuthenticated) {

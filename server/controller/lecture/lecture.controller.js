@@ -112,12 +112,12 @@ export const createLecture = async (req, res) => {
             // Create a permanent destination for the video
             const videoFileName = `${Date.now()}-${videoFile.originalname.replace(/\s+/g, '-')}`;
             const videoPath = path.join(videosDir, videoFileName);
-            
+
             // Move file from temp upload location to permanent location
             fs.renameSync(videoFile.path, videoPath);
-            
+
             // Store the relative URL for the video
-            lectureData.videoUrl = `http://localhost:8000/lecture-videos/${videoFileName}`;
+            lectureData.videoUrl = `/lecture-videos/${videoFileName}`;
             lectureData.videoFileName = videoFileName;
         }
 
@@ -253,12 +253,12 @@ export const updateLecture = async (req, res) => {
             // Create a permanent destination for the new video
             const videoFileName = `${Date.now()}-${videoFile.originalname.replace(/\s+/g, '-')}`;
             const videoPath = path.join(videosDir, videoFileName);
-            
+
             // Move file from temp upload location to permanent location
             fs.renameSync(videoFile.path, videoPath);
-            
+
             // Update video info
-            updateData.videoUrl = `http://localhost:8000/lecture-videos/${videoFileName}`;
+            updateData.videoUrl = `/lecture-videos/${videoFileName}`;
             updateData.videoFileName = videoFileName;
         }
 
@@ -282,7 +282,7 @@ export const updateLecture = async (req, res) => {
         }
 
         // Notify about live session if scheduled
-        if (updateData.liveSessionSchedule && (!lecture.liveSessionSchedule || 
+        if (updateData.liveSessionSchedule && (!lecture.liveSessionSchedule ||
             lecture.liveSessionSchedule.date.toString() !== updateData.liveSessionSchedule.date.toString())) {
             course.enrolledStudents.forEach(studentId => {
                 sendCourseNotification(studentId.toString(), {
@@ -426,14 +426,14 @@ export const addLectureAttachment = async (req, res) => {
         // Create a permanent destination for the attachment
         const fileName = `${Date.now()}-${file.originalname.replace(/\s+/g, '-')}`;
         const filePath = path.join(attachmentsDir, fileName);
-        
+
         // Move file from temp upload location to permanent location
         fs.renameSync(file.path, filePath);
 
         // Add attachment to lecture
         lecture.attachments.push({
             title,
-            fileUrl: `http://localhost:8000/lecture-attachments/${fileName}`,
+            fileUrl: `/lecture-attachments/${fileName}`,
             fileName: fileName,
             fileType: fileType || file.mimetype
         });
@@ -527,12 +527,12 @@ export const updateLectureAttachment = async (req, res) => {
             // Create a permanent destination for the new attachment
             const fileName = `${Date.now()}-${file.originalname.replace(/\s+/g, '-')}`;
             const filePath = path.join(attachmentsDir, fileName);
-            
+
             // Move file from temp upload location to permanent location
             fs.renameSync(file.path, filePath);
-            
+
             // Update file info
-            attachment.fileUrl = `http://localhost:8000/lecture-attachments/${fileName}`;
+            attachment.fileUrl = `/lecture-attachments/${fileName}`;
             attachment.fileName = fileName;
         }
 
@@ -665,7 +665,7 @@ export const getCourseLectures = async (req, res) => {
                 const completed = lecture.completedBy.some(
                     completion => completion.user.toString() === userId
                 );
-                
+
                 return {
                     ...lecture._doc,
                     isCompleted: completed

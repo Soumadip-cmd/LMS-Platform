@@ -2,6 +2,7 @@ import React, { useReducer } from 'react';
 import axios from 'axios';
 import AdminContext from './adminContext';
 import adminReducer from './adminReducer';
+import { SERVER_URI } from '../../utlils/ServerUri';
 import {
   GET_DASHBOARD_STATS,
   GET_STUDENT_STATS,
@@ -66,23 +67,26 @@ const AdminState = (props) => {
 
   const [state, dispatch] = useReducer(adminReducer, initialState);
 
+  // Set axios base URL
+  axios.defaults.baseURL = SERVER_URI;
+
   // Set loading
   const setLoading = () => dispatch({ type: SET_ADMIN_LOADING });
 
   // Get dashboard statistics
   const getDashboardStats = async () => {
     setLoading();
-    
+
     try {
       const res = await axios.get('/admin/dashboard');
-      
+
       if (res.data.success) {
         dispatch({
           type: GET_DASHBOARD_STATS,
           payload: res.data.stats
         });
       }
-      
+
       return res.data.stats;
     } catch (err) {
       dispatch({
@@ -96,17 +100,17 @@ const AdminState = (props) => {
   // Get student statistics
   const getStudentStats = async () => {
     setLoading();
-    
+
     try {
       const res = await axios.get('/admin/student-stats');
-      
+
       if (res.data.success) {
         dispatch({
           type: GET_STUDENT_STATS,
           payload: res.data.stats
         });
       }
-      
+
       return res.data.stats;
     } catch (err) {
       dispatch({
@@ -120,17 +124,17 @@ const AdminState = (props) => {
   // Get course analytics
   const getCourseAnalytics = async () => {
     setLoading();
-    
+
     try {
       const res = await axios.get('/admin/course-analytics');
-      
+
       if (res.data.success) {
         dispatch({
           type: GET_COURSE_ANALYTICS,
           payload: res.data.stats
         });
       }
-      
+
       return res.data.stats;
     } catch (err) {
       dispatch({
@@ -144,17 +148,17 @@ const AdminState = (props) => {
   // Get support insights
   const getSupportInsights = async () => {
     setLoading();
-    
+
     try {
       const res = await axios.get('/admin/support-insights');
-      
+
       if (res.data.success) {
         dispatch({
           type: GET_SUPPORT_INSIGHTS,
           payload: res.data.stats
         });
       }
-      
+
       return res.data.stats;
     } catch (err) {
       dispatch({
@@ -168,12 +172,12 @@ const AdminState = (props) => {
   // Get top courses
   const getTopCourses = async (limit = 10, page = 1) => {
     setLoading();
-    
+
     try {
       const res = await axios.get('/admin/top-courses', {
         params: { limit, page }
       });
-      
+
       if (res.data.success) {
         dispatch({
           type: GET_TOP_COURSES,
@@ -183,7 +187,7 @@ const AdminState = (props) => {
           }
         });
       }
-      
+
       return res.data;
     } catch (err) {
       dispatch({

@@ -2,6 +2,7 @@ import React, { useReducer } from 'react';
 import axios from 'axios';
 import StudentContext from './studentContext';
 import studentReducer from './studentReducer';
+import { SERVER_URI } from '../../utlils/ServerUri';
 import {
   GET_STUDENTS,
   GET_STUDENT,
@@ -24,6 +25,9 @@ const StudentState = (props) => {
   };
 
   const [state, dispatch] = useReducer(studentReducer, initialState);
+
+  // Set axios base URL
+  axios.defaults.baseURL = SERVER_URI;
 
   // Set loading
   const setLoading = () => dispatch({ type: SET_STUDENT_LOADING });
