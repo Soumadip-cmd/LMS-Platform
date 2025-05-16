@@ -25,8 +25,8 @@ const transporter = nodemailer.createTransport({
     port: 465,
     secure: true,
     auth: {
-        user: 'preplings@zohomail.in',
-        pass: 'EvGdpzjJprNs'
+        user: process.env.EMAIL_USER || 'preplings@zohomail.in',
+        pass: process.env.EMAIL_PASSWORD || 'EvGdpzjJprNs'
     },
     debug: true
 });
@@ -55,7 +55,7 @@ const sendEmail = async (to, subject, template, data) => {
 
         // Send email
         await transporter.sendMail({
-            from: `"Preplings" <${process.env.EMAIL_USER}>`,
+            from: `"Preplings" <${process.env.EMAIL_FROM || 'admin@preplings.co'}>`,
             to,
             subject,
             html
