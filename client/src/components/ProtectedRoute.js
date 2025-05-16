@@ -13,6 +13,14 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     useEffect(() => {
         const checkAuth = async () => {
             try {
+                // If already authenticated, don't reload
+                if (isAuthenticated && user) {
+                    console.log('ProtectedRoute: Already authenticated');
+                    setIsAuth(true);
+                    setIsLoading(false);
+                    return;
+                }
+
                 // Check if we have a token in localStorage
                 const token = localStorage.getItem('authToken');
 
@@ -33,12 +41,13 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
         };
 
         checkAuth();
-    }, [isAuthenticated, loadUser]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
-    console.log('ProtectedRoute - Loading:', isLoading);
-    console.log('ProtectedRoute - isAuthenticated:', isAuth || isAuthenticated);
-    console.log('ProtectedRoute - User:', user);
-    console.log('ProtectedRoute - Allowed Roles:', allowedRoles);
+    // Reduced logging to prevent console spam
+    if (isLoading) {
+        console.log('ProtectedRoute - Loading...');
+    }
 
     if (isLoading || loading) {
         console.log('Still loading, showing LoadingComponent');

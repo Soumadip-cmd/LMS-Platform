@@ -8,7 +8,8 @@ const Navbar = () => {
   const authCtx = useContext(AuthContext);
   const { isAuthenticated, user, logout, loading } = authCtx;
 
-  // Debug auth state
+  // Debug auth state - commented out to reduce console spam
+  /*
   useEffect(() => {
     console.log('Navbar - Auth State:', { isAuthenticated, user, loading });
 
@@ -16,6 +17,7 @@ const Navbar = () => {
     const token = localStorage.getItem('authToken');
     console.log('Navbar - Token in localStorage:', !!token);
   }, [isAuthenticated, user, loading]);
+  */
   // State to track if mobile menu is open
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   // Track which dropdown is open in the mobile menu

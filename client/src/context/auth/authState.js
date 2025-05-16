@@ -44,14 +44,11 @@ const AuthState = (props) => {
         const token = localStorage.getItem('authToken');
 
         if (token) {
-          console.log('Found token in localStorage, attempting to load user');
-
           // Set the token in axios headers
           axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
           // Try to load the user
           await loadUser();
-          console.log('User loaded successfully on app start');
         } else {
           console.log('No token found in localStorage on app start');
           dispatch({
@@ -177,8 +174,6 @@ const AuthState = (props) => {
   // Load User
   const loadUser = async () => {
     try {
-      console.log('Loading user profile...');
-
       // Check if we have a token in localStorage
       const token = localStorage.getItem('authToken');
 
@@ -193,14 +188,9 @@ const AuthState = (props) => {
       // Add token to headers if available
       if (token) {
         config.headers['Authorization'] = `Bearer ${token}`;
-        console.log('Using token from localStorage for profile request');
-      } else {
-        console.log('No token in localStorage, relying on cookies');
       }
 
       const res = await axios.get(`/users/profile`, config);
-
-      console.log('User profile loaded:', res.data.user);
 
       dispatch({
         type: USER_LOADED,

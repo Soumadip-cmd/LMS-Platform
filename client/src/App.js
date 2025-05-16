@@ -74,13 +74,19 @@ const AppContent = () => {
   const authContext = useContext(AuthContext);
   const { userType, loadUser, isAuthenticated, user } = authContext;
 
-  // Load user on component mount
+  // Load user on component mount - only once
   useEffect(() => {
     // Check if we have a token in localStorage
     const token = localStorage.getItem('authToken');
 
-    // Try to load the user regardless of token
+    // Only try to load user if not already authenticated and we have a token
     const loadUserData = async () => {
+      // Skip if already authenticated
+      if (isAuthenticated && user) {
+        console.log('App.js: User already authenticated, skipping loadUser');
+        return;
+      }
+
       try {
         console.log('App.js: Loading user data...');
         await loadUser();
@@ -98,12 +104,15 @@ const AppContent = () => {
     };
 
     loadUserData();
-  }, [loadUser]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  // Debug auth state
+  // Debug auth state - commented out to reduce console spam
+  /*
   useEffect(() => {
     console.log('App.js - Auth State:', { isAuthenticated, user });
   }, [isAuthenticated, user]);
+  */
 
   // Check if current path is a resources page
   const isResourcesPage = location.pathname.startsWith("/support/resources") || location.pathname.startsWith("/support/community");

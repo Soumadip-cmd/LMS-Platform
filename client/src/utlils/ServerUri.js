@@ -13,4 +13,6 @@
 export const SERVER_URI =
   window.location.hostname === "localhost"
     ? "http://localhost:8000/api/v1"
-    : "https://api.preplings.com/api/v1";
+    : window.location.hostname === "preplings.com" || window.location.hostname === "www.preplings.com"
+      ? "https://api.preplings.com/api/v1"
+      : "https://api.preplings.com/api/v1";
