@@ -1295,6 +1295,12 @@ export const becomeInstructor = async (req, res) => {
 // Separate route to handle resume upload only (for preview before form submission)
 export const handleResumeUpload = async (req, res) => {
     try {
+        console.log("Resume upload request received:", {
+            headers: req.headers,
+            file: req.file ? "File present" : "No file",
+            auth: req.user ? "Authenticated" : "Not authenticated"
+        });
+
         // Check if file was uploaded
         if (!req.file) {
             return res.status(400).json({
@@ -1306,16 +1312,19 @@ export const handleResumeUpload = async (req, res) => {
         // Generate URL for the uploaded file
         const fileUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
 
+        console.log("File uploaded successfully:", fileUrl);
+
         return res.status(200).json({
             success: true,
             message: "File uploaded successfully.",
             fileUrl: fileUrl
         });
     } catch (error) {
-        console.log(error);
+        console.error("Resume upload error:", error);
         return res.status(500).json({
             success: false,
-            message: "File upload failed."
+            message: "File upload failed.",
+            error: error.message
         });
     }
 };

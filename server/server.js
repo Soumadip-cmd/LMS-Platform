@@ -84,6 +84,23 @@ app.use(cors({
 
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
+
+// Special CORS handling for file upload routes
+app.use('/api/v1/auth/upload-resume', (req, res, next) => {
+    // Set CORS headers specifically for file uploads
+    res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+    res.header('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.header('Access-Control-Allow-Credentials', 'true');
+
+    // Handle preflight requests
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
+    }
+
+    next();
+});
+
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/lecture-videos', express.static(path.join(__dirname, 'uploads')));
 

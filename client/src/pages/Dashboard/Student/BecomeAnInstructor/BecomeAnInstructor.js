@@ -87,14 +87,17 @@ const BecomeAnInstructor = () => {
         const formDataForUpload = new FormData();
         formDataForUpload.append('resume', resumeFile);
 
-        // Using cookie-based authentication for file upload
+        // Get token from localStorage
+        const token = localStorage.getItem('authToken');
+
+        // Using both token and cookie-based authentication for file upload
         const response = await axios.post(
           `${SERVER_URI}/auth/upload-resume`,
           formDataForUpload,
           {
             headers: {
-              'Content-Type': 'multipart/form-data'
-              // No Authorization header - rely on cookies only
+              'Content-Type': 'multipart/form-data',
+              'Authorization': token ? `Bearer ${token}` : undefined
             },
             withCredentials: true // This will send the cookies
           }
@@ -172,14 +175,17 @@ const BecomeAnInstructor = () => {
     delete submitData.resume;
 
     try {
-      // Using only cookie-based authentication
+      // Get token from localStorage
+      const token = localStorage.getItem('authToken');
+
+      // Using both token and cookie-based authentication
       const response = await axios.post(
         `${SERVER_URI}/auth/instructor/become-instructor`,
         submitData,
         {
           headers: {
-            'Content-Type': 'application/json'
-            // No Authorization header - rely on cookies only
+            'Content-Type': 'application/json',
+            'Authorization': token ? `Bearer ${token}` : undefined
           },
           withCredentials: true // This will send the cookies
         }
@@ -492,7 +498,7 @@ const BecomeAnInstructor = () => {
   <label className="block text-sm font-medium mb-2">
     Upload your Resume
   </label>
-  <label className="w-full px-6 py-3 border border-[#8C8C8C] rounded-md flex items-center px-4 cursor-pointer bg-white">
+  <label className="w-full px-4 py-3 border border-[#8C8C8C] rounded-md flex items-center cursor-pointer bg-white">
     <Upload className="h-5 w-5 text-[#8C8C8C] mr-2" />
     <span className={formData.resume ? "text-black" : "text-[#8C8C8C]"}>
       {formData.resume ? formData.resume.name : "Upload your resume"}
