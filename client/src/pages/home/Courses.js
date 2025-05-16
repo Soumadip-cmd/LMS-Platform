@@ -48,7 +48,7 @@ const Courses = () => {
     };
 
     fetchTopCourses();
-  }, [getTopCourses]);
+  }, []);
 
   // Helper function to determine flag background color based on language code
   const getFlagBgColor = (code) => {
