@@ -18,7 +18,8 @@ import {
   SOCKET_DISCONNECTED,
   UPDATE_ONLINE_USERS,
   RESOURCE_SIGNUP_FAIL,
-  RESOURCE_SIGNUP_SUCCESS
+  RESOURCE_SIGNUP_SUCCESS,
+  SET_LOADING
 } from "../types.js";
 
 const AuthState = (props) => {
@@ -39,16 +40,40 @@ const AuthState = (props) => {
     // Try to load user when the app first loads
     const loadInitialUser = async () => {
       try {
-        await loadUser();
+        // Check if we have a token in localStorage
+        const token = localStorage.getItem('authToken');
+
+        if (token) {
+          console.log('Found token in localStorage, attempting to load user');
+
+          // Set the token in axios headers
+          axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
+          // Try to load the user
+          await loadUser();
+          console.log('User loaded successfully on app start');
+        } else {
+          console.log('No token found in localStorage on app start');
+          dispatch({
+            type: AUTH_ERROR
+          });
+        }
       } catch (err) {
         // User not authenticated or token expired
+        console.error('Failed to load user on app start:', err);
+
+        // Clear any invalid tokens
+        localStorage.removeItem('authToken');
+        document.cookie = "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        delete axios.defaults.headers.common['Authorization'];
+
         dispatch({
           type: AUTH_ERROR
         });
       } finally {
         // Ensure loading is set to false
         dispatch({
-          type: 'SET_LOADING',
+          type: SET_LOADING,
           payload: false
         });
       }
@@ -277,10 +302,13 @@ const AuthState = (props) => {
         console.log('No token in response - relying on cookies');
       }
 
-      // Dispatch login success
+      // Dispatch login success with user data
       dispatch({
         type: LOGIN_SUCCESS,
-        payload: res.data
+        payload: {
+          token: res.data.token,
+          user: res.data.user
+        }
       });
 
       // Load user after successful login
@@ -342,7 +370,10 @@ const AuthState = (props) => {
 
       dispatch({
         type: LOGIN_SUCCESS,
-        payload: res.data
+        payload: {
+          token: res.data.token,
+          user: res.data.user
+        }
       });
 
       try {

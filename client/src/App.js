@@ -79,21 +79,31 @@ const AppContent = () => {
     // Check if we have a token in localStorage
     const token = localStorage.getItem('authToken');
 
-    if (token) {
-      // Try to load the user
-      const loadUserData = async () => {
-        try {
-          console.log('App.js: Loading user data...');
-          await loadUser();
-          console.log('App.js: User loaded successfully');
-        } catch (err) {
-          console.error('App.js: Failed to load user:', err);
-        }
-      };
+    // Try to load the user regardless of token
+    const loadUserData = async () => {
+      try {
+        console.log('App.js: Loading user data...');
+        await loadUser();
+        console.log('App.js: User loaded successfully');
+      } catch (err) {
+        console.error('App.js: Failed to load user:', err);
 
-      loadUserData();
-    }
+        // If there's a token but loading failed, clear it
+        if (token) {
+          console.log('App.js: Clearing invalid token');
+          localStorage.removeItem('authToken');
+          document.cookie = "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        }
+      }
+    };
+
+    loadUserData();
   }, [loadUser]);
+
+  // Debug auth state
+  useEffect(() => {
+    console.log('App.js - Auth State:', { isAuthenticated, user });
+  }, [isAuthenticated, user]);
 
   // Check if current path is a resources page
   const isResourcesPage = location.pathname.startsWith("/support/resources") || location.pathname.startsWith("/support/community");

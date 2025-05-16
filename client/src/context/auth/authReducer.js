@@ -11,7 +11,8 @@ import {
   SOCKET_DISCONNECTED,
   UPDATE_ONLINE_USERS,
   RESOURCE_SIGNUP_SUCCESS,
-  RESOURCE_SIGNUP_FAIL
+  RESOURCE_SIGNUP_FAIL,
+  SET_LOADING
 } from "../types";
 
 const authReducer = (state, action) => {
@@ -23,15 +24,16 @@ const authReducer = (state, action) => {
         loading: false,
         user: action.payload || null
       };
-    
+
     case REGISTER_SUCCESS:
     case LOGIN_SUCCESS:
       return {
         ...state,
         isAuthenticated: true,
-        loading: false
+        loading: false,
+        user: action.payload?.user || state.user
       };
-    
+
     case REGISTER_FAIL:
     case LOGIN_FAIL:
     case AUTH_ERROR:
@@ -45,13 +47,13 @@ const authReducer = (state, action) => {
         socket: null,
         onlineUsers: []
       };
-    
+
     case CLEAR_ERRORS:
       return {
         ...state,
         error: null
       };
-    
+
 
       case RESOURCE_SIGNUP_SUCCESS:
   return {
@@ -71,19 +73,25 @@ case RESOURCE_SIGNUP_FAIL:
         ...state,
         socket: action.payload
       };
-    
+
     case SOCKET_DISCONNECTED:
       return {
         ...state,
         socket: null
       };
-    
+
     case UPDATE_ONLINE_USERS:
       return {
         ...state,
         onlineUsers: action.payload || []
       };
-    
+
+    case SET_LOADING:
+      return {
+        ...state,
+        loading: action.payload
+      };
+
     default:
       return state;
   }

@@ -5,7 +5,17 @@ import { authContext } from "../../context/auth/authContext";
 
 const Navbar = () => {
   // Get auth context
-  const { isAuthenticated, user, logout } = useContext(authContext);
+  const authCtx = useContext(authContext);
+  const { isAuthenticated, user, logout, loading } = authCtx;
+
+  // Debug auth state
+  useEffect(() => {
+    console.log('Navbar - Auth State:', { isAuthenticated, user, loading });
+
+    // Check for token in localStorage as a backup
+    const token = localStorage.getItem('authToken');
+    console.log('Navbar - Token in localStorage:', !!token);
+  }, [isAuthenticated, user, loading]);
   // State to track if mobile menu is open
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   // Track which dropdown is open in the mobile menu
@@ -530,10 +540,10 @@ const Navbar = () => {
 
             {/* Auth buttons for desktop */}
             <div className="flex space-x-3 items-center">
-              {isAuthenticated && user ? (
+              {(isAuthenticated && user) ? (
                 <>
                   <div className="flex items-center mr-3">
-                    <span className="text-gray-700 mr-2">Welcome, {user.name}</span>
+                    <span className="text-gray-700 mr-2">Welcome, {user.name || 'User'}</span>
                   </div>
                   <button
                     onClick={handleLogout}
@@ -837,11 +847,11 @@ const Navbar = () => {
 
           {/* Mobile menu footer with auth buttons */}
           <div className="border-t p-4 bg-gray-50">
-            {isAuthenticated && user ? (
+            {(isAuthenticated && user) ? (
               <div className="flex flex-col space-y-2">
                 <div className="flex items-center justify-center mb-2">
                   <User size={18} className="text-gray-700 mr-2" />
-                  <span className="text-gray-700">Welcome, {user.name}</span>
+                  <span className="text-gray-700">Welcome, {user.name || 'User'}</span>
                 </div>
                 <button
                   onClick={() => {
