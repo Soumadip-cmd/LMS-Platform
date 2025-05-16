@@ -4,14 +4,14 @@ import path from "path";
 import ejs from 'ejs';
 // Configure email transport
 const transporter = nodemailer.createTransport({
-    host: 'smtp.zoho.in',
+    host: process.env.EMAIL_SERVICE || 'smtppro.zoho.in',
     port: 465,
     secure: true,
     auth: {
-        user: 'care@preplings.com',
-        pass: 'AWMA4KAjFaep'
+        user: process.env.EMAIL_USER || 'care@preplings.com',
+        pass: process.env.EMAIL_PASSWORD || 'qTKPpt2a77KP'
     },
-    debug: true
+    debug: process.env.NODE_ENV === 'development'
 });
 
 
@@ -44,7 +44,7 @@ export const sendEmail = async (to, subject, template, data) => {
 
         // Send email
         await transporter.sendMail({
-            from: `"Preplings" <care@preplings.com>`,
+            from: `"Preplings" <${process.env.EMAIL_FROM || 'care@preplings.com'}>`,
             to,
             subject,
             html
