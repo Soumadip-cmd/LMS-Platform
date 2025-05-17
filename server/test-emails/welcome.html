@@ -1,10 +1,10 @@
-<!-- reset-password.ejs -->
+<!-- welcome.ejs -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reset Your Password | Preplings</title>
+    <title>Welcome to Preplings!</title>
     <style>
         /* Base styles - Tailwind-like */
         body {
@@ -58,30 +58,6 @@
             padding: 2rem 1.5rem;
         }
 
-        /* Code container */
-        .code-container {
-            background-color: #F9FAFB; /* gray-50 */
-            border: 1px solid #E5E7EB; /* gray-200 */
-            border-radius: 0.5rem; /* rounded-lg */
-            padding: 1.25rem;
-            margin: 1.5rem 0;
-            text-align: center;
-        }
-
-        .verification-code {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #4A90E2; /* primary blue */
-            letter-spacing: 0.25rem;
-        }
-
-        .expiry-note {
-            font-size: 0.875rem;
-            color: #6B7280; /* gray-500 */
-            text-align: center;
-            margin-top: 0.5rem;
-        }
-
         /* Message */
         .message {
             font-size: 1rem;
@@ -119,14 +95,39 @@
             border-top: 1px solid #E5E7EB; /* gray-200 */
         }
 
-        /* Alert box */
-        .alert-box {
-            background-color: #FEE2E2; /* red-100 */
-            border-left: 4px solid #EF4444; /* red-500 */
-            padding: 1rem;
+        /* Feature box */
+        .feature-box {
+            background-color: #F9FAFB; /* gray-50 */
+            border: 1px solid #E5E7EB; /* gray-200 */
+            border-radius: 0.5rem; /* rounded-lg */
+            padding: 1.25rem;
             margin: 1.5rem 0;
-            border-radius: 0 0.375rem 0.375rem 0;
-            color: #B91C1C; /* red-700 */
+        }
+
+        .feature-title {
+            font-weight: 600;
+            font-size: 1.125rem;
+            margin-bottom: 0.75rem;
+            color: #111827; /* gray-900 */
+        }
+
+        .feature-box ul {
+            margin: 0;
+            padding-left: 1.5rem;
+        }
+
+        .feature-box li {
+            margin-bottom: 0.5rem;
+            position: relative;
+        }
+
+        .feature-box li::before {
+            content: "•";
+            color: #4A90E2; /* primary blue */
+            font-weight: bold;
+            display: inline-block;
+            width: 1rem;
+            margin-left: -1rem;
         }
 
         /* Responsive adjustments */
@@ -138,11 +139,6 @@
             .content {
                 padding: 1.5rem 1rem;
             }
-
-            .verification-code {
-                font-size: 1.75rem;
-                letter-spacing: 0.2rem;
-            }
         }
     </style>
 </head>
@@ -152,33 +148,34 @@
             <img src="https://preplings.com/logo.png" alt="Preplings Logo" class="logo">
         </div>
         <div class="header">
-            <h1>Reset Your Password</h1>
+            <h1>Welcome to Preplings!</h1>
         </div>
         <div class="content">
             <div class="message">
-                <p>Hello <%= name %>,</p>
-                <p>We received a request to reset your password. To proceed with the password reset, please use the verification code below:</p>
+                <p>Hello John Doe,</p>
+                <p>Congratulations on joining Preplings! We're thrilled to have you as part of our community of language learners.</p>
             </div>
 
-            <div class="code-container">
-                <div class="verification-code"><%= otp %></div>
-                <p class="expiry-note">This code will expire in 15 minutes</p>
+            <div class="feature-box">
+                <div class="feature-title">Here's what you can do now:</div>
+                <ul>
+                    <li>Complete your profile and set your learning goals</li>
+                    <li>Explore our language courses and learning resources</li>
+                    <li>Start your first lesson and earn rewards</li>
+                    <li>Connect with other language learners</li>
+                </ul>
             </div>
 
-            <div class="alert-box">
-                If you didn't request a password reset, please ignore this email or contact our support team if you have concerns.
-            </div>
-
-            <p>Best regards,<br>The Preplings Team</p>
+            <p>Learning a new language is an exciting journey, and we're here to make it fun and effective for you!</p>
+            <p>Happy learning,<br>The Preplings Team</p>
 
             <div class="button-container">
-                <a href="<%= websiteUrl %>/reset-password" class="button">Reset Password</a>
+                <a href="https://preplings.com" class="button">Start Learning Now</a>
             </div>
         </div>
 
         <div class="footer">
-            <p>This email was sent to you because a password reset was requested for your Preplings account.</p>
-            <p>&copy; <%= new Date().getFullYear() %> Preplings. All rights reserved.</p>
+            <p>&copy; 2025 Preplings. All rights reserved.</p>
             <p>If you have any questions, please contact our support team at <a href="mailto:care@preplings.com" style="color: #4A90E2; text-decoration: none;">care@preplings.com</a></p>
         </div>
     </div>

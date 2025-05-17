@@ -1,10 +1,10 @@
-<!-- reset-password.ejs -->
+<!-- email-verification.ejs -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reset Your Password | Preplings</title>
+    <title>Verify Your Email | Preplings</title>
     <style>
         /* Base styles - Tailwind-like */
         body {
@@ -119,16 +119,6 @@
             border-top: 1px solid #E5E7EB; /* gray-200 */
         }
 
-        /* Alert box */
-        .alert-box {
-            background-color: #FEE2E2; /* red-100 */
-            border-left: 4px solid #EF4444; /* red-500 */
-            padding: 1rem;
-            margin: 1.5rem 0;
-            border-radius: 0 0.375rem 0.375rem 0;
-            color: #B91C1C; /* red-700 */
-        }
-
         /* Responsive adjustments */
         @media (max-width: 640px) {
             .container {
@@ -152,33 +142,30 @@
             <img src="https://preplings.com/logo.png" alt="Preplings Logo" class="logo">
         </div>
         <div class="header">
-            <h1>Reset Your Password</h1>
+            <h1>Verify Your Email</h1>
         </div>
         <div class="content">
             <div class="message">
-                <p>Hello <%= name %>,</p>
-                <p>We received a request to reset your password. To proceed with the password reset, please use the verification code below:</p>
+                <p>Hello John Doe,</p>
+                <p>Thank you for signing up with Preplings. To complete your registration, please verify your email with the code below:</p>
             </div>
 
             <div class="code-container">
-                <div class="verification-code"><%= otp %></div>
+                <div class="verification-code">123456</div>
                 <p class="expiry-note">This code will expire in 15 minutes</p>
             </div>
 
-            <div class="alert-box">
-                If you didn't request a password reset, please ignore this email or contact our support team if you have concerns.
-            </div>
+            <p>If you did not create an account with Preplings, please ignore this email.</p>
 
             <p>Best regards,<br>The Preplings Team</p>
 
             <div class="button-container">
-                <a href="<%= websiteUrl %>/reset-password" class="button">Reset Password</a>
+                <a href="https://preplings.com" class="button">Go to Preplings</a>
             </div>
         </div>
 
         <div class="footer">
-            <p>This email was sent to you because a password reset was requested for your Preplings account.</p>
-            <p>&copy; <%= new Date().getFullYear() %> Preplings. All rights reserved.</p>
+            <p>&copy; 2025 Preplings. All rights reserved.</p>
             <p>If you have any questions, please contact our support team at <a href="mailto:care@preplings.com" style="color: #4A90E2; text-decoration: none;">care@preplings.com</a></p>
         </div>
     </div>

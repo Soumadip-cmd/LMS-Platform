@@ -1,84 +1,184 @@
+<!-- otp-verification.ejs -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Preplings Verification Code</title>
+    <title>Your Verification Code | Preplings</title>
     <style>
+        /* Base styles - Tailwind-like */
         body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.5;
+            color: #374151; /* gray-700 */
             margin: 0;
             padding: 0;
+            background-color: #F3F4F6; /* gray-100 */
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
+
+        /* Container */
         .container {
             max-width: 600px;
             margin: 0 auto;
-            padding: 20px;
+            background-color: #FFFFFF;
+            border-radius: 0.5rem; /* rounded-lg */
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-md */
         }
+
+        /* Logo container */
+        .logo-container {
+            text-align: center;
+            padding: 1.5rem 0 1rem 0;
+        }
+
+        .logo {
+            max-width: 150px;
+            height: auto;
+        }
+
+        /* Header */
         .header {
-            background-color: #4A90E2;
-            padding: 20px;
+            background-color: #4A90E2; /* primary blue */
+            padding: 1.5rem;
             text-align: center;
             color: white;
         }
+
+        .header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        /* Content */
         .content {
-            padding: 20px;
-            background-color: #f9f9f9;
+            padding: 2rem 1.5rem;
         }
-        .footer {
+
+        /* Code container */
+        .code-container {
+            background-color: #F9FAFB; /* gray-50 */
+            border: 1px solid #E5E7EB; /* gray-200 */
+            border-radius: 0.5rem; /* rounded-lg */
+            padding: 1.25rem;
+            margin: 1.5rem 0;
             text-align: center;
-            padding: 20px;
-            font-size: 12px;
-            color: #666;
         }
+
         .verification-code {
-            font-size: 24px;
-            font-weight: bold;
-            text-align: center;
-            margin: 20px 0;
-            padding: 10px;
-            background-color: #e9e9e9;
-            border-radius: 5px;
+            font-size: 2rem;
+            font-weight: 700;
+            color: #4A90E2; /* primary blue */
+            letter-spacing: 0.25rem;
         }
+
+        .expiry-note {
+            font-size: 0.875rem;
+            color: #6B7280; /* gray-500 */
+            text-align: center;
+            margin-top: 0.5rem;
+        }
+
+        /* Message */
+        .message {
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Button */
+        .button-container {
+            text-align: center;
+            margin: 1.5rem 0;
+        }
+
         .button {
             display: inline-block;
-            padding: 10px 20px;
-            background-color: #4A90E2;
+            background-color: #4A90E2; /* primary blue */
             color: white;
             text-decoration: none;
-            border-radius: 5px;
-            margin-top: 20px;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.375rem; /* rounded-md */
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+
+        .button:hover {
+            background-color: #3A7BC8; /* darker blue */
+        }
+
+        /* Footer */
+        .footer {
+            background-color: #F9FAFB; /* gray-50 */
+            padding: 1.25rem;
+            text-align: center;
+            font-size: 0.875rem;
+            color: #6B7280; /* gray-500 */
+            border-top: 1px solid #E5E7EB; /* gray-200 */
+        }
+
+        /* Provider badge */
+        .provider-badge {
+            display: inline-block;
+            background-color: #EFF6FF; /* blue-50 */
+            color: #4A90E2; /* primary blue */
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-left: 0.25rem;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 640px) {
+            .container {
+                border-radius: 0;
+            }
+
+            .content {
+                padding: 1.5rem 1rem;
+            }
+
+            .verification-code {
+                font-size: 1.75rem;
+                letter-spacing: 0.2rem;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
+        <div class="logo-container">
+            <img src="https://preplings.com/logo.png" alt="Preplings Logo" class="logo">
+        </div>
         <div class="header">
             <h1>Your Verification Code</h1>
         </div>
         <div class="content">
-            <p>Hello <%= name %>,</p>
-            <p>Thank you for signing up with Preplings using your <%= provider %> account. To complete your registration, please use the verification code below:</p>
-            
-            <div class="verification-code">
-                <%= otp %>
+            <div class="message">
+                <p>Hello <%= name %>,</p>
+                <p>Thank you for signing up with Preplings using your <span class="provider-badge"><%= provider %></span> account. To complete your registration, please use the verification code below:</p>
             </div>
-            
-            <p>This verification code will expire in 15 minutes. Please enter this code in the verification page to complete your registration.</p>
-            
+
+            <div class="code-container">
+                <div class="verification-code"><%= otp %></div>
+                <p class="expiry-note">This code will expire in 15 minutes</p>
+            </div>
+
             <p>If you did not create an account with Preplings, please ignore this email.</p>
-            
+
             <p>Best regards,<br>The Preplings Team</p>
-            
-            <div style="text-align: center;">
+
+            <div class="button-container">
                 <a href="<%= websiteUrl %>" class="button">Go to Preplings</a>
             </div>
         </div>
+
         <div class="footer">
             <p>&copy; <%= new Date().getFullYear() %> Preplings. All rights reserved.</p>
-            <p>If you have any questions, please contact our support team.</p>
+            <p>If you have any questions, please contact our support team at <a href="mailto:care@preplings.com" style="color: #4A90E2; text-decoration: none;">care@preplings.com</a></p>
         </div>
     </div>
 </body>
