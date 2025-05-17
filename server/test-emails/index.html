@@ -4,85 +4,200 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Email Templates Preview</title>
+        <title>Preplings Email Templates Preview</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
         <style>
             body {
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+                font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
                 line-height: 1.5;
-                color: #333;
-                max-width: 800px;
+                color: #333333;
+                max-width: 1200px;
                 margin: 0 auto;
                 padding: 20px;
+                background-color: #f9f9f9;
             }
             h1 {
-                color: #4A90E2;
-                border-bottom: 2px solid #4A90E2;
+                color: #FFD700;
+                border-bottom: 2px solid #FFD700;
                 padding-bottom: 10px;
+                text-align: center;
+                font-weight: 700;
+            }
+            h2 {
+                color: #333333;
+                margin-top: 40px;
+                font-weight: 600;
+                border-left: 4px solid #FFD700;
+                padding-left: 10px;
+            }
+            .intro {
+                text-align: center;
+                margin-bottom: 30px;
             }
             .template-list {
                 list-style: none;
                 padding: 0;
                 display: grid;
-                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-                gap: 15px;
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+                gap: 20px;
             }
             .template-item {
-                padding: 15px;
-                background-color: #f5f5f5;
-                border-radius: 5px;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                padding: 20px;
+                background-color: #ffffff;
+                border-radius: 8px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+                transition: transform 0.2s, box-shadow 0.2s;
+                border: 1px solid #eee;
+            }
+            .template-item:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 15px rgba(0,0,0,0.1);
             }
             .template-link {
                 display: block;
-                color: #4A90E2;
-                font-weight: bold;
+                color: #FFD700;
+                font-weight: 600;
                 font-size: 18px;
-                margin-bottom: 5px;
+                margin-bottom: 10px;
                 text-decoration: none;
             }
             .template-link:hover {
-                text-decoration: underline;
+                color: #E6C200;
+            }
+            .template-description {
+                color: #666666;
+                font-size: 14px;
+                margin-bottom: 15px;
+            }
+            .template-preview {
+                display: block;
+                background-color: #FFD700;
+                color: #333333;
+                text-align: center;
+                padding: 8px 16px;
+                border-radius: 4px;
+                text-decoration: none;
+                font-weight: 500;
+                transition: background-color 0.2s;
+            }
+            .template-preview:hover {
+                background-color: #E6C200;
+            }
+            .enhanced-preview {
+                background-color: #333333;
+                color: #FFD700;
+            }
+            .enhanced-preview:hover {
+                background-color: #222;
+            }
+            .logo {
+                text-align: center;
+                margin-bottom: 20px;
+            }
+            .logo img {
+                max-width: 200px;
+                height: auto;
+            }
+            footer {
+                margin-top: 50px;
+                text-align: center;
+                padding-top: 20px;
+                border-top: 1px solid #eee;
+                color: #666666;
+                font-size: 14px;
             }
         </style>
     </head>
     <body>
+        <div class="logo">
+            <img src="https://preplings.com/logo.png" alt="Preplings Logo">
+        </div>
         <h1>Email Templates Preview</h1>
-        <p>Click on any template below to preview how it looks:</p>
+        <div class="intro">
+            <p>Click on any template below to preview how it looks. Each template is available in the original design and an enhanced golden yellow design.</p>
+        </div>
+
+        <h2>Email Templates</h2>
         <ul class="template-list">
     
             <li class="template-item">
-                <a href="contact-confirmation.html" class="template-link" target="_blank">contact-confirmation</a>
+                <a href="contact-confirmation.html" class="template-link" target="_blank">contact confirmation</a>
+                <div class="template-description">Contact form submission confirmation</div>
+                <div style="display: flex; gap: 10px;">
+                    <a href="contact-confirmation.html" class="template-preview" target="_blank">Original</a>
+                    <a href="enhanced-templates/contact-confirmation.html" class="template-preview enhanced-preview" target="_blank">Enhanced</a>
+                </div>
             </li>
         
             <li class="template-item">
-                <a href="email-verification.html" class="template-link" target="_blank">email-verification</a>
+                <a href="email-verification.html" class="template-link" target="_blank">email verification</a>
+                <div class="template-description">Email verification template with OTP code</div>
+                <div style="display: flex; gap: 10px;">
+                    <a href="email-verification.html" class="template-preview" target="_blank">Original</a>
+                    <a href="enhanced-templates/email-verification.html" class="template-preview enhanced-preview" target="_blank">Enhanced</a>
+                </div>
             </li>
         
             <li class="template-item">
-                <a href="otp-google-verification.html" class="template-link" target="_blank">otp-google-verification</a>
+                <a href="otp-google-verification.html" class="template-link" target="_blank">otp google verification</a>
+                <div class="template-description">OTP verification for Google login</div>
+                <div style="display: flex; gap: 10px;">
+                    <a href="otp-google-verification.html" class="template-preview" target="_blank">Original</a>
+                    <a href="enhanced-templates/otp-google-verification.html" class="template-preview enhanced-preview" target="_blank">Enhanced</a>
+                </div>
             </li>
         
             <li class="template-item">
-                <a href="otp-verification.html" class="template-link" target="_blank">otp-verification</a>
+                <a href="otp-verification.html" class="template-link" target="_blank">otp verification</a>
+                <div class="template-description">OTP verification for standard login</div>
+                <div style="display: flex; gap: 10px;">
+                    <a href="otp-verification.html" class="template-preview" target="_blank">Original</a>
+                    <a href="enhanced-templates/otp-verification.html" class="template-preview enhanced-preview" target="_blank">Enhanced</a>
+                </div>
             </li>
         
             <li class="template-item">
-                <a href="password-changed.html" class="template-link" target="_blank">password-changed</a>
+                <a href="password-changed.html" class="template-link" target="_blank">password changed</a>
+                <div class="template-description">Password change confirmation email</div>
+                <div style="display: flex; gap: 10px;">
+                    <a href="password-changed.html" class="template-preview" target="_blank">Original</a>
+                    <a href="enhanced-templates/password-changed.html" class="template-preview enhanced-preview" target="_blank">Enhanced</a>
+                </div>
             </li>
         
             <li class="template-item">
-                <a href="reset-password.html" class="template-link" target="_blank">reset-password</a>
+                <a href="reset-password.html" class="template-link" target="_blank">reset password</a>
+                <div class="template-description">Password reset request email</div>
+                <div style="display: flex; gap: 10px;">
+                    <a href="reset-password.html" class="template-preview" target="_blank">Original</a>
+                    <a href="enhanced-templates/reset-password.html" class="template-preview enhanced-preview" target="_blank">Enhanced</a>
+                </div>
             </li>
         
             <li class="template-item">
                 <a href="verification.html" class="template-link" target="_blank">verification</a>
+                <div class="template-description">Account verification email with OTP code</div>
+                <div style="display: flex; gap: 10px;">
+                    <a href="verification.html" class="template-preview" target="_blank">Original</a>
+                    <a href="enhanced-templates/verification.html" class="template-preview enhanced-preview" target="_blank">Enhanced</a>
+                </div>
             </li>
         
             <li class="template-item">
                 <a href="welcome.html" class="template-link" target="_blank">welcome</a>
+                <div class="template-description">Welcome email for new users</div>
+                <div style="display: flex; gap: 10px;">
+                    <a href="welcome.html" class="template-preview" target="_blank">Original</a>
+                    <a href="enhanced-templates/welcome.html" class="template-preview enhanced-preview" target="_blank">Enhanced</a>
+                </div>
             </li>
         
         </ul>
+        <footer>
+            <p>&copy; 2025 Preplings. All rights reserved.</p>
+        </footer>
     </body>
     </html>
     
