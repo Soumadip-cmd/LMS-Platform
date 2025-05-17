@@ -1,22 +1,36 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Calendar, Search, ArrowRight, ArrowLeft, ArrowRight as ArrowRightIcon } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import BlogContext from '../../../context/blog/blogContext';
 
 const ResourceBlog = () => {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [currentFeaturedPage, setCurrentFeaturedPage] = useState(0);
   const [currentBlogPage, setCurrentBlogPage] = useState(0);
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 0);
-  
+
+  // Get blog context
+  const blogContext = useContext(BlogContext);
+  const { blogs, popularBlogs, loading, getBlogs, getPopularBlogs } = blogContext;
+
+  // Load blogs when component mounts
+  useEffect(() => {
+    getBlogs();
+    getPopularBlogs(4); // Get 4 popular posts for featured section
+    // eslint-disable-next-line
+  }, []);
+
   // Track window size for responsive pagination
   useEffect(() => {
     const handleResize = () => {
       setWindowWidth(window.innerWidth);
     };
-    
+
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-  
+
   // Determine items per page based on screen size
   const featuredItemsPerPage = 2;
   const getBlogItemsPerPage = () => {
@@ -28,7 +42,7 @@ const ResourceBlog = () => {
       return 6; // Default for small screens
     }
   };
-  
+
   const blogItemsPerPage = getBlogItemsPerPage();
 
   // Sample blog data
@@ -134,56 +148,56 @@ const ResourceBlog = () => {
   ];
 
   // Filter posts based on search
-  const filteredPosts = allBlogPosts.filter(post => {
+  const filteredPosts = blogs ? blogs.filter(post => {
     return post.title.toLowerCase().includes(searchQuery.toLowerCase());
-  });
-  
+  }) : [];
+
   // Calculate total pages
-  const totalFeaturedPages = Math.ceil(featuredArticles.length / featuredItemsPerPage);
+  const totalFeaturedPages = popularBlogs ? Math.ceil(popularBlogs.length / featuredItemsPerPage) : 0;
   const totalBlogPages = Math.ceil(filteredPosts.length / blogItemsPerPage);
-  
+
   // Reset current page when items per page changes
   useEffect(() => {
     if (currentBlogPage >= totalBlogPages && totalBlogPages > 0) {
       setCurrentBlogPage(totalBlogPages - 1);
     }
   }, [windowWidth, totalBlogPages, currentBlogPage]);
-  
+
   // Get current page items
-  const currentFeaturedArticles = featuredArticles.slice(
+  const currentFeaturedArticles = popularBlogs ? popularBlogs.slice(
     currentFeaturedPage * featuredItemsPerPage,
     (currentFeaturedPage + 1) * featuredItemsPerPage
-  );
-  
+  ) : [];
+
   const currentBlogPosts = filteredPosts.slice(
     currentBlogPage * blogItemsPerPage,
     (currentBlogPage + 1) * blogItemsPerPage
   );
-  
+
   // Navigation handlers
   const goToPrevFeatured = () => {
     setCurrentFeaturedPage(prev => (prev === 0 ? totalFeaturedPages - 1 : prev - 1));
   };
-  
+
   const goToNextFeatured = () => {
     setCurrentFeaturedPage(prev => (prev === totalFeaturedPages - 1 ? 0 : prev + 1));
   };
-  
+
   const goToPrevBlog = () => {
     setCurrentBlogPage(prev => (prev === 0 ? totalBlogPages - 1 : prev - 1));
   };
-  
+
   const goToNextBlog = () => {
     setCurrentBlogPage(prev => (prev === totalBlogPages - 1 ? 0 : prev + 1));
   };
 
   // Enhanced NavigationButton component with updated responsiveness for mobile
   const NavigationButton = ({ onClick, disabled, direction, label }) => (
-    <button 
-      className={`relative group flex items-center justify-center 
+    <button
+      className={`relative group flex items-center justify-center
         w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12
-        ${disabled 
-          ? 'bg-gray-100 cursor-not-allowed' 
+        ${disabled
+          ? 'bg-gray-100 cursor-not-allowed'
           : 'border border-[#1976D2] text-[#1976D2] rounded-full hover:bg-blue-50 transition-all duration-300 transform active:scale-95'
         }`}
       onClick={onClick}
@@ -191,14 +205,14 @@ const ResourceBlog = () => {
       disabled={disabled}
     >
       {direction === 'prev' ? (
-        <ArrowLeft 
-          size={windowWidth < 640 ? 16 : windowWidth < 768 ? 18 : 22} 
-          className={`${disabled ? 'text-gray-300' : 'text-[#1976D2]'} transition-colors duration-300`} 
+        <ArrowLeft
+          size={windowWidth < 640 ? 16 : windowWidth < 768 ? 18 : 22}
+          className={`${disabled ? 'text-gray-300' : 'text-[#1976D2]'} transition-colors duration-300`}
         />
       ) : (
-        <ArrowRight 
-          size={windowWidth < 640 ? 16 : windowWidth < 768 ? 18 : 22} 
-          className={`${disabled ? 'text-gray-300' : 'text-[#1976D2]'} transition-colors duration-300`} 
+        <ArrowRight
+          size={windowWidth < 640 ? 16 : windowWidth < 768 ? 18 : 22}
+          className={`${disabled ? 'text-gray-300' : 'text-[#1976D2]'} transition-colors duration-300`}
         />
       )}
     </button>
@@ -213,50 +227,75 @@ const ResourceBlog = () => {
     </div>
   );
 
+  // Format date
+  const formatDate = (dateString) => {
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    return new Date(dateString).toLocaleDateString('en-US', options);
+  };
+
   // Featured article card component with improved shadow
   const FeaturedArticleCard = ({ article }) => (
     <div className="bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden">
-      <div className="h-48 bg-gray-100 overflow-hidden">
-        <img 
-          src={article.image || "https://placehold.co/600x300"} 
-          alt="Featured article" 
-          className="w-full h-full object-cover"
-        />
-      </div>
+      <Link to={`/blog/${article._id}`} className="block">
+        <div className="h-48 bg-gray-100 overflow-hidden">
+          <img
+            src={article.featuredImage || `${process.env.PUBLIC_URL}/assets/blog-placeholder.jpg`}
+            alt={article.title}
+            className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+          />
+        </div>
+      </Link>
       <div className="p-6">
         <div className="flex items-center text-gray-500 text-sm mb-2">
           <Calendar size={16} className="mr-1" />
-          <span>{article.date}</span>
+          <span>{formatDate(article.createdAt)}</span>
         </div>
-        <h2 className="text-lg font-semibold text-blue-600 mb-2">{article.title}</h2>
-        <p className="text-gray-600 text-sm mb-4">{article.content}</p>
-        <button className="text-blue-600 text-sm font-medium hover:underline flex items-center group">
+        <Link to={`/blog/${article._id}`}>
+          <h2 className="text-lg font-semibold text-blue-600 mb-2 hover:text-blue-800 transition-colors">{article.title}</h2>
+        </Link>
+        <p className="text-gray-600 text-sm mb-4">
+          {article.content.replace(/<[^>]*>/g, '').substring(0, 120)}...
+        </p>
+        <Link to={`/blog/${article._id}`} className="text-blue-600 text-sm font-medium hover:underline flex items-center group">
           See More
           <ArrowRightIcon size={16} className="ml-1 group-hover:translate-x-1 transition-transform duration-300" />
-        </button>
+        </Link>
       </div>
     </div>
   );
 
   // Blog post card component with improved shadow
   const BlogPostCard = ({ post }) => (
-    <div className="bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden">
-      <div className="h-40 bg-gray-100 overflow-hidden">
-        <img 
-          src={post.image || "https://placehold.co/400x200"} 
-          alt="Blog post" 
-          className="w-full h-full object-cover"
-        />
-      </div>
-      <div className="p-4">
-        <div className="flex items-center text-gray-500 text-sm mb-1">
-          <Calendar size={16} className="mr-1" />
-          <span>{post.date}</span>
+    <Link to={`/blog/${post._id}`} className="block" onClick={(e) => {
+      console.log("Navigating to blog post:", post._id);
+    }}>
+      <div className="bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden">
+        <div className="h-40 bg-gray-100 overflow-hidden">
+          <img
+            src={post.featuredImage || `${process.env.PUBLIC_URL}/assets/blog-placeholder.jpg`}
+            alt={post.title}
+            className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+          />
         </div>
-        <h3 className="text-sm font-medium text-blue-600">{post.title}</h3>
+        <div className="p-4">
+          <div className="flex items-center text-gray-500 text-sm mb-1">
+            <Calendar size={16} className="mr-1" />
+            <span>{formatDate(post.createdAt)}</span>
+          </div>
+          <h3 className="text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors">{post.title}</h3>
+        </div>
       </div>
-    </div>
+    </Link>
   );
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 md:p-6 mx-2 lg:mx-4 bg-gray-50 min-h-screen">
@@ -264,24 +303,28 @@ const ResourceBlog = () => {
         {/* Blog Header */}
         <div className="bg-white rounded-lg shadow-lg flex flex-col md:flex-row md:items-center justify-between mb-8">
           <div className="mb-4 p-6 md:mb-0">
-            <div className="flex items-center mb-2">
-            <img 
-              src={`${process.env.PUBLIC_URL}/assets/Resources/pencil-blog.png`} 
-              alt="Blog header decoration" 
-              className="size-10 mr-1"
-            />
-              <h1 className="text-xl md:text-2xl xl:text-3xl font-semibold">Our Little Blog</h1>
-            </div>
-            <p className="text-gray-600 mt-4 md:text-lg text-sm">
-              Uncover the latest in community support news and discoveries.
-            </p>
+            <Link to="/blog" className="cursor-pointer">
+              <div className="flex items-center mb-2">
+                <img
+                  src={`${process.env.PUBLIC_URL}/assets/Resources/pencil-blog.png`}
+                  alt="Blog header decoration"
+                  className="size-10 mr-1"
+                />
+                <h1 className="text-xl md:text-2xl xl:text-3xl font-semibold hover:text-blue-600 transition-colors">Our Little Blog</h1>
+              </div>
+              <p className="text-gray-600 mt-4 md:text-lg text-sm">
+                Uncover the latest in community support news and discoveries.
+              </p>
+            </Link>
           </div>
           <div>
-            <img 
-              src={`${process.env.PUBLIC_URL}/assets/Resources/blog.png`} 
-              alt="Blog header decoration" 
-              className="hidden md:block md:h-48 w-full md:w-auto"
-            />
+            <Link to="/blog">
+              <img
+                src={`${process.env.PUBLIC_URL}/assets/Resources/blog.png`}
+                alt="Blog header decoration"
+                className="hidden md:block md:h-48 w-full md:w-auto"
+              />
+            </Link>
           </div>
         </div>
 
@@ -306,13 +349,13 @@ const ResourceBlog = () => {
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl xl:text-2xl font-semibold">Featured Articles</h2>
             <div className="flex items-center">
-              <NavigationButton 
+              <NavigationButton
                 onClick={goToPrevFeatured}
                 direction="prev"
                 label="Previous featured articles"
               />
               <PaginationDisplay current={currentFeaturedPage} total={totalFeaturedPages} />
-              <NavigationButton 
+              <NavigationButton
                 onClick={goToNextFeatured}
                 direction="next"
                 label="Next featured articles"
@@ -320,9 +363,15 @@ const ResourceBlog = () => {
             </div>
           </div>
           <div className="grid md:grid-cols-2 gap-6">
-            {currentFeaturedArticles.map((article) => (
-              <FeaturedArticleCard key={article.id} article={article} />
-            ))}
+            {currentFeaturedArticles && currentFeaturedArticles.length > 0 ? (
+              currentFeaturedArticles.map((article) => (
+                <FeaturedArticleCard key={article._id} article={article} />
+              ))
+            ) : (
+              <div className="md:col-span-2 text-center py-10 bg-white rounded-lg shadow-lg">
+                <p className="text-gray-500">No featured articles available.</p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -331,14 +380,14 @@ const ResourceBlog = () => {
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl xl:text-2xl font-semibold">All Blog Posts</h2>
             <div className="flex items-center">
-              <NavigationButton 
+              <NavigationButton
                 onClick={goToPrevBlog}
                 disabled={totalBlogPages <= 1}
                 direction="prev"
                 label="Previous blog posts"
               />
               <PaginationDisplay current={currentBlogPage} total={totalBlogPages} />
-              <NavigationButton 
+              <NavigationButton
                 onClick={goToNextBlog}
                 disabled={totalBlogPages <= 1}
                 direction="next"
@@ -346,10 +395,14 @@ const ResourceBlog = () => {
               />
             </div>
           </div>
-          {filteredPosts.length === 0 ? (
+          {!blogs ? (
+            <div className="text-center py-10 bg-white rounded-lg shadow-lg">
+              <p className="text-gray-500">Loading blog posts...</p>
+            </div>
+          ) : filteredPosts.length === 0 ? (
             <div className="text-center py-10 bg-white rounded-lg shadow-lg">
               <p className="text-gray-500">No blog posts found matching your criteria.</p>
-              <button 
+              <button
                 className="mt-4 text-blue-600 hover:underline"
                 onClick={() => {
                   setSearchQuery('');
@@ -361,7 +414,7 @@ const ResourceBlog = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {currentBlogPosts.map((post) => (
-                <BlogPostCard key={post.id} post={post} />
+                <BlogPostCard key={post._id} post={post} />
               ))}
             </div>
           )}

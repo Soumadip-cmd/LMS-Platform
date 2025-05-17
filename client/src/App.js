@@ -59,6 +59,7 @@ import HelpCenter from "./pages/ResourcesDashboard/Help/HelpCenter";
 import ProductUpdate from "./pages/ResourcesDashboard/ProductUpdate/ProductUpdate";
 import BlogState from "./context/blog/blogState.js";
 import ProductRoadmap from "./pages/ResourcesDashboard/ProductRoadmap/ProductRoadmap.js";
+import BlogDetail from "./pages/Blog/BlogDetail";
 // ScrollToTop component to handle scrolling on route changes
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -364,6 +365,12 @@ const AppContent = () => {
               path="/support/resources/roadmap"
               element={<ProductRoadmap/>}
             />
+
+            {/* Blog routes */}
+            <Route path="/blog" element={<ResourceBlog />} />
+            <Route path="/blog/:id" element={<BlogDetail />} />
+            {/* Redirect /support/resources/blog/:id to /blog/:id for compatibility */}
+            <Route path="/support/resources/blog/:id" element={<Navigate to={location => `/blog/${location.pathname.split('/').pop()}`} />} />
             <Route
               path="/support/resources/changelog"
               element={<div>Changelog Page</div>}

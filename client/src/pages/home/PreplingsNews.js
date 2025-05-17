@@ -2,22 +2,37 @@
 
 import React from 'react';
 import { useContext, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import TagStyle from '../../components/TagStyle/TagStyle';
 import BlogContext from '../../context/blog/blogContext';
 
-const NewsCard = ({ date, views, title, excerpt, category, featuredImage }) => {
+const NewsCard = ({ id, date, views, title, excerpt, category, featuredImage }) => {
   // Function to wrap numbers in date with span
   const formatDate = (dateStr) => {
     return dateStr.replace(/(\d+)/g, '<span class="numbers">$1</span>');
   };
 
+  const navigate = useNavigate();
+
+  const handleReadMore = (e) => {
+    e.preventDefault();
+    console.log("Navigating to blog post:", id);
+    if (id) {
+      navigate(`/blog/${id}`);
+    } else {
+      console.error("Blog ID is missing");
+    }
+  };
+
   return (
     <div className="flex flex-col h-full border border-gray-200 rounded-lg shadow-sm transition-all duration-300 hover:shadow-md hover:scale-105 hover:border-gray-300">
       <div className="relative mb-4 overflow-hidden rounded-t-lg">
-        <img 
-          src={featuredImage || "https://placehold.co/400x220"} 
-          alt={title} 
+        <img
+          src={featuredImage || "https://placehold.co/400x220"}
+          alt={title}
           className="w-full h-48 object-cover transition-transform duration-300 hover:transform hover:scale-110"
+          onClick={handleReadMore}
+          style={{ cursor: 'pointer' }}
         />
         {category && (
           <span className="absolute top-2 right-2 bg-black text-white text-xs px-2 py-1 font-medium">
@@ -41,10 +56,18 @@ const NewsCard = ({ date, views, title, excerpt, category, featuredImage }) => {
             <span className="numbers">{views}</span> views
           </span>
         </div>
-        <h2 className="text-lg md:text-base font-bold mb-2 line-clamp-2">{title}</h2>
+        <h2
+          className="text-lg md:text-base font-bold mb-2 line-clamp-2 hover:text-blue-600 transition-colors cursor-pointer"
+          onClick={handleReadMore}
+        >
+          {title}
+        </h2>
         <p className="text-gray-600 text-sm mb-4 flex-grow line-clamp-3">{excerpt}</p>
         <div className="mt-auto">
-          <button className="bg-[#D9D9D9] text-blue-500 px-4 py-2 rounded w-max text-sm font-semibold">
+          <button
+            className="bg-[#D9D9D9] text-blue-500 px-4 py-2 rounded w-max text-sm font-semibold hover:bg-blue-100 transition-colors"
+            onClick={handleReadMore}
+          >
             Read More
           </button>
         </div>
@@ -67,7 +90,7 @@ const BlogNews = () => {
   // Fallback to static content if blogs not loaded yet
   const articles = [
     {
-      id: 1,
+      _id: "fallback1", // Using _id to match the blog data structure
       date: "August 11, 2023",
       views: "2,222",
       title: "4 Learning Management System Design Tips For Better eLearning",
@@ -75,7 +98,7 @@ const BlogNews = () => {
       category: ""
     },
     {
-      id: 2,
+      _id: "fallback2",
       date: "August 11, 2023",
       views: "2,222",
       title: "4 Learning Management System Design Tips For Better eLearning",
@@ -83,7 +106,7 @@ const BlogNews = () => {
       category: "BUSINESS"
     },
     {
-      id: 3,
+      _id: "fallback3",
       date: "August 11, 2023",
       views: "2,222",
       title: "4 Learning Management System Design Tips For Better eLearning",
@@ -91,7 +114,7 @@ const BlogNews = () => {
       category: ""
     },
     {
-      id: 4,
+      _id: "fallback4",
       date: "August 11, 2023",
       views: "2,222",
       title: "4 Learning Management System Design Tips For Better eLearning",
@@ -105,7 +128,7 @@ const BlogNews = () => {
       <div className="mb-8">
         <div className="inline-block">
           <h1 className="text-2xl font-bold relative">
-            Preplings 
+            Preplings
             <TagStyle color="#000000" text="Blog"/>
           </h1>
         </div>
@@ -117,7 +140,8 @@ const BlogNews = () => {
           // Display fallback content if loading
           articles.map(article => (
             <NewsCard
-              key={article.id}
+              key={article._id}
+              id={article._id}
               date={article.date}
               views={article.views}
               title={article.title}
@@ -131,6 +155,7 @@ const BlogNews = () => {
             blogs.slice(0, 8).map(blog => (
               <NewsCard
                 key={blog._id}
+                id={blog._id}
                 date={new Date(blog.createdAt).toLocaleDateString('en-US', {month: 'long', day: 'numeric', year: 'numeric'})}
                 views={blog.views.toString()}
                 title={blog.title}
