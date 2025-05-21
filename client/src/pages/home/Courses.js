@@ -135,7 +135,7 @@ const Courses = () => {
 
       <div className="fixed bottom-6 right-6 z-50">
         <button
-          className="bg-blue-700 hover:bg-blue-800 text-white rounded-full w-12 h-12 flex items-center justify-center shadow-lg transform hover:scale-105 transition duration-300"
+          className="bg-[#1976D2] hover:bg-blue-800 text-white rounded-full w-12 h-12 flex items-center justify-center shadow-lg transform hover:scale-105 transition duration-300"
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           aria-label="Scroll to top"
         >

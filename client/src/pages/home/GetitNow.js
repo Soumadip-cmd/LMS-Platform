@@ -256,7 +256,7 @@ const GetitNow = () => {
                 Top instructors from around the world teach millions of students on Preplings
               </p>
 
-              <button  onClick={handleButtonClick}  className="bg-blue-600 text-white py-2 px-6 rounded font-medium hover:bg-blue-700 transition-colors">
+              <button  onClick={handleButtonClick}  className="bg-[#1976D2] text-white py-2 px-6 rounded font-medium hover:bg-blue-700 transition-colors">
                 Start teaching today
               </button>
             </div>
@@ -294,7 +294,7 @@ const GetitNow = () => {
                 Course recommendations and promotions.
               </p>
 
-              <button onClick={handleRegisterNow} className="bg-blue-600 text-white py-2 px-6 rounded font-medium hover:bg-blue-700 transition-colors">
+              <button onClick={handleRegisterNow} className="bg-[#1976D2] text-white py-2 px-6 rounded font-medium hover:bg-blue-700 transition-colors">
                 Register for free
               </button>
             </div>
