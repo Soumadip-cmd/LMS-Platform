@@ -406,7 +406,7 @@ const HomePage = () => {
               </div>
             </div>
             {/* courses section */}
-            <section className=" 2xl:flex justify-center">
+            <section className=" ">
               {/* Top courses */}
               <Courses />
             </section>
