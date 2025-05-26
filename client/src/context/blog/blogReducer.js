@@ -16,7 +16,11 @@ import {
     GET_TRENDING_TOPICS,
     GET_RECOMMENDATIONS,
     SET_SEARCH_RESULTS,
-    CLEAR_SEARCH_RESULTS
+    CLEAR_SEARCH_RESULTS,
+    ADD_COMMENT_REPLY,
+    TOGGLE_COMMENT_LIKE,
+    TOGGLE_REPLY_LIKE,
+    
   } from '../types.js';
 
   const blogReducer = (state, action) => {
@@ -164,6 +168,53 @@ import {
           _lastRequestedBlogId: null,
           _lastRequestedPopularBlogs: false
         };
+
+
+        case ADD_COMMENT_REPLY:
+  return {
+    ...state,
+    blog: {
+      ...state.blog,
+      comments: state.blog.comments.map(comment =>
+        comment._id === action.payload.commentId
+          ? { ...comment, replies: [...comment.replies, action.payload.reply] }
+          : comment
+      )
+    }
+  };
+
+case TOGGLE_COMMENT_LIKE:
+  return {
+    ...state,
+    blog: {
+      ...state.blog,
+      comments: state.blog.comments.map(comment =>
+        comment._id === action.payload.commentId
+          ? { ...comment, likes: action.payload.likes }
+          : comment
+      )
+    }
+  };
+
+case TOGGLE_REPLY_LIKE:
+  return {
+    ...state,
+    blog: {
+      ...state.blog,
+      comments: state.blog.comments.map(comment =>
+        comment._id === action.payload.commentId
+          ? {
+              ...comment,
+              replies: comment.replies.map(reply =>
+                reply._id === action.payload.replyId
+                  ? { ...reply, likes: action.payload.likes }
+                  : reply
+              )
+            }
+          : comment
+      )
+    }
+  };
 
       case CLEAR_BLOG_ERROR:
         return {

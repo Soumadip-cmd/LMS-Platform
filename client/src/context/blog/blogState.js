@@ -21,7 +21,12 @@ import {
   GET_TRENDING_TOPICS,
   GET_RECOMMENDATIONS,
   SET_SEARCH_RESULTS,
-  CLEAR_SEARCH_RESULTS
+  CLEAR_SEARCH_RESULTS,
+  ADD_COMMENT_REPLY,
+  TOGGLE_COMMENT_LIKE,
+  TOGGLE_REPLY_LIKE,
+  UPDATE_COMMENT_REALTIME,
+  UPDATE_REPLY_REALTIME
 } from '../types.js';
 
 const BlogState = (props) => {
@@ -38,21 +43,46 @@ const BlogState = (props) => {
     trendingTopics: [],
     loading: false,
     error: null,
-    _lastRequestedBlogId: null, // Track the last requested blog ID to prevent duplicate requests
-    _lastRequestedPopularBlogs: false // Track if popular blogs have been requested
+    _lastRequestedBlogId: null,
+    _lastRequestedPopularBlogs: false
   };
 
   const [state, dispatch] = useReducer(blogReducer, initialState);
+
+  // Configure axios defaults
+  axios.defaults.baseURL = SERVER_URI;
+  axios.defaults.withCredentials = true;
+
+  // Helper function to get auth config
+const getAuthConfig = () => {
+  const token = localStorage.getItem('authToken'); // ✅ Change from 'token' to 'authToken'
+  
+  // Debug logging
+  console.log('🔍 BlogState Auth Debug:', {
+    tokenExists: !!token,
+    tokenLength: token?.length,
+    tokenPreview: token?.substring(0, 20) + '...'
+  });
+  
+  const config = {
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token && { 'Authorization': `Bearer ${token}` })
+    }
+  };
+  
+  console.log('🔍 Request Config:', config);
+  return config;
+};
 
   // Set loading
   const setLoading = (payload) => dispatch({ type: SET_LOADING, payload });
 
   // Clear errors
   const clearErrors = () => dispatch({ type: CLEAR_BLOG_ERROR });
-  const BASE_URL = SERVER_URI;
+
   // Get all blogs
   const getBlogs = async (page = 1, limit = 10, category = '', tag = '', search = '') => {
-    // Avoid duplicate calls if we already have blogs for the same parameters
     if (
       state.blogs &&
       state.blogs.length > 0 &&
@@ -70,7 +100,7 @@ const BlogState = (props) => {
 
     try {
       console.log(`Fetching blogs: page=${page}, limit=${limit}, category=${category}, tag=${tag}, search=${search}`);
-      const res = await axios.get(`${BASE_URL}/blog/get-all?page=${page}&limit=${limit}${category ? `&category=${category}` : ''}${tag ? `&tag=${tag}` : ''}${search ? `&search=${search}` : ''}`);
+      const res = await axios.get(`/blog/get-all?page=${page}&limit=${limit}${category ? `&category=${category}` : ''}${tag ? `&tag=${tag}` : ''}${search ? `&search=${search}` : ''}`);
       console.log(`Received ${res.data.blogs.length} blogs`);
 
       dispatch({
@@ -95,26 +125,22 @@ const BlogState = (props) => {
 
   // Get popular blogs
   const getPopularBlogs = async (limit = 5) => {
-    // Avoid duplicate calls if we already have popular blogs
     if (state.popularBlogs && state.popularBlogs.length >= limit && !state.loading) {
       console.log(`Popular blogs already loaded (${state.popularBlogs.length}), skipping fetch`);
       return state.popularBlogs;
     }
 
-    // Prevent multiple simultaneous calls
     if (state.loading && state._lastRequestedPopularBlogs) {
       console.log(`Already loading popular blogs, skipping duplicate fetch`);
       return null;
     }
 
-    // Set loading state and mark that we're loading popular blogs
     setLoading({ _lastRequestedPopularBlogs: true });
 
     try {
       console.log(`Fetching popular blogs with limit: ${limit}`);
-      const res = await axios.get(`${BASE_URL}/blog/popular?limit=${limit}`);
+      const res = await axios.get(`/blog/popular?limit=${limit}`);
 
-      // Validate response
       if (!res.data || !res.data.popularPosts) {
         console.error("Invalid response from server:", res.data);
         dispatch({
@@ -134,19 +160,16 @@ const BlogState = (props) => {
       return res.data.popularPosts;
     } catch (err) {
       console.error("Error fetching popular blogs:", err);
-
       dispatch({
         type: BLOG_ERROR,
         payload: err.response?.data?.message || 'Error fetching popular blogs'
       });
-
       return null;
     }
   };
 
   // Get a single blog
   const getBlog = async (id) => {
-    // Validate ID
     if (!id) {
       console.error("getBlog called with invalid ID:", id);
       dispatch({
@@ -156,29 +179,25 @@ const BlogState = (props) => {
       return null;
     }
 
-    // Avoid duplicate calls for the same blog ID
     if (state.blog && state.blog._id === id && !state.loading) {
       console.log(`Blog with ID ${id} already loaded, skipping fetch`);
       return state.blog;
     }
 
-    // Prevent multiple simultaneous calls for the same blog
     if (state.loading && state._lastRequestedBlogId === id) {
       console.log(`Already loading blog with ID ${id}, skipping duplicate fetch`);
       return null;
     }
 
-    // Set loading state and store the ID we're currently fetching
     dispatch({
       type: SET_LOADING,
       payload: { _lastRequestedBlogId: id }
     });
 
     try {
-      console.log(`Fetching blog with ID: ${id} from ${BASE_URL}/blog/get/${id}`);
-      const res = await axios.get(`${BASE_URL}/blog/get/${id}`);
+      console.log(`Fetching blog with ID: ${id}`);
+      const res = await axios.get(`/blog/get/${id}`);
 
-      // Validate response
       if (!res.data || !res.data.blog) {
         console.error("Invalid response from server:", res.data);
         dispatch({
@@ -190,13 +209,11 @@ const BlogState = (props) => {
 
       console.log("Blog data received:", res.data.blog.title);
 
-      // Update state with blog data
       dispatch({
         type: GET_BLOG,
         payload: res.data.blog
       });
 
-      // Update related posts if available
       if (res.data.relatedPosts) {
         dispatch({
           type: GET_RELATED_BLOGS,
@@ -207,10 +224,117 @@ const BlogState = (props) => {
       return res.data.blog;
     } catch (err) {
       console.error("Error fetching blog:", err);
-
       dispatch({
         type: BLOG_ERROR,
         payload: err.response?.data?.message || 'Error fetching blog'
+      });
+      throw err;
+    }
+  };
+
+  // Add a comment
+  const addComment = async (blogId, text) => {
+    try {
+      const config = getAuthConfig(); // ✅ Use auth config
+      const res = await axios.post(`/blog/${blogId}/comments`, { text }, config);
+
+      dispatch({
+        type: ADD_COMMENT,
+        payload: res.data.comment
+      });
+
+      return res.data.comment;
+    } catch (err) {
+      dispatch({
+        type: BLOG_ERROR,
+        payload: err.response?.data?.message || 'Error adding comment'
+      });
+      throw err;
+    }
+  };
+
+  // Add comment reply
+  const addCommentReply = async (blogId, commentId, text) => {
+    try {
+      const config = getAuthConfig(); // ✅ Use auth config
+      const res = await axios.post(`/blog/${blogId}/comments/${commentId}/reply`, { text }, config);
+
+      dispatch({
+        type: ADD_COMMENT_REPLY,
+        payload: { commentId, reply: res.data.reply }
+      });
+
+      return res.data.reply;
+    } catch (err) {
+      dispatch({
+        type: BLOG_ERROR,
+        payload: err.response?.data?.message || 'Error adding reply'
+      });
+      throw err;
+    }
+  };
+
+  // Toggle comment like
+  const toggleCommentLike = async (blogId, commentId) => {
+    try {
+      const config = getAuthConfig(); // ✅ Use auth config
+      const res = await axios.post(`/blog/${blogId}/comments/${commentId}/like`, {}, config);
+
+      dispatch({
+        type: TOGGLE_COMMENT_LIKE,
+        payload: { commentId, likes: res.data.likes }
+      });
+
+      return res.data;
+    } catch (err) {
+      dispatch({
+        type: BLOG_ERROR,
+        payload: err.response?.data?.message || 'Error processing comment like'
+      });
+      throw err;
+    }
+  };
+
+  // Toggle reply like
+  const toggleReplyLike = async (blogId, commentId, replyId) => {
+    try {
+      const config = getAuthConfig(); // ✅ Use auth config
+      const res = await axios.post(`/blog/${blogId}/comments/${commentId}/replies/${replyId}/like`, {}, config);
+
+      dispatch({
+        type: TOGGLE_REPLY_LIKE,
+        payload: { commentId, replyId, likes: res.data.likes }
+      });
+
+      return res.data;
+    } catch (err) {
+      dispatch({
+        type: BLOG_ERROR,
+        payload: err.response?.data?.message || 'Error processing reply like'
+      });
+      throw err;
+    }
+  };
+
+  // Toggle blog like
+  const toggleLike = async (blogId) => {
+    try {
+      const config = getAuthConfig(); // ✅ Use auth config
+      const res = await axios.post(`/blog/${blogId}/like`, {}, config);
+
+      dispatch({
+        type: TOGGLE_LIKE,
+        payload: {
+          message: res.data.message,
+          likes: res.data.likes
+        }
+      });
+
+      return res.data;
+    } catch (err) {
+      dispatch({
+        type: BLOG_ERROR,
+        payload: err.response?.data?.message || 'Error processing like'
       });
       throw err;
     }
@@ -220,14 +344,9 @@ const BlogState = (props) => {
   const createBlog = async (formData) => {
     setLoading();
 
-    const config = {
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    };
-
     try {
-      const res = await axios.post(`${BASE_URL}/blog/create`, formData, config);
+      const config = getAuthConfig(); // ✅ Use auth config
+      const res = await axios.post(`/blog/create`, formData, config);
 
       dispatch({
         type: CREATE_BLOG,
@@ -248,14 +367,9 @@ const BlogState = (props) => {
   const updateBlog = async (id, formData) => {
     setLoading();
 
-    const config = {
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    };
-
     try {
-      const res = await axios.put(`${BASE_URL}/blog/update/${id}`, formData, config);
+      const config = getAuthConfig(); // ✅ Use auth config
+      const res = await axios.put(`/blog/update/${id}`, formData, config);
 
       dispatch({
         type: UPDATE_BLOG,
@@ -277,7 +391,8 @@ const BlogState = (props) => {
     setLoading();
 
     try {
-      await axios.delete(`${BASE_URL}/blog/delete/${id}`);
+      const config = getAuthConfig(); // ✅ Use auth config
+      await axios.delete(`/blog/delete/${id}`, config);
 
       dispatch({
         type: DELETE_BLOG,
@@ -291,61 +406,13 @@ const BlogState = (props) => {
     }
   };
 
-  // Add a comment
-  const addComment = async (blogId, text) => {
-    const config = {
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    };
-
-    try {
-      const res = await axios.post(`${BASE_URL}/blog/${blogId}/comments`, { text }, config);
-
-      dispatch({
-        type: ADD_COMMENT,
-        payload: res.data.comment
-      });
-
-      return res.data.comment;
-    } catch (err) {
-      dispatch({
-        type: BLOG_ERROR,
-        payload: err.response?.data?.message || 'Error adding comment'
-      });
-      throw err;
-    }
-  };
-
-  // Toggle like
-  const toggleLike = async (blogId) => {
-    try {
-      const res = await axios.post(`${BASE_URL}/blog/${blogId}/like`);
-
-      dispatch({
-        type: TOGGLE_LIKE,
-        payload: {
-          message: res.data.message,
-          likes: res.data.likes
-        }
-      });
-
-      return res.data;
-    } catch (err) {
-      dispatch({
-        type: BLOG_ERROR,
-        payload: err.response?.data?.message || 'Error processing like'
-      });
-      throw err;
-    }
-  };
-
   // Get blog analytics
   const getBlogAnalytics = async () => {
     setLoading();
 
     try {
-      const res = await axios.get(`${BASE_URL}/blog/analytics/performance`);
+      const config = getAuthConfig(); // ✅ Use auth config
+      const res = await axios.get(`/blog/analytics/performance`, config);
 
       dispatch({
         type: GET_BLOG_ANALYTICS,
@@ -365,7 +432,7 @@ const BlogState = (props) => {
   // Get trending topics
   const getTrendingTopics = async () => {
     try {
-      const res = await axios.get(`${BASE_URL}/blog/analytics/trending-topics`);
+      const res = await axios.get(`/blog/analytics/trending-topics`);
 
       dispatch({
         type: GET_TRENDING_TOPICS,
@@ -385,7 +452,8 @@ const BlogState = (props) => {
   // Get personalized recommendations
   const getRecommendations = async () => {
     try {
-      const res = await axios.get(`${BASE_URL}/blog/search/recommendations`);
+      const config = getAuthConfig(); // ✅ Use auth config
+      const res = await axios.get(`/blog/search/recommendations`, config);
 
       dispatch({
         type: GET_RECOMMENDATIONS,
@@ -407,7 +475,6 @@ const BlogState = (props) => {
     setLoading();
 
     try {
-      // Build query string from search params
       const queryParams = new URLSearchParams();
 
       for (const [key, value] of Object.entries(searchParams)) {
@@ -416,7 +483,7 @@ const BlogState = (props) => {
         }
       }
 
-      const res = await axios.get(`${BASE_URL}/blog/search/advanced?${queryParams.toString()}`);
+      const res = await axios.get(`/blog/search/advanced?${queryParams.toString()}`);
 
       dispatch({
         type: SET_SEARCH_RESULTS,
@@ -441,7 +508,6 @@ const BlogState = (props) => {
   // Clear current blog
   const clearBlog = () => {
     console.log("Clearing current blog data");
-    // Reset the flags to prevent issues with future requests
     state._lastRequestedBlogId = null;
     state._lastRequestedPopularBlogs = false;
     dispatch({ type: CLEAR_BLOG });
@@ -476,11 +542,15 @@ const BlogState = (props) => {
         advancedSearch,
         clearSearchResults,
         clearBlog,
-        clearErrors
+        clearErrors,
+        addCommentReply,
+        toggleCommentLike,
+        toggleReplyLike,
       }}
     >
       {props.children}
     </BlogContext.Provider>
   );
 };
+
 export default BlogState;

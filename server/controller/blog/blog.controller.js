@@ -5,15 +5,14 @@ import {User} from '../../models/user.model.js'
 // Popular posts recommendation function using TensorFlow
 async function getPopularPosts(limit = 5) {
   try {
-    // Calculate popularity score based on multiple factors
     const popularPosts = await Blog.aggregate([
       {
         $addFields: {
           popularityScore: {
             $add: [
-              { $multiply: ['$views', 0.3] },      // Views weight
-              { $multiply: [{ $size: '$likes' }, 0.4] },  // Likes weight
-              { $multiply: [{ $size: '$comments' }, 0.3] }  // Comments weight
+              { $multiply: ['$views', 0.3] },
+              { $multiply: [{ $size: '$likes' }, 0.4] },
+              { $multiply: [{ $size: '$comments' }, 0.3] }
             ]
           }
         }
@@ -22,7 +21,7 @@ async function getPopularPosts(limit = 5) {
       { $limit: limit },
       {
         $lookup: {
-          from: 'users',  // Assuming users collection
+          from: 'users',
           localField: 'author',
           foreignField: '_id',
           as: 'authorDetails'
@@ -31,13 +30,13 @@ async function getPopularPosts(limit = 5) {
       {
         $project: {
           title: 1,
-          content: { $substr: ['$content', 0, 200] },  // Truncate content
+          content: { $substr: ['$content', 0, 200] },
           views: 1,
           likes: { $size: '$likes' },
           comments: { $size: '$comments' },
           category: 1,
           featuredImage: 1,
-          author: { $arrayElemAt: ['$authorDetails.username', 0] },
+          author: { $arrayElemAt: ['$authorDetails.name', 0] },  // ✅ Changed from 'username' to 'name'
           popularityScore: 1,
           createdAt: 1
         }
@@ -111,11 +110,11 @@ export const getAllBlogs = async (req, res) => {
       query.$text = { $search: search };
     }
 
-    const blogs = await Blog.find(query)
-      .populate('author', 'username profilePicture')
-      .sort({ createdAt: -1 })
-      .skip((page - 1) * limit)
-      .limit(Number(limit));
+  const blogs = await Blog.find(query)
+  .populate('author', 'name photoUrl')  
+  .sort({ createdAt: -1 })
+  .skip((page - 1) * limit)
+  .limit(Number(limit));
 
     const total = await Blog.countDocuments(query);
 
@@ -139,9 +138,10 @@ export const getAllBlogs = async (req, res) => {
 // Get a single blog post by ID
 export const getBlogById = async (req, res) => {
   try {
-    const blog = await Blog.findById(req.params.id)
-      .populate('author', 'username profilePicture')
-      .populate('comments.user', 'username profilePicture');
+   const blog = await Blog.findById(req.params.id)
+  .populate('author', 'name photoUrl')  
+  .populate('comments.user', 'name photoUrl')  
+  .populate('comments.replies.user', 'name photoUrl');  
 
     if (!blog) {
       return res.status(404).json({ message: 'Blog post not found' });
@@ -238,6 +238,12 @@ export const deleteBlog = async (req, res) => {
 export const addComment = async (req, res) => {
   try {
     const { text } = req.body;
+    
+    // Add validation to check if user is authenticated
+    if (!req.user || !req.user._id) {
+      return res.status(401).json({ message: 'User not authenticated' });
+    }
+    
     const blog = await Blog.findById(req.params.id);
 
     if (!blog) {
@@ -245,7 +251,7 @@ export const addComment = async (req, res) => {
     }
 
     const newComment = {
-      user: req.user._id,
+      user: req.user._id,  // This should be valid now
       text,
       createdAt: new Date()
     };
@@ -253,28 +259,30 @@ export const addComment = async (req, res) => {
     blog.comments.unshift(newComment);
     await blog.save();
 
-    // Populate the new comment with user data
-    await blog.populate('comments.user', 'username profilePicture');
+    // Fix the populate field - use 'name' instead of 'username'
+    await blog.populate('comments.user', 'name photoUrl');  // ✅ Changed from 'username' to 'name'
     const populatedComment = blog.comments[0];
 
     // Emit socket event
-    req.io.to(`blog_${req.params.id}`).emit('newComment', {
-      blogId: req.params.id,
-      comment: populatedComment
-    });
+    if (req.io) {
+      req.io.to(`blog:${req.params.id}`).emit('commentAdded', {
+        blogId: req.params.id,
+        comment: populatedComment
+      });
+    }
 
     res.status(201).json({
       message: 'Comment added successfully',
       comment: populatedComment
     });
   } catch (error) {
+    console.error('Error adding comment:', error);
     res.status(400).json({
       message: 'Error adding comment',
       error: error.message
     });
   }
 };
-
 // Like/Unlike a blog post
 export const toggleLike = async (req, res) => {
   try {
@@ -378,12 +386,16 @@ export const toggleCommentLike = async (req, res) => {
     await blog.save();
 
     // Emit socket event
-    req.io.to(`blog_${blogId}`).emit('commentLikeUpdate', {
+    if(req.io)
+    {
+ req.io.to(`blog_${blogId}`).emit('commentLikeUpdate', {
       blogId,
       commentId,
       likes: comment.likes.length,
       isLiked: likeIndex === -1
     });
+    }
+   
 
     res.json({
       message: likeIndex > -1 ? 'Comment unliked' : 'Comment liked',
@@ -423,15 +435,20 @@ export const replyToComment = async (req, res) => {
     await blog.save();
 
     // Populate the new reply with user data
-    await blog.populate('comments.replies.user', 'username profilePicture');
+  await blog.populate('comments.replies.user', 'name photoUrl');
     const populatedReply = comment.replies[comment.replies.length - 1];
 
     // Emit socket event
+    if(req.io)
+    {
+
+    
     req.io.to(`blog_${blogId}`).emit('newReply', {
       blogId,
       commentId,
       reply: populatedReply
     });
+    }
 
     res.status(201).json({
       message: 'Reply added successfully',

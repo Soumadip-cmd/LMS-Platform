@@ -124,6 +124,11 @@ app.get('/', (req, res) => {
     res.send("API Working..");
 });
 
+
+app.use((req, res, next) => {
+  req.io = io;  // ✅ Add this line
+  next();
+});
 // Global error handler
 app.use((err, req, res, next) => {
     console.error('Global error handler caught:', {
