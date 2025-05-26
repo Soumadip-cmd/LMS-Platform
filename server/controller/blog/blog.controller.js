@@ -251,11 +251,21 @@ export const addComment = async (req, res) => {
     };
 
     blog.comments.unshift(newComment);
-    const updatedBlog = await blog.save();
+    await blog.save();
+
+    // Populate the new comment with user data
+    await blog.populate('comments.user', 'username profilePicture');
+    const populatedComment = blog.comments[0];
+
+    // Emit socket event
+    req.io.to(`blog_${req.params.id}`).emit('newComment', {
+      blogId: req.params.id,
+      comment: populatedComment
+    });
 
     res.status(201).json({
       message: 'Comment added successfully',
-      comment: newComment
+      comment: populatedComment
     });
   } catch (error) {
     res.status(400).json({
@@ -340,3 +350,149 @@ async function getUsersInterestedInCategory(category) {
     return [];  // Return empty array in case of error
   }
 }
+
+// Like/Unlike a comment
+export const toggleCommentLike = async (req, res) => {
+  try {
+    const { blogId, commentId } = req.params;
+    const blog = await Blog.findById(blogId);
+    
+    if (!blog) {
+      return res.status(404).json({ message: 'Blog post not found' });
+    }
+
+    const comment = blog.comments.id(commentId);
+    if (!comment) {
+      return res.status(404).json({ message: 'Comment not found' });
+    }
+
+    const userId = req.user._id;
+    const likeIndex = comment.likes.findIndex(id => id.toString() === userId.toString());
+
+    if (likeIndex > -1) {
+      comment.likes.splice(likeIndex, 1);
+    } else {
+      comment.likes.push(userId);
+    }
+
+    await blog.save();
+
+    // Emit socket event
+    req.io.to(`blog_${blogId}`).emit('commentLikeUpdate', {
+      blogId,
+      commentId,
+      likes: comment.likes.length,
+      isLiked: likeIndex === -1
+    });
+
+    res.json({
+      message: likeIndex > -1 ? 'Comment unliked' : 'Comment liked',
+      likes: comment.likes.length
+    });
+  } catch (error) {
+    res.status(400).json({
+      message: 'Error processing comment like',
+      error: error.message
+    });
+  }
+};
+
+// Reply to a comment
+export const replyToComment = async (req, res) => {
+  try {
+    const { blogId, commentId } = req.params;
+    const { text } = req.body;
+    
+    const blog = await Blog.findById(blogId);
+    if (!blog) {
+      return res.status(404).json({ message: 'Blog post not found' });
+    }
+
+    const comment = blog.comments.id(commentId);
+    if (!comment) {
+      return res.status(404).json({ message: 'Comment not found' });
+    }
+
+    const newReply = {
+      user: req.user._id,
+      text,
+      createdAt: new Date()
+    };
+
+    comment.replies.push(newReply);
+    await blog.save();
+
+    // Populate the new reply with user data
+    await blog.populate('comments.replies.user', 'username profilePicture');
+    const populatedReply = comment.replies[comment.replies.length - 1];
+
+    // Emit socket event
+    req.io.to(`blog_${blogId}`).emit('newReply', {
+      blogId,
+      commentId,
+      reply: populatedReply
+    });
+
+    res.status(201).json({
+      message: 'Reply added successfully',
+      reply: populatedReply
+    });
+  } catch (error) {
+    res.status(400).json({
+      message: 'Error adding reply',
+      error: error.message
+    });
+  }
+};
+
+// Like/Unlike a reply
+export const toggleReplyLike = async (req, res) => {
+  try {
+    const { blogId, commentId, replyId } = req.params;
+    const blog = await Blog.findById(blogId);
+    
+    if (!blog) {
+      return res.status(404).json({ message: 'Blog post not found' });
+    }
+
+    const comment = blog.comments.id(commentId);
+    if (!comment) {
+      return res.status(404).json({ message: 'Comment not found' });
+    }
+
+    const reply = comment.replies.id(replyId);
+    if (!reply) {
+      return res.status(404).json({ message: 'Reply not found' });
+    }
+
+    const userId = req.user._id;
+    const likeIndex = reply.likes.findIndex(id => id.toString() === userId.toString());
+
+    if (likeIndex > -1) {
+      reply.likes.splice(likeIndex, 1);
+    } else {
+      reply.likes.push(userId);
+    }
+
+    await blog.save();
+
+    // Emit socket event
+    req.io.to(`blog_${blogId}`).emit('replyLikeUpdate', {
+      blogId,
+      commentId,
+      replyId,
+      likes: reply.likes.length,
+      isLiked: likeIndex === -1
+    });
+
+    res.json({
+      message: likeIndex > -1 ? 'Reply unliked' : 'Reply liked',
+      likes: reply.likes.length
+    });
+  } catch (error) {
+    res.status(400).json({
+      message: 'Error processing reply like',
+      error: error.message
+    });
+  }
+};

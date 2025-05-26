@@ -6,6 +6,8 @@ import { Notification } from "../models/notification.model.js";
 let io;
 const userSocketMap = new Map(); // Maps userId to socketId
 const studySessionMap = new Map(); // Maps userId to study session data
+const blogRoomMap = new Map(); // Maps userId to blogId they're currently viewing
+const blogTypingMap = new Map(); // Maps blogId to users currently typing
 /**
  * Initialize Socket.IO server
  * @param {object} server - HTTP server instance
@@ -112,6 +114,159 @@ export const initializeSocket = (server) => {
       }
     });
 
+
+
+      // Blog-related socket handlers
+    socket.on("joinBlog", (blogId) => {
+      if (!socket.userId || !blogId) return;
+      
+      // Leave previous blog room if any
+      const previousBlogId = blogRoomMap.get(socket.userId);
+      if (previousBlogId) {
+        socket.leave(`blog:${previousBlogId}`);
+      }
+      
+      // Join new blog room
+      socket.join(`blog:${blogId}`);
+      blogRoomMap.set(socket.userId, blogId);
+      
+      console.log(`User ${socket.userId} joined blog ${blogId}`);
+      
+      // Notify others in the blog room
+      socket.to(`blog:${blogId}`).emit("userJoinedBlog", {
+        userId: socket.userId,
+        blogId
+      });
+    });
+
+    socket.on("leaveBlog", (blogId) => {
+      if (!socket.userId || !blogId) return;
+      
+      socket.leave(`blog:${blogId}`);
+      blogRoomMap.delete(socket.userId);
+      
+      console.log(`User ${socket.userId} left blog ${blogId}`);
+      
+      // Notify others in the blog room
+      socket.to(`blog:${blogId}`).emit("userLeftBlog", {
+        userId: socket.userId,
+        blogId
+      });
+    });
+
+    // Handle typing indicators for comments
+    socket.on("commentTyping", ({ blogId, isTyping, username }) => {
+      if (!socket.userId || !blogId) return;
+      
+      if (isTyping) {
+        // Add user to typing list
+        if (!blogTypingMap.has(blogId)) {
+          blogTypingMap.set(blogId, new Set());
+        }
+        blogTypingMap.get(blogId).add(socket.userId);
+      } else {
+        // Remove user from typing list
+        if (blogTypingMap.has(blogId)) {
+          blogTypingMap.get(blogId).delete(socket.userId);
+          if (blogTypingMap.get(blogId).size === 0) {
+            blogTypingMap.delete(blogId);
+          }
+        }
+      }
+      
+      // Broadcast typing status to others in the blog room
+      socket.to(`blog:${blogId}`).emit("userTyping", {
+        userId: socket.userId,
+        username,
+        isTyping,
+        blogId
+      });
+    });
+
+    // Handle reply typing indicators
+    socket.on("replyTyping", ({ blogId, commentId, isTyping, username }) => {
+      if (!socket.userId || !blogId || !commentId) return;
+      
+      // Broadcast reply typing status to others in the blog room
+      socket.to(`blog:${blogId}`).emit("userReplyTyping", {
+        userId: socket.userId,
+        username,
+        isTyping,
+        blogId,
+        commentId
+      });
+    });
+
+    // Handle new comment events
+    socket.on("newComment", ({ blogId, comment }) => {
+      if (!socket.userId || !blogId) return;
+      
+      // Broadcast new comment to all users in the blog room except sender
+      socket.to(`blog:${blogId}`).emit("commentAdded", {
+        blogId,
+        comment,
+        addedBy: socket.userId
+      });
+      
+      console.log(`New comment added to blog ${blogId} by user ${socket.userId}`);
+    });
+
+    // Handle new reply events
+    socket.on("newReply", ({ blogId, commentId, reply }) => {
+      if (!socket.userId || !blogId || !commentId) return;
+      
+      // Broadcast new reply to all users in the blog room except sender
+      socket.to(`blog:${blogId}`).emit("replyAdded", {
+        blogId,
+        commentId,
+        reply,
+        addedBy: socket.userId
+      });
+      
+      console.log(`New reply added to comment ${commentId} in blog ${blogId} by user ${socket.userId}`);
+    });
+
+    // Handle comment like events
+    socket.on("commentLiked", ({ blogId, commentId, likesCount, isLiked }) => {
+      if (!socket.userId || !blogId || !commentId) return;
+      
+      // Broadcast like update to all users in the blog room except sender
+      socket.to(`blog:${blogId}`).emit("commentLikeUpdated", {
+        blogId,
+        commentId,
+        likesCount,
+        isLiked,
+        likedBy: socket.userId
+      });
+    });
+
+    // Handle reply like events
+    socket.on("replyLiked", ({ blogId, commentId, replyId, likesCount, isLiked }) => {
+      if (!socket.userId || !blogId || !commentId || !replyId) return;
+      
+      // Broadcast reply like update to all users in the blog room except sender
+      socket.to(`blog:${blogId}`).emit("replyLikeUpdated", {
+        blogId,
+        commentId,
+        replyId,
+        likesCount,
+        isLiked,
+        likedBy: socket.userId
+      });
+    });
+
+    // Handle blog post like events
+    socket.on("blogLiked", ({ blogId, likesCount, isLiked }) => {
+      if (!socket.userId || !blogId) return;
+      
+      // Broadcast blog like update to all users in the blog room except sender
+      socket.to(`blog:${blogId}`).emit("blogLikeUpdated", {
+        blogId,
+        likesCount,
+        isLiked,
+        likedBy: socket.userId
+      });
+    });
     // Handle private messaging
     socket.on("privateMessage", ({ recipientId, message }) => {
       if (!socket.userId) return;
@@ -273,6 +428,29 @@ export const initializeSocket = (server) => {
         const userId = socket.userId;
         if (!userId) return;
 
+
+
+          // Clean up blog-related data
+    const currentBlogId = blogRoomMap.get(userId);
+    if (currentBlogId) {
+      // Remove from blog room
+      socket.leave(`blog:${currentBlogId}`);
+      blogRoomMap.delete(userId);
+      
+      // Clean up typing indicators
+      if (blogTypingMap.has(currentBlogId)) {
+        blogTypingMap.get(currentBlogId).delete(userId);
+        if (blogTypingMap.get(currentBlogId).size === 0) {
+          blogTypingMap.delete(currentBlogId);
+        }
+      }
+      
+      // Notify others that user left the blog
+      socket.to(`blog:${currentBlogId}`).emit("userLeftBlog", {
+        userId,
+        blogId: currentBlogId
+      });
+    }
         // Handle active study session if it exists
         if (studySessionMap.has(userId)) {
           const sessionData = studySessionMap.get(userId);
@@ -324,6 +502,10 @@ export const initializeSocket = (server) => {
       }
     });
 
+
+
+
+    
     // Handle explicit logout
     socket.on("logout", async (userId) => {
       try {
@@ -350,6 +532,8 @@ export const initializeSocket = (server) => {
 
   return io;
 };
+
+
 
 /**
  * Update user online status and broadcast to all clients

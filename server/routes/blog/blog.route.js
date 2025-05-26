@@ -1,6 +1,9 @@
 // src/routes/blog/blog.route.js
 import express from 'express';
-import { createBlog, getAllBlogs, getBlogById, updateBlog, deleteBlog, addComment, toggleLike, getPopularPostsController } from '../../controller/blog/blog.controller.js';
+import { createBlog, getAllBlogs, getBlogById, updateBlog, deleteBlog, addComment, toggleLike, getPopularPostsController,
+  toggleCommentLike,
+  replyToComment,
+  toggleReplyLike} from '../../controller/blog/blog.controller.js';
 import { isAuthenticated, isAdmin } from '../../middlewares/isAuthenticated.js';
 import { validateBlogPost } from "../../middlewares/validation.middleware.js";
 
@@ -61,5 +64,25 @@ blogRouter.post(
   isAuthenticated,
   toggleLike
 );
+// Like/Unlike a comment (authenticated users only)
+blogRouter.post(
+  '/:blogId/comments/:commentId/like',
+  isAuthenticated,
+  toggleCommentLike
+);
 
+// Reply to a comment (authenticated users only)
+blogRouter.post(
+  '/:blogId/comments/:commentId/reply',
+  isAuthenticated,
+  validateBlogPost.addComment, // Reuse the same validation
+  replyToComment
+);
+
+// Like/Unlike a reply (authenticated users only)
+blogRouter.post(
+  '/:blogId/comments/:commentId/replies/:replyId/like',
+  isAuthenticated,
+  toggleReplyLike
+);
 export default blogRouter;
