@@ -110,21 +110,21 @@ const HomePage = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="row-span-2">
                     <img
-                      src="https://placehold.co/400x500"
+                      src="https://res.cloudinary.com/deg0l45uc/image/upload/v1753081682/Client/image3_pu8zym.png"
                       alt="Mother helping child learn"
                       className="rounded-lg shadow-md w-full h-auto"
                     />
                   </div>
                   <div>
                     <img
-                      src="https://placehold.co/300x250"
+                      src="https://res.cloudinary.com/deg0l45uc/image/upload/v1753081670/Client/image1_k3dgzs.png"
                       alt="Student learning"
                       className="rounded-lg shadow-md w-full h-auto"
                     />
                   </div>
                   <div>
                     <img
-                      src="https://placehold.co/300x250"
+                      src="https://res.cloudinary.com/deg0l45uc/image/upload/v1753081656/Client/image2_umvcxv.png"
                       alt="Student writing"
                       className="rounded-lg shadow-md w-full h-auto"
                     />
