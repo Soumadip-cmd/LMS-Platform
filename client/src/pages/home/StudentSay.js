@@ -9,21 +9,21 @@ const StudentSay = () => {
       text: "The AI feedback system helped me improve my pronunciation significantly. I feel much more confident speaking German now!",
       name: "Oliver Beddows",
       role: "German B2 Student",
-      avatar: "https://placehold.co/48x48"
+      avatar: "https://res.cloudinary.com/deg0l45uc/image/upload/v1753082933/Client/image_3_teucho.png"
     },
     {
       category: "Customer Support",
       text: "The AI feedback system helped me improve my pronunciation significantly. I feel much more confident speaking German now!",
       name: "Michael Chen",
       role: "Business German Student",
-      avatar: "https://placehold.co/48x48"
+      avatar: "https://res.cloudinary.com/deg0l45uc/image/upload/v1753082932/Client/image_1_tcjjyu.png"
     },
     {
       category: "Code Quality!",
       text: "The AI feedback system helped me improve my pronunciation significantly. I feel much more confident speaking German now!",
       name: "Oliver Beddows",
       role: "German B2 Student",
-      avatar: "https://placehold.co/48x48"
+      avatar: "https://res.cloudinary.com/deg0l45uc/image/upload/v1753082933/Client/image_2_safg6t.png"
     }
   ];
  
