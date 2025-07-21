@@ -21,7 +21,7 @@ const ExamCard = ({
           </div>
         )}
         <img 
-          src="https://placehold.co/400x320" 
+          src="https://res.cloudinary.com/deg0l45uc/image/upload/v1753081736/Client/image_hfffvt.png" 
           alt={`${title} exam`} 
           className="w-full h-48 object-cover"
         />
