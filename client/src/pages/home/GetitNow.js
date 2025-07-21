@@ -136,7 +136,7 @@ const GetitNow = () => {
         {/* Middle Section - Book Image */}
         <div className="w-full md:w-0 xl:w-1/3 flex justify-center mb-10 md:mb-0  md:hidden xl:block">
           <img
-            src="https://placehold.co/250x380"
+            src="https://res.cloudinary.com/deg0l45uc/image/upload/v1753081751/Client/Group_68_trhkgq.png"
             alt="German Learning Book"
             className="w-auto h-auto"
           />
