@@ -258,7 +258,7 @@ const Navbar = () => {
               <img 
                 src={`${process.env.PUBLIC_URL}/assets/logo/logo.png`} 
                 alt="Preplings Logo" 
-                className="h-8 w-auto sm:h-10 md:h-10 lg:h-12 xl:h-12 object-contain" 
+                className="h-8 w-auto sm:h-10 md:h-10 lg:h-12 xl:h-[2.6rem] object-contain" 
               />
             </Link>
 
