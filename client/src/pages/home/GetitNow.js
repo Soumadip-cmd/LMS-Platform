@@ -275,7 +275,7 @@ const GetitNow = () => {
         {/* Full width image for mobile */}
         <div className="sm:hidden w-full h-48">
           <img
-            src="https://placehold.co/400x240"
+            src="https://res.cloudinary.com/deg0l45uc/image/upload/v1753082312/Client/group-portrait-removebg-preview_fpww84.png"
             alt="Group of instructors"
             className="w-full h-full object-cover"
           />
@@ -313,7 +313,7 @@ const GetitNow = () => {
         {/* Full width image for mobile */}
         <div className="sm:hidden w-full h-48">
           <img
-            src="https://placehold.co/400x240"
+            src="https://res.cloudinary.com/deg0l45uc/image/upload/v1753082440/Client/image_qidwrc.png"
             alt="Education platform interface"
             className="w-full h-full object-cover"
           />
